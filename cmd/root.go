@@ -16,9 +16,10 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "rover",
 	Short: "Rover is a tool to assit the deployment of the Azure CAF Terraform landingzones",
-	Long: `The Azure CAF rover is a command line tool in charge of the deployment of the landing zones in your Azure environment.
-
-	It acts as a toolchain development environment to avoid impacting the local machine but more importantly to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
+	Long: `Azure CAF rover is a command line tool in charge of the deployment of the landing zones in your 
+Azure environment.
+It acts as a toolchain development environment to avoid impacting the local machine but more importantly 
+to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

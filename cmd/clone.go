@@ -19,7 +19,7 @@ var cloneCmd = &cobra.Command{
 	Use:   "clone",
 	Short: "Fetch supporting artifacts such as landingzones from GitHub",
 	Long: `Pull down repos from GitHub and extracts them in well defined way.
-	Git is not required`,
+Git is not required`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repo, _ := cmd.Flags().GetString("repo")
 		branch, _ := cmd.Flags().GetString("branch")

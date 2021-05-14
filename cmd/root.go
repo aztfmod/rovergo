@@ -10,16 +10,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	cfgFile string
-	version = "asdas" // App version number, set at build time with -ldflags
-)
+var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Version: version,
-	Use:     "rover",
-	Short:   "Rover is a tool to assist the deployment of the Azure CAF Terraform landingzones",
+	Use:   "rover",
+	Short: "Rover is a tool to assist the deployment of the Azure CAF Terraform landingzones",
 	Long: `Azure CAF rover is a command line tool in charge of the deployment of the landing zones in your 
 Azure environment.
 It acts as a toolchain development environment to avoid impacting the local machine but more importantly 

@@ -10,12 +10,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var (
+	cfgFile string
+	version = "asdas" // App version number, set at build time with -ldflags
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "rover",
-	Short: "Rover is a tool to assit the deployment of the Azure CAF Terraform landingzones",
+	Version: version,
+	Use:     "rover",
+	Short:   "Rover is a tool to assist the deployment of the Azure CAF Terraform landingzones",
 	Long: `Azure CAF rover is a command line tool in charge of the deployment of the landing zones in your 
 Azure environment.
 It acts as a toolchain development environment to avoid impacting the local machine but more importantly 
@@ -24,7 +28,8 @@ to make sure that all contributors in the GitOps teams are using a consistent se
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
 	cobra.CheckErr(rootCmd.Execute())
 }
 

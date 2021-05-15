@@ -10,7 +10,21 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": ["clone", "--repo", "foo/bar"]
+      "args": [
+        "clone",
+        "--repo",
+        "foo/bar"
+      ]
+    },
+    {
+      "name": "Debug login CLI",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "login"
+      ]
     }
   ]
 }

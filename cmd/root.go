@@ -11,6 +11,7 @@ import (
 )
 
 var cfgFile string
+var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -20,9 +21,11 @@ var rootCmd = &cobra.Command{
 Azure environment.
 It acts as a toolchain development environment to avoid impacting the local machine but more importantly 
 to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
+	PersistentPreRun: verify_version,
+}
 
-	// Run: func(cmd *cobra.Command, args []string) {
-	// },
+func verify_version(cmd *cobra.Command, args []string) {
+	//TODO: Verify that the current version installed is the latest version kind of what pip does
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -40,6 +43,8 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rover.yaml)")
+
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "emit debug information")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

@@ -16,11 +16,13 @@ var loginCmd = &cobra.Command{
 	Short: "Login into the azure account",
 	Long:  `Login into the azure account`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := login()
+		setArmEnv()
+		_, err := IsAuthenticated()
 		if err != nil {
 			log.Fatal(err)
+		} else {
+			saveFlags()
 		}
-		saveFlags()
 	},
 }
 
@@ -46,7 +48,7 @@ func init() {
 	loginCmd.Flags().Bool("use_msi", use_msi_default, "allowed Managed Service Identity be used for Authentication")
 }
 
-func login() (*authentication.Config, error) {
+func setArmEnv() {
 	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription_id"))
 	os.Setenv("ARM_CLIENT_ID", viper.GetString("client_id"))
 	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant_id"))
@@ -56,7 +58,6 @@ func login() (*authentication.Config, error) {
 	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("client_secret"))
 	os.Setenv("ARM_USE_MSI", viper.GetString("use_msi"))
 	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("msi_endpoint"))
-	return IsAuthenticated()
 }
 
 func saveFlags() {

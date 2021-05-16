@@ -49,7 +49,6 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 	// Other tasks
 }
 
@@ -74,8 +73,9 @@ func initConfig() {
 		viper.SetDefault("terraform.install", true)
 		viper.SetDefault("terraform.installPath", "./bin")
 	}
-
+	viper.SetEnvPrefix("rover")
 	viper.AutomaticEnv() // read in environment variables that match
+	viper.BindPFlags(loginCmd.LocalFlags())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

@@ -7,10 +7,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-var subscription_id, client_id, client_secret, tenant_id, environment, msi_endpoint, client_certificate_password, client_certificate_path string
-var use_msi bool
 
 // cloneCmd represents the clone command
 var loginCmd = &cobra.Command{
@@ -22,6 +20,7 @@ var loginCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		saveFlags()
 	},
 }
 
@@ -36,28 +35,32 @@ func init() {
 		use_msi_default_string = "false"
 	}
 	use_msi_default, _ := strconv.ParseBool(use_msi_default_string)
-	loginCmd.Flags().StringVar(&subscription_id, "subscription_id", os.Getenv("ARM_SUBSCRIPTION_ID"), "The Subscription ID which should be used")
-	loginCmd.Flags().StringVar(&client_id, "client_id", os.Getenv("ARM_CLIENT_ID"), "The Client ID which should be used")
-	loginCmd.Flags().StringVar(&client_id, "client_secret", os.Getenv("ARM_CLIENT_SECRET"), "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret")
-	loginCmd.Flags().StringVar(&tenant_id, "tenant_id", os.Getenv("ARM_TENANT_ID"), "The Tenant ID which should be used")
-	loginCmd.Flags().StringVar(&environment, "environment", env_default, "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china")
-	loginCmd.Flags().StringVar(&msi_endpoint, "msi_endpoint", os.Getenv("ARM_MSI_ENDPOINT"), "the path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically")
-	loginCmd.Flags().StringVar(&client_certificate_password, "client_certificate_password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "certificate password")
-	loginCmd.Flags().StringVar(&client_certificate_path, "client_certificate_path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "the path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate")
-	loginCmd.Flags().BoolVar(&use_msi, "use_msi", use_msi_default, "allowed Managed Service Identity be used for Authentication")
+	loginCmd.Flags().StringP("subscription_id", "s", os.Getenv("ARM_SUBSCRIPTION_ID"), "The Subscription ID which should be used")
+	loginCmd.Flags().StringP("client_id", "u", os.Getenv("ARM_CLIENT_ID"), "The Client ID which should be used")
+	loginCmd.Flags().StringP("client_secret", "p", os.Getenv("ARM_CLIENT_SECRET"), "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret")
+	loginCmd.Flags().String("tenant_id", os.Getenv("ARM_TENANT_ID"), "The Tenant ID which should be used")
+	loginCmd.Flags().String("environment", env_default, "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china")
+	loginCmd.Flags().String("msi_endpoint", os.Getenv("ARM_MSI_ENDPOINT"), "the path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically")
+	loginCmd.Flags().String("client_certificate_password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "certificate password")
+	loginCmd.Flags().String("client_certificate_path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "the path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate")
+	loginCmd.Flags().Bool("use_msi", use_msi_default, "allowed Managed Service Identity be used for Authentication")
 }
 
 func login() (*authentication.Config, error) {
-	os.Setenv("ARM_SUBSCRIPTION_ID", subscription_id)
-	os.Setenv("ARM_CLIENT_ID", client_id)
-	os.Setenv("ARM_TENANT_ID", tenant_id)
-	os.Setenv("ARM_ENVIRONMENT", environment)
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", client_certificate_path)
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", client_certificate_password)
-	os.Setenv("ARM_CLIENT_SECRET", client_secret)
-	os.Setenv("ARM_USE_MSI", strconv.FormatBool(use_msi))
-	os.Setenv("ARM_MSI_ENDPOINT", msi_endpoint)
+	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription_id"))
+	os.Setenv("ARM_CLIENT_ID", viper.GetString("client_id"))
+	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant_id"))
+	os.Setenv("ARM_ENVIRONMENT", viper.GetString("environment"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("client_certificate_path"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("client_certificate_password"))
+	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("client_secret"))
+	os.Setenv("ARM_USE_MSI", viper.GetString("use_msi"))
+	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("msi_endpoint"))
 	return IsAuthenticated()
+}
+
+func saveFlags() {
+	viper.WriteConfig()
 }
 
 func IsAuthenticated() (*authentication.Config, error) {

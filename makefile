@@ -10,7 +10,7 @@ build:  ## 🔨 Build the rover binary
 	go build -ldflags "-X main.version='$(VERSION)'" -o bin/rover 
 
 run:  ## 🏃‍ Run locally
-	go run main.go
+	go run main.go $(ARGS)
 
 clean:  ## 🧹 Cleanup project
 	rm -rf bin

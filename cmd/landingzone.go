@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -11,12 +9,7 @@ var landingzoneCmd = &cobra.Command{
 	Use:     "landingzone",
 	Aliases: []string{"lz"},
 	Short:   "Manage landing zones",
-	Long:    `Blah blah `,
-
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("\nARGS: %+v\n", args)
-		fmt.Println("landingzone called")
-	},
+	Long:    `Blah blah words here, landingzones very important something enterprise something`,
 }
 
 func init() {

@@ -6,10 +6,12 @@ package command
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
 )
 
@@ -25,6 +27,8 @@ type Command struct {
 	StdErr  string
 	StdOut  string
 	DryRun  bool
+	Silent  bool
+	OsEnv   bool
 }
 
 func NewCommand(exe string, args []string) *Command {
@@ -32,10 +36,12 @@ func NewCommand(exe string, args []string) *Command {
 		Exe:    exe,
 		Args:   args,
 		DryRun: false,
+		Silent: true,
+		OsEnv:  true,
 	}
 }
 
-func (c *Command) Execute(includeOsEnv bool) error {
+func (c *Command) Execute() error {
 	if err := CheckCommand(c.Exe); err != nil {
 		return err
 	}
@@ -48,7 +54,10 @@ func (c *Command) Execute(includeOsEnv bool) error {
 			fmt.Sprintf("%s=%s", envVar.Name, envVar.Value),
 		)
 	}
-	color.Blue("Executing %s %s", c.Exe, c.Args)
+
+	if !c.Silent {
+		color.Blue("Executing %s %s", c.Exe, c.Args)
+	}
 
 	// Handy for debugging
 	if c.DryRun {
@@ -56,7 +65,7 @@ func (c *Command) Execute(includeOsEnv bool) error {
 	}
 
 	// Append system env vars, pretty rare you *wouldn't* want these
-	if includeOsEnv {
+	if c.OsEnv {
 		cmd.Env = append(cmd.Env, os.Environ()...)
 	}
 
@@ -74,6 +83,20 @@ func (c *Command) Execute(includeOsEnv bool) error {
 	c.StdOut = stdout.String()
 	c.StdErr = stderr.String()
 	return nil
+}
+
+func QuickRun(args ...string) (string, error) {
+	if len(args) < 1 {
+		return "", errors.New("must supply at least one argument")
+	}
+	exe := args[0]
+	restOfArgs := utils.StringSliceDel(args, 0)
+	cmd := NewCommand(exe, restOfArgs)
+	err := cmd.Execute()
+	if err != nil {
+		return "", err
+	}
+	return cmd.StdOut, nil
 }
 
 func EnsureDirectory(dir string) {

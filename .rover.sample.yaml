@@ -1,0 +1,16 @@
+# General place to put things
+tempDir: /tmp
+
+# Terraform options
+terraform:
+  # If terraform not found in system PATH, should we carry out a local install?
+  install: true
+  # Where to install terraform into, if install is true
+  installPath: ./bin
+
+# Remote state nonsense
+state:
+  accountName: __CHANGE_ME__
+  resourceGroup: __CHANGE_ME__
+  container: tfstate
+  accessKey: __CHANGE_ME__

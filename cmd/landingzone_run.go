@@ -1,8 +1,15 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/fatih/color"
+	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // listCmd represents the list command
@@ -42,4 +49,39 @@ func runAction(action string, source string, varsLocation string, stateKey strin
 	color.Green(" - Level: %d", level)
 	color.Green(" - State name: %s", stateKey)
 	color.Green(" - Environment name: %s", env)
+
+	tfPath, err := terraform.Setup()
+	cobra.CheckErr(err)
+	tf, err := tfexec.NewTerraform(source, tfPath)
+	cobra.CheckErr(err)
+
+	initOpts := []tfexec.InitOption{
+		tfexec.BackendConfig(fmt.Sprintf("storage_account_name=%s", viper.GetString("state.accountName"))),
+		tfexec.BackendConfig(fmt.Sprintf("container_name=%s", viper.GetString("state.container"))),
+		tfexec.BackendConfig(fmt.Sprintf("resource_group_name=%s", viper.GetString("state.resourceGroup"))),
+		tfexec.BackendConfig(fmt.Sprintf("key=%s", viper.GetString("state.accessKey"))),
+		tfexec.Reconfigure(true),
+		tfexec.Upgrade(true),
+		tfexec.Backend(true),
+	}
+
+	color.Blue("RUNNING INIT")
+	color.Blue("STATE OPTIONS: %+v", viper.GetStringMap("state"))
+	err = tf.Init(context.Background(), initOpts...)
+	cobra.CheckErr(err)
+
+	switch strings.ToLower(action) {
+	case "plan":
+		color.Blue("RUNNING PLAN")
+		result, err := tf.Plan(context.Background(), tfexec.Out("rover.tfplan"))
+		color.Blue("PLAN RESULT WAS %v", result)
+		cobra.CheckErr(err)
+	case "apply":
+		color.Blue("RUNNING APPLY")
+		err := tf.Apply(context.Background(), tfexec.DirOrPlan("rover.tfplan"))
+		cobra.CheckErr(err)
+	default:
+		cobra.CheckErr(color.RedString("provided action '%s' is invalid", action))
+	}
+
 }

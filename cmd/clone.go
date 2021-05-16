@@ -61,12 +61,12 @@ func runClone(repo string, branch string, strip int, dest string, subFolder stri
 	cmd := command.NewCommand("curl", []string{
 		cloneUrl, "--fail", "--silent", "--show-error", "-o", tarFile,
 	})
-	err := cmd.Execute(true)
+	err := cmd.Execute()
 	cobra.CheckErr(err)
 
 	cmd = command.NewCommand("tar", []string{
 		"-zxvf", tarFile, "--strip-components", strconv.Itoa(strip), "-C", dest, folderName,
 	})
-	err = cmd.Execute(true)
+	err = cmd.Execute()
 	cobra.CheckErr(err)
 }

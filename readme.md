@@ -6,8 +6,19 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
 
 # Current status
 
+### ☢ This should be considered spike / poc / investigation grade code
+
 The rover "clone" command has been implemented as a test of the effort.
 External command integration & execution is done via `pkg/command/command.go`
+
+The "landingzone" command has been split into "run" and "list" sub-commands
+The "run" sub-command currently can perform init, plan and apply and also connect to remote state. It uses [hashicorp/terraform-exec](https://github.com/hashicorp/terraform-exec) to interface with the terraform CLI
+
+The `.rover.yaml` config file is used for all config and also holds remote state (backend) details for Terraform, as this includes storage access keys it's kept out of git. See the `.rover.sample.yaml`
+
+This file needs to be located where `rover` is executing or in your home directory
+
+# Example outputs from the CLI
 
 ```
 $ ./rover
@@ -22,14 +33,38 @@ Usage:
 
 Available Commands:
   clone       Fetch supporting artifacts such as landingzones from GitHub
+  completion  Generate completion script
   help        Help about any command
+  landingzone Manage landing zones
 
 Flags:
       --config string   config file (default is $HOME/.rover.yaml)
   -h, --help            help for rover
   -t, --toggle          Help message for toggle
+  -v, --version         version for rover
 
 Use "rover [command] --help" for more information about a command.
+```
+
+Landingzone Run command
+
+```
+Run an action for landingzones
+
+Usage:
+  rover landingzone run [flags]
+
+Flags:
+  -a, --action string      Action to run, one of [plan | apply | destroy] (default "plan")
+  -e, --env string         Name of environment (default "caf")
+  -h, --help               help for run
+  -l, --level int          Level (default 1)
+  -s, --source string      Source of landingzone (required)
+  -n, --statename string   State and plan name (default "mystate")
+  -v, --vars string        Where configuration vars are located (default ".")
+
+Global Flags:
+      --config string   config file (default is $HOME/.rover.yaml)
 ```
 
 Clone command

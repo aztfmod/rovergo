@@ -21,7 +21,9 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/aztfmod/rover/cmd"
+import (
+	"github.com/aztfmod/rover/cmd"
+)
 
 // Have to put version here or ldflags can't set it ¯\_(ツ)_/¯
 var version = "0.0.0"

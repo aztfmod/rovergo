@@ -1,3 +1,9 @@
 landingzones/
 rover
 bin/
+.terraform*
+*.tfstate
+*.tfplan
+
+# Config file might have secrets
+.rover.yaml

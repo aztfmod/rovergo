@@ -20,6 +20,9 @@ var rootCmd = &cobra.Command{
 Azure environment.
 It acts as a toolchain development environment to avoid impacting the local machine but more importantly 
 to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
+
+	// Run: func(cmd *cobra.Command, args []string) {
+	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -63,6 +66,8 @@ func initConfig() {
 
 		// Config defaults
 		viper.SetDefault("tempDir", "/tmp")
+		viper.SetDefault("terraform.install", true)
+		viper.SetDefault("terraform.installPath", "./bin")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

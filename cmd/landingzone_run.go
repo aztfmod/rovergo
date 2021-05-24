@@ -39,7 +39,8 @@ func init() {
 	lzRunCmd.Flags().IntP("level", "l", 1, "Level")
 	lzRunCmd.Flags().StringP("statename", "n", "mystate", "State and plan name")
 
-	cobra.MarkFlagRequired(lzRunCmd.Flags(), "source")
+	err := cobra.MarkFlagRequired(lzRunCmd.Flags(), "source")
+	cobra.CheckErr(err)
 	landingzoneCmd.AddCommand(lzRunCmd)
 }
 

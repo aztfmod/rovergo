@@ -1,5 +1,6 @@
 package utils
 
+// StringSliceDel deletes a specific index from a slide of strings
 // Taken from https://yourbasic.org/golang/delete-element-slice/
 func StringSliceDel(a []string, i int) []string {
 	copy(a[i:], a[i+1:]) // Shift a[i+1:] left one index.

@@ -47,7 +47,7 @@ func runClone(repo string, branch string, strip int, dest string, subFolder stri
 	color.Green("Running clone operation. Will fetch %s branch of %s and place into %s", branch, repo, dest)
 
 	tempDir := viper.GetString("tempDir")
-	cloneUrl := fmt.Sprintf("%s/%s/tar.gz/%s", gitBase, repo, branch)
+	cloneURL := fmt.Sprintf("%s/%s/tar.gz/%s", gitBase, repo, branch)
 	tarFile := fmt.Sprintf("%s/%s", tempDir, tempFileName)
 
 	projParts := strings.Split(repo, "/")
@@ -59,7 +59,7 @@ func runClone(repo string, branch string, strip int, dest string, subFolder stri
 	folderName := fmt.Sprintf("%s-%s/%s", projName, branch, subFolder)
 
 	cmd := command.NewCommand("curl", []string{
-		cloneUrl, "--fail", "--silent", "--show-error", "-o", tarFile,
+		cloneURL, "--fail", "--silent", "--show-error", "-o", tarFile,
 	})
 	err := cmd.Execute()
 	cobra.CheckErr(err)

@@ -13,6 +13,7 @@ import (
 
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 type EnvVar struct {
@@ -100,11 +101,13 @@ func QuickRun(args ...string) (string, error) {
 }
 
 func EnsureDirectory(dir string) {
-	os.MkdirAll(dir, os.ModePerm)
+	err := os.MkdirAll(dir, os.ModePerm)
+	cobra.CheckErr(err)
 }
 
 func RemoveDirectory(dir string) {
-	os.RemoveAll(dir)
+	err := os.RemoveAll(dir)
+	cobra.CheckErr(err)
 }
 
 func CheckCommand(reqCmdName string) error {

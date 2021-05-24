@@ -18,7 +18,7 @@ import (
 var requiredMinVer, _ = version.NewVersion("0.15.0")
 
 //
-// Get path to Terraform, optionally install it, and check version
+// Setup gets a path to Terraform, optionally install it, and check version
 //
 func Setup() (string, error) {
 	// Config to control if install happens and where
@@ -49,7 +49,7 @@ func Setup() (string, error) {
 }
 
 //
-// Validate that Terraform is at he rerquired version
+// CheckVersion ensures that Terraform is at the required version
 //
 func CheckVersion(path string) {
 	// Working dir shouldn't matter for this command

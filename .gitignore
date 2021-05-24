@@ -7,3 +7,6 @@ bin/
 
 # Config file might have secrets
 .rover.yaml
+
+# Goreleaser
+dist/

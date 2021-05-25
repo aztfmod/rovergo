@@ -33,6 +33,8 @@ func verify_version(cmd *cobra.Command, args []string) {
 func Execute(version string) {
 	rootCmd.Version = version
 	cobra.CheckErr(rootCmd.Execute())
+
+	debug, _ = rootCmd.Flags().GetBool("debug")
 }
 
 func init() {
@@ -43,13 +45,7 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rover.yaml)")
-
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "emit debug information")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	// Other tasks
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "emit debug information, may contain secrets")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -72,12 +68,12 @@ func initConfig() {
 		viper.SetDefault("tempDir", "/tmp")
 		viper.SetDefault("terraform.install", true)
 		viper.SetDefault("terraform.install-path", "./bin")
-
 		viper.SetDefault("state.storage-account", "")
 		viper.SetDefault("state.container", "")
 		viper.SetDefault("state.resource-group", "")
 		viper.SetDefault("state.access-key", "")
 	}
+
 	viper.SetEnvPrefix("rover")
 	viper.AutomaticEnv() // read in environment variables that match
 

@@ -31,3 +31,4 @@ clean: ## 🧹 Cleanup project
 	rm -rf bin
 	rm -rf dist
 	rm -rf landingzones
+	go mod tidy

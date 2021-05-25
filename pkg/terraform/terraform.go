@@ -47,7 +47,7 @@ func Setup() (string, error) {
 	}
 
 	// Initialize terraform for use with Azure
-	SetupAzureEnvironment()
+	SetAzureEnvVars()
 	CheckVersion(path)
 
 	path, err = filepath.Abs(path)
@@ -75,7 +75,7 @@ func CheckVersion(path string) {
 //
 // SetupAzureEnvironment should be called before any terraform operations
 //
-func SetupAzureEnvironment() {
+func SetAzureEnvVars() {
 	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("auth.subscription-id"))
 	os.Setenv("ARM_CLIENT_ID", viper.GetString("auth.client-id"))
 	os.Setenv("ARM_TENANT_ID", viper.GetString("auth.tenant-id"))

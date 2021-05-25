@@ -10,7 +10,20 @@ terraform:
 
 # Remote state nonsense
 state:
-  accountName: __CHANGE_ME__
-  resourceGroup: __CHANGE_ME__
+  storage-account: __CHANGE_ME__
+  resource-group: __CHANGE_ME__
   container: tfstate
-  accessKey: __CHANGE_ME__
+  access-key: __CHANGE_ME__
+
+# Authentication to Azure, not all keys are required
+# Run `rover login --help` for details
+auth:
+  client-cert-password:
+  client-cert-path:
+  client-id:
+  client-secret:
+  environment:
+  msi-endpoint:
+  subscription-id:
+  tenant-id:
+  use-msi: false

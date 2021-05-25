@@ -71,6 +71,13 @@ func runAction(action string, source string, varsLocation string, stateKey strin
 		tfexec.Backend(true),
 	}
 
+	if debug {
+		for k := range viper.GetStringMapString("state") {
+			color.Magenta("%s=%s\n", k, viper.GetString("state."+k))
+		}
+		color.Magenta("key=%s\n", stateKey)
+	}
+
 	color.Blue("RUNNING INIT")
 	err = tf.Init(context.Background(), initOpts...)
 	cobra.CheckErr(err)

@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/fatih/color"
@@ -18,19 +19,25 @@ var loginCmd = &cobra.Command{
 	Short: "Login into the Azure account",
 	Long:  `Authenticate with an Azure account, either the locally logged in user (from Azure CLI), a service principal or managed service identity`,
 	Run: func(cmd *cobra.Command, args []string) {
-		terraform.SetupAzureEnvironment()
+		terraform.SetAzureEnvVars()
 		_, err := isAuthenticated()
 		if err != nil {
 			cobra.CheckErr(color.RedString("%v", err))
 		}
 		saveFlags()
+
+		if debug {
+			for _, pair := range os.Environ() {
+				if strings.Contains(pair, "ARM_") {
+					color.Magenta(pair)
+				}
+			}
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
-	// // for the login command map flags to config file keys
-	// viper.BindPFlags(loginCmd.LocalFlags())
 
 	azureEnvDefault, set := os.LookupEnv("ARM_ENVIRONMENT")
 	if !set {
@@ -41,15 +48,15 @@ func init() {
 		useMsiDefaultString = "false"
 	}
 	useMsiDefault, _ := strconv.ParseBool(useMsiDefaultString)
-	loginCmd.Flags().StringP("subscription-id", "s", os.Getenv("ARM_SUBSCRIPTION_ID"), "The subscription ID which should be used")
-	loginCmd.Flags().StringP("client-id", "u", os.Getenv("ARM_CLIENT_ID"), "The client ID which should be used")
-	loginCmd.Flags().StringP("client-secret", "p", os.Getenv("ARM_CLIENT_SECRET"), "The client secret which should be used. For use when authenticating as a service principal using a client secret")
-	loginCmd.Flags().StringP("tenant-id", "t", os.Getenv("ARM_TENANT_ID"), "The tenant ID which should be used")
-	loginCmd.Flags().String("environment", azureEnvDefault, "The cloud environment which should be used. Possible values are public, usgovernment, german, and china")
-	loginCmd.Flags().String("msi-endpoint", os.Getenv("ARM_MSI_ENDPOINT"), "The path to a custom endpoint for managed service identity - in most circumstances this should be detected automatically")
-	loginCmd.Flags().String("client-cert-password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "Certificate password, if client-certificate-path is set")
-	loginCmd.Flags().String("client-cert-path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "The path to the client certificate associated with the service principal for use when authenticating as a service principal using a client certificate")
-	loginCmd.Flags().Bool("use-msi", useMsiDefault, "Allowed managed service identity be used for authentication")
+	loginCmd.Flags().StringP("subscription-id", "s", os.Getenv("ARM_SUBSCRIPTION_ID"), "Subscription ID which should be used")
+	loginCmd.Flags().StringP("client-id", "u", os.Getenv("ARM_CLIENT_ID"), "Client ID which should be used")
+	loginCmd.Flags().StringP("client-secret", "p", os.Getenv("ARM_CLIENT_SECRET"), "Client secret which should be used. For use when authenticating as a service principal using a client secret")
+	loginCmd.Flags().StringP("tenant-id", "t", os.Getenv("ARM_TENANT_ID"), "Tenant ID which should be used")
+	loginCmd.Flags().String("environment", azureEnvDefault, "Azure cloud environment which should be used. Possible values are public, usgovernment, german, and china")
+	loginCmd.Flags().String("msi-endpoint", os.Getenv("ARM_MSI_ENDPOINT"), "Path to a custom endpoint for managed service identity - in most circumstances this should be detected automatically")
+	loginCmd.Flags().String("client-cert-password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "Certificate password, if --client-cert-path is set")
+	loginCmd.Flags().String("client-cert-path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "Path to the client certificate associated with the service principal for use when authenticating as a service principal using a client certificate")
+	loginCmd.Flags().Bool("use-msi", useMsiDefault, "Try to use managed service identity for authentication")
 
 	// Important we bind flags to config, and put under the 'auth.' section key
 	loginCmd.Flags().VisitAll(func(f *pflag.Flag) {

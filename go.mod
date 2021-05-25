@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/fatih/color v1.11.0
+	github.com/hashicorp/go-azure-helpers v0.16.0
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/terraform-exec v0.13.3
 	github.com/mitchellh/go-homedir v1.1.0

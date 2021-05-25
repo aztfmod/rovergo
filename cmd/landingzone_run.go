@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const planFileName = "rover.tfplan"
+
 // listCmd represents the list command
 var lzRunCmd = &cobra.Command{
 	Use:   "run",
@@ -56,30 +58,32 @@ func runAction(action string, source string, varsLocation string, stateKey strin
 	tf, err := tfexec.NewTerraform(source, tfPath)
 	cobra.CheckErr(err)
 
+	// TEMPORARY IMPLEMENTATION!
+	// Always requires remote state config
 	initOpts := []tfexec.InitOption{
-		tfexec.BackendConfig(fmt.Sprintf("storage_account_name=%s", viper.GetString("state.accountName"))),
+		tfexec.BackendConfig(fmt.Sprintf("storage_account_name=%s", viper.GetString("state.storage-account"))),
 		tfexec.BackendConfig(fmt.Sprintf("container_name=%s", viper.GetString("state.container"))),
-		tfexec.BackendConfig(fmt.Sprintf("resource_group_name=%s", viper.GetString("state.resourceGroup"))),
-		tfexec.BackendConfig(fmt.Sprintf("key=%s", viper.GetString("state.accessKey"))),
+		tfexec.BackendConfig(fmt.Sprintf("resource_group_name=%s", viper.GetString("state.resource-group"))),
+		tfexec.BackendConfig(fmt.Sprintf("access_key=%s", viper.GetString("state.access-key"))),
+		tfexec.BackendConfig(fmt.Sprintf("key=%s", stateKey)),
 		tfexec.Reconfigure(true),
 		tfexec.Upgrade(true),
 		tfexec.Backend(true),
 	}
 
 	color.Blue("RUNNING INIT")
-	color.Blue("STATE OPTIONS: %+v", viper.GetStringMap("state"))
 	err = tf.Init(context.Background(), initOpts...)
 	cobra.CheckErr(err)
 
 	switch strings.ToLower(action) {
 	case "plan":
 		color.Blue("RUNNING PLAN")
-		result, err := tf.Plan(context.Background(), tfexec.Out("rover.tfplan"))
+		result, err := tf.Plan(context.Background(), tfexec.Out(planFileName))
 		color.Blue("PLAN RESULT WAS %v", result)
 		cobra.CheckErr(err)
 	case "apply":
 		color.Blue("RUNNING APPLY")
-		err := tf.Apply(context.Background(), tfexec.DirOrPlan("rover.tfplan"))
+		err := tf.Apply(context.Background(), tfexec.DirOrPlan(planFileName))
 		cobra.CheckErr(err)
 	default:
 		cobra.CheckErr(color.RedString("provided action '%s' is invalid", action))

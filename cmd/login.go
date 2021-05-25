@@ -4,9 +4,11 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -16,8 +18,8 @@ var loginCmd = &cobra.Command{
 	Short: "Login into the Azure account",
 	Long:  `Authenticate with an Azure account, either the locally logged in user (from Azure CLI), a service principal or managed service identity`,
 	Run: func(cmd *cobra.Command, args []string) {
-		SetupAzureEnvironment()
-		_, err := IsAuthenticated()
+		terraform.SetupAzureEnvironment()
+		_, err := isAuthenticated()
 		if err != nil {
 			cobra.CheckErr(color.RedString("%v", err))
 		}
@@ -27,6 +29,9 @@ var loginCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
+	// // for the login command map flags to config file keys
+	// viper.BindPFlags(loginCmd.LocalFlags())
+
 	azureEnvDefault, set := os.LookupEnv("ARM_ENVIRONMENT")
 	if !set {
 		azureEnvDefault = "public"
@@ -42,28 +47,21 @@ func init() {
 	loginCmd.Flags().StringP("tenant-id", "t", os.Getenv("ARM_TENANT_ID"), "The tenant ID which should be used")
 	loginCmd.Flags().String("environment", azureEnvDefault, "The cloud environment which should be used. Possible values are public, usgovernment, german, and china")
 	loginCmd.Flags().String("msi-endpoint", os.Getenv("ARM_MSI_ENDPOINT"), "The path to a custom endpoint for managed service identity - in most circumstances this should be detected automatically")
-	loginCmd.Flags().String("client-certificate-password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "Certificate password, if client-certificate-path is set")
-	loginCmd.Flags().String("client-certificate-path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "The path to the client certificate associated with the service principal for use when authenticating as a service principal using a client certificate")
+	loginCmd.Flags().String("client-cert-password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "Certificate password, if client-certificate-path is set")
+	loginCmd.Flags().String("client-cert-path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "The path to the client certificate associated with the service principal for use when authenticating as a service principal using a client certificate")
 	loginCmd.Flags().Bool("use-msi", useMsiDefault, "Allowed managed service identity be used for authentication")
-}
 
-func SetupAzureEnvironment() {
-	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription-id"))
-	os.Setenv("ARM_CLIENT_ID", viper.GetString("client-id"))
-	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant-id"))
-	os.Setenv("ARM_ENVIRONMENT", viper.GetString("environment"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("client-certificate-path"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("client-certificate-password"))
-	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("client-secret"))
-	os.Setenv("ARM_USE_MSI", viper.GetString("use-msi"))
-	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("msi-endpoint"))
+	// Important we bind flags to config, and put under the 'auth.' section key
+	loginCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		viper.BindPFlag("auth."+f.Name, f)
+	})
 }
 
 func saveFlags() {
 	viper.WriteConfig()
 }
 
-func IsAuthenticated() (*authentication.Config, error) {
+func isAuthenticated() (*authentication.Config, error) {
 	builder := &authentication.Builder{
 		TenantOnly:               false,
 		SupportsAuxiliaryTenants: false,

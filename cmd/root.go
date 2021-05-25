@@ -70,14 +70,16 @@ func initConfig() {
 
 		// Config defaults
 		viper.SetDefault("tempDir", "/tmp")
-		viper.SetDefault("terraform-install", true)
-		viper.SetDefault("terraform-install-path", "./bin")
+		viper.SetDefault("terraform.install", true)
+		viper.SetDefault("terraform.install-path", "./bin")
+
+		viper.SetDefault("state.storage-account", "")
+		viper.SetDefault("state.container", "")
+		viper.SetDefault("state.resource-group", "")
+		viper.SetDefault("state.access-key", "")
 	}
 	viper.SetEnvPrefix("rover")
 	viper.AutomaticEnv() // read in environment variables that match
-
-	// for the login command map flags to config file keys
-	viper.BindPFlags(loginCmd.LocalFlags())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

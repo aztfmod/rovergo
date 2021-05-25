@@ -24,8 +24,8 @@ var requiredMinVer, _ = version.NewVersion("0.15.0")
 //
 func Setup() (string, error) {
 	// Config to control if install happens and where
-	install := viper.GetBool("terraform-install")
-	installPath := viper.GetString("terraform-install-path")
+	install := viper.GetBool("terraform.install")
+	installPath := viper.GetString("terraform.install-path")
 
 	// First look in system path & installPath
 	path, err := tfinstall.Find(context.Background(), tfinstall.LookPath(), tfinstall.ExactPath(installPath+"/terraform"))
@@ -76,13 +76,13 @@ func CheckVersion(path string) {
 // SetupAzureEnvironment should be called before any terraform operations
 //
 func SetupAzureEnvironment() {
-	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription-id"))
-	os.Setenv("ARM_CLIENT_ID", viper.GetString("client-id"))
-	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant-id"))
-	os.Setenv("ARM_ENVIRONMENT", viper.GetString("environment"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("client-certificate-path"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("client-certificate-password"))
-	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("client-secret"))
-	os.Setenv("ARM_USE_MSI", viper.GetString("use-msi"))
-	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("msi-endpoint"))
+	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("auth.subscription-id"))
+	os.Setenv("ARM_CLIENT_ID", viper.GetString("auth.client-id"))
+	os.Setenv("ARM_TENANT_ID", viper.GetString("auth.tenant-id"))
+	os.Setenv("ARM_ENVIRONMENT", viper.GetString("auth.environment"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("auth.client-cert-path"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("auth.client-cert-password"))
+	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("auth.client-secret"))
+	os.Setenv("ARM_USE_MSI", viper.GetString("auth.use-msi"))
+	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("auth.msi-endpoint"))
 }

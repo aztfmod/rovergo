@@ -6,7 +6,7 @@ bin/
 *.tfplan
 
 # Config file might have secrets
-.rover.yaml
+.rover.*
 
 # Goreleaser
 dist/

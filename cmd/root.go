@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -70,15 +70,23 @@ func initConfig() {
 
 		// Config defaults
 		viper.SetDefault("tempDir", "/tmp")
-		viper.SetDefault("terraform.install", true)
-		viper.SetDefault("terraform.installPath", "./bin")
+		viper.SetDefault("terraform-install", true)
+		viper.SetDefault("terraform-install-path", "./bin")
 	}
 	viper.SetEnvPrefix("rover")
 	viper.AutomaticEnv() // read in environment variables that match
+
+	// for the login command map flags to config file keys
 	viper.BindPFlags(loginCmd.LocalFlags())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		color.Green("Using config file: %s", viper.ConfigFileUsed())
+	} else {
+		// Fall back to creating empty config file
+		fileName := "./.rover.yaml"
+		_, err := os.Create(fileName)
+		cobra.CheckErr(err)
+		color.Yellow("Config file not found, creating new file %s with defaults", fileName)
 	}
 }

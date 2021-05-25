@@ -6,6 +6,8 @@ package terraform
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
@@ -22,8 +24,8 @@ var requiredMinVer, _ = version.NewVersion("0.15.0")
 //
 func Setup() (string, error) {
 	// Config to control if install happens and where
-	install := viper.GetBool("terraform.install")
-	installPath := viper.GetString("terraform.installPath")
+	install := viper.GetBool("terraform-install")
+	installPath := viper.GetString("terraform-install-path")
 
 	// First look in system path & installPath
 	path, err := tfinstall.Find(context.Background(), tfinstall.LookPath(), tfinstall.ExactPath(installPath+"/terraform"))
@@ -44,7 +46,13 @@ func Setup() (string, error) {
 		return "", err
 	}
 
+	// Initialize terraform for use with Azure
+	SetupAzureEnvironment()
 	CheckVersion(path)
+
+	path, err = filepath.Abs(path)
+	cobra.CheckErr(err)
+
 	return path, nil
 }
 
@@ -62,4 +70,19 @@ func CheckVersion(path string) {
 		cobra.CheckErr(color.RedString("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
 	}
 	color.Green("Terraform is at version %v", tfVer)
+}
+
+//
+// SetupAzureEnvironment should be called before any terraform operations
+//
+func SetupAzureEnvironment() {
+	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription-id"))
+	os.Setenv("ARM_CLIENT_ID", viper.GetString("client-id"))
+	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant-id"))
+	os.Setenv("ARM_ENVIRONMENT", viper.GetString("environment"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("client-certificate-path"))
+	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("client-certificate-password"))
+	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("client-secret"))
+	os.Setenv("ARM_USE_MSI", viper.GetString("use-msi"))
+	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("msi-endpoint"))
 }

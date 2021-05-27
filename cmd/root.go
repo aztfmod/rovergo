@@ -42,7 +42,7 @@ func Execute(version string) {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rover.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./.rover.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
 }
 

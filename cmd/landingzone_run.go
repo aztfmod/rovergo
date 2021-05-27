@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/terraform"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/spf13/cobra"
@@ -71,12 +72,10 @@ func runAction(action string, source string, varsLocation string, stateKey strin
 		tfexec.Backend(true),
 	}
 
-	if debug {
-		for k := range viper.GetStringMapString("state") {
-			color.Magenta("%s=%s\n", k, viper.GetString("state."+k))
-		}
-		color.Magenta("key=%s\n", stateKey)
+	for k := range viper.GetStringMapString("state") {
+		utils.Debug(fmt.Sprintf("%s = %s", k, viper.GetString("state."+k)))
 	}
+	utils.Debug(fmt.Sprintf("key = %s", stateKey))
 
 	color.Blue("RUNNING INIT")
 	err = tf.Init(context.Background(), initOpts...)

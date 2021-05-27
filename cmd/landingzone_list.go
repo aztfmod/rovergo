@@ -12,7 +12,7 @@ var lzListCmd = &cobra.Command{
 	Short: "List all landingzones",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+		fmt.Println("landingzones list called")
 	},
 }
 

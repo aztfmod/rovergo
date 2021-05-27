@@ -12,13 +12,12 @@ import (
 )
 
 const gitBase = "https://codeload.github.com"
-const tempFileName = "roverclone.tar.gz"
+const tempFileName = "roverfetch.tar.gz"
 
-// cloneCmd represents the clone command
-var cloneCmd = &cobra.Command{
-	Use:   "clone",
+var lzFetchCmd = &cobra.Command{
+	Use:   "fetch",
 	Short: "Fetch supporting artifacts such as landingzones from GitHub",
-	Long: `Pull down repos from GitHub and extracts them in well defined way.
+	Long: `Pull down landingzone repos from GitHub and extracts them in well defined way.
 Git is not required`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -27,24 +26,24 @@ Git is not required`,
 		strip, _ := cmd.Flags().GetInt("strip")
 		dest, _ := cmd.Flags().GetString("dest")
 		folder, _ := cmd.Flags().GetString("folder")
-		runClone(repo, branch, strip, dest, folder)
+		runFetch(repo, branch, strip, dest, folder)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(cloneCmd)
-	cloneCmd.Flags().StringP("repo", "r", "azure/caf-terraform-landingzones", "Which repo on GitHub to clone")
-	cloneCmd.Flags().StringP("branch", "b", "master", "Which branch to clone")
-	cloneCmd.Flags().IntP("strip", "s", 1, "Levels to strip from repo hierarchy, best left as 1")
-	cloneCmd.Flags().StringP("dest", "d", "./landingzones", "Where to place output")
-	cloneCmd.Flags().StringP("folder", "f", "", "Extract a sub-folder from the repo")
+	landingzoneCmd.AddCommand(lzFetchCmd)
+	lzFetchCmd.Flags().StringP("repo", "r", "azure/caf-terraform-landingzones", "Which repo on GitHub to fetch")
+	lzFetchCmd.Flags().StringP("branch", "b", "master", "Which branch to fetch")
+	lzFetchCmd.Flags().IntP("strip", "s", 1, "Levels to strip from repo hierarchy, best left as 1")
+	lzFetchCmd.Flags().StringP("dest", "d", "./landingzones", "Where to place output")
+	lzFetchCmd.Flags().StringP("folder", "f", "", "Extract a sub-folder from the repo")
 }
 
-func runClone(repo string, branch string, strip int, dest string, subFolder string) {
+func runFetch(repo string, branch string, strip int, dest string, subFolder string) {
 	command.EnsureDirectory(viper.GetString("tempDir"))
 	command.RemoveDirectory(dest)
 	command.EnsureDirectory(dest)
-	color.Green("Running clone operation. Will fetch %s branch of %s and place into %s", branch, repo, dest)
+	color.Green("Running fetch operation. Will download %s branch of %s and place into %s", branch, repo, dest)
 
 	tempDir := viper.GetString("tempDir")
 	cloneURL := fmt.Sprintf("%s/%s/tar.gz/%s", gitBase, repo, branch)

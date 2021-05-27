@@ -1,17 +1,23 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/aztfmod/rover/pkg/terraform"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+var azureAuthorizer autorest.Authorizer
+
+const defaultEnvironment = "public"
+const defaultUseMsi = "false"
 
 // cloneCmd represents the clone command
 var loginCmd = &cobra.Command{
@@ -19,19 +25,32 @@ var loginCmd = &cobra.Command{
 	Short: "Login into the Azure account",
 	Long:  `Authenticate with an Azure account, either the locally logged in user (from Azure CLI), a service principal or managed service identity`,
 	Run: func(cmd *cobra.Command, args []string) {
-		terraform.SetAzureEnvVars()
-		_, err := isAuthenticated()
+
+		// Handle when user passes `--clear` and wipe saved values
+		if doClear, _ := cmd.Flags().GetBool("clear"); doClear {
+			color.Red("Clearing stored credentials and service principal details")
+			for k := range viper.GetStringMap("auth") {
+				viper.Set("auth."+k, "")
+			}
+			// Reset some values to defaults
+			defaultMsi := false
+			defaultMsi, _ = strconv.ParseBool(defaultUseMsi)
+			viper.Set("auth.use-msi", defaultMsi)
+			viper.Set("auth.environment", defaultEnvironment)
+			saveFlags()
+			return
+		}
+
+		_, err := terraform.Authenticate()
+
 		if err != nil {
 			cobra.CheckErr(color.RedString("%v", err))
 		}
+
 		saveFlags()
 
-		if debug {
-			for _, pair := range os.Environ() {
-				if strings.Contains(pair, "ARM_") {
-					color.Magenta(pair)
-				}
-			}
+		for k, v := range viper.GetStringMapString("auth") {
+			utils.Debug(fmt.Sprintf("%s = %s", k, v))
 		}
 	},
 }
@@ -41,11 +60,11 @@ func init() {
 
 	azureEnvDefault, set := os.LookupEnv("ARM_ENVIRONMENT")
 	if !set {
-		azureEnvDefault = "public"
+		azureEnvDefault = defaultEnvironment
 	}
 	useMsiDefaultString, set := os.LookupEnv("ARM_USE_MSI")
 	if !set {
-		useMsiDefaultString = "false"
+		useMsiDefaultString = defaultUseMsi
 	}
 	useMsiDefault, _ := strconv.ParseBool(useMsiDefaultString)
 	loginCmd.Flags().StringP("subscription-id", "s", os.Getenv("ARM_SUBSCRIPTION_ID"), "Subscription ID which should be used")
@@ -57,25 +76,17 @@ func init() {
 	loginCmd.Flags().String("client-cert-password", os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"), "Certificate password, if --client-cert-path is set")
 	loginCmd.Flags().String("client-cert-path", os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"), "Path to the client certificate associated with the service principal for use when authenticating as a service principal using a client certificate")
 	loginCmd.Flags().Bool("use-msi", useMsiDefault, "Try to use managed service identity for authentication")
+	loginCmd.Flags().Bool("clear", false, "Reset and clear any stored credentials")
 
 	// Important we bind flags to config, and put under the 'auth.' section key
 	loginCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if f.Name == "clear" {
+			return
+		}
 		viper.BindPFlag("auth."+f.Name, f)
 	})
 }
 
 func saveFlags() {
 	viper.WriteConfig()
-}
-
-func isAuthenticated() (*authentication.Config, error) {
-	builder := &authentication.Builder{
-		TenantOnly:               false,
-		SupportsAuxiliaryTenants: false,
-		AuxiliaryTenantIDs:       nil,
-		SupportsAzureCliToken:    true,
-		SupportsClientCertAuth:   true,
-		SupportsClientSecretAuth: true,
-	}
-	return builder.Build()
 }

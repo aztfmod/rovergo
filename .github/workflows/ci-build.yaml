@@ -8,6 +8,7 @@ on:
 
 jobs:
   ci-build:
+    name: Run CI Checks and Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,3 +27,6 @@ jobs:
 
       - name: Run tests
         run: make test
+
+      - name: Run build
+        run: make build

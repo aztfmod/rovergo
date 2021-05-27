@@ -10,7 +10,8 @@ import (
 	"github.com/fatih/color"
 )
 
-var DebugEnabled bool = false
+// DebugEnabled controls output of debug messages
+var DebugEnabled = false
 
 // StringSliceDel deletes a specific index from a slide of strings
 // Taken from https://yourbasic.org/golang/delete-element-slice/

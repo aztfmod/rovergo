@@ -87,10 +87,11 @@ func init() {
 		if f.Name == "clear" {
 			return
 		}
-		viper.BindPFlag("auth."+f.Name, f)
+		_ = viper.BindPFlag("auth."+f.Name, f)
 	})
 }
 
 func saveFlags() {
-	viper.WriteConfig()
+	err := viper.WriteConfig()
+	cobra.CheckErr(err)
 }

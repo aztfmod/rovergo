@@ -30,6 +30,6 @@ func FindStorageAccount(level string, environment string, subscription string) {
 		for _, account := range accountPages.Values() {
 			fmt.Println(*account.Name)
 		}
-		accountPages.Next()
+		_ = accountPages.Next()
 	}
 }

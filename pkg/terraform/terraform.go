@@ -85,7 +85,7 @@ func SetEnvVars() {
 	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("auth.msi-endpoint"))
 }
 
-// Attempt to authenticate using the go-azure-helper and return auth config
+// Authenticate will attempt to auth using the go-azure-helper and return auth config
 func Authenticate() (*authentication.Config, error) {
 	builder := &authentication.Builder{
 		TenantOnly:                     false,

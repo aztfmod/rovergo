@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
-	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/spf13/cobra"
@@ -42,7 +42,7 @@ var lzRunCmd = &cobra.Command{
 
 func init() {
 	lzRunCmd.PersistentFlags()
-	lzRunCmd.Flags().StringP("action", "a", "plan", "Action to run, one of [plan | apply | destroy]")
+	lzRunCmd.Flags().StringP("action", "a", "plan", "Action to run, one of [plan | deploy | destroy]")
 	lzRunCmd.Flags().StringP("source", "s", "", "Source of landingzone (required)")
 	lzRunCmd.Flags().StringP("env", "e", "caf", "Name of environment")
 	lzRunCmd.Flags().StringP("vars", "v", ".", "Where configuration vars are located")
@@ -80,9 +80,9 @@ func runAction(action string, source string, varsLocation string, stateKey strin
 	}
 
 	for k := range viper.GetStringMapString("state") {
-		utils.Debug(fmt.Sprintf("%s = %s", k, viper.GetString("state."+k)))
+		console.Debug(fmt.Sprintf("%s = %s", k, viper.GetString("state."+k)))
 	}
-	utils.Debug(fmt.Sprintf("key = %s", stateKey))
+	console.Debug(fmt.Sprintf("key = %s", stateKey))
 
 	color.Blue("RUNNING INIT")
 	err = tf.Init(context.Background(), initOpts...)

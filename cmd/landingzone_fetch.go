@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/command"
-	"github.com/fatih/color"
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -46,10 +46,11 @@ func init() {
 }
 
 func runFetch(repo string, branch string, strip int, dest string, subFolder string) {
+
 	command.EnsureDirectory(viper.GetString("tempDir"))
 	command.RemoveDirectory(dest)
 	command.EnsureDirectory(dest)
-	color.Green("Running fetch operation. Will download %s branch of %s and place into %s", branch, repo, dest)
+	console.Infof("Running fetch operation. Will download %s branch of %s and place into %s\n", branch, repo, dest)
 
 	tempDir := viper.GetString("tempDir")
 	cloneURL := fmt.Sprintf("%s/%s/tar.gz/%s", gitBase, repo, branch)

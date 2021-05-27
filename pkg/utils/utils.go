@@ -6,13 +6,6 @@
 
 package utils
 
-import (
-	"github.com/fatih/color"
-)
-
-// DebugEnabled controls output of debug messages
-var DebugEnabled = false
-
 // StringSliceDel deletes a specific index from a slide of strings
 // Taken from https://yourbasic.org/golang/delete-element-slice/
 func StringSliceDel(a []string, i int) []string {
@@ -20,12 +13,4 @@ func StringSliceDel(a []string, i int) []string {
 	a[len(a)-1] = ""     // Erase last element (write zero value).
 	a = a[:len(a)-1]     // Truncate slice.
 	return a
-}
-
-// Debug outputs messages if debug is enabled, in delightful shade of magenta
-func Debug(msg string) {
-	if !DebugEnabled {
-		return
-	}
-	color.Magenta("%s", msg)
 }

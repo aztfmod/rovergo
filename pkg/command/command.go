@@ -13,8 +13,8 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/utils"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func (c *Command) Execute() error {
 	}
 
 	if !c.Silent {
-		color.Blue("Executing %s %s", c.Exe, c.Args)
+		console.Debugf("Executing %s %s\n", c.Exe, c.Args)
 	}
 
 	// Handy for debugging
@@ -79,7 +79,7 @@ func (c *Command) Execute() error {
 
 	// Actually run the thing
 	if err := cmd.Run(); err != nil {
-		color.Red("Failed, %s", stderr.String())
+		console.Errorf("Failed, %s", stderr.String())
 		return err
 	}
 
@@ -115,7 +115,7 @@ func RemoveDirectory(dir string) {
 func CheckCommand(reqCmdName string) error {
 	_, err := exec.LookPath(reqCmdName)
 	if err != nil {
-		return fmt.Errorf(color.RedString("required command %s not found in system path", reqCmdName))
+		return fmt.Errorf("required command %s not found in system path", reqCmdName)
 	}
 	return nil
 }

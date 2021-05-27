@@ -7,8 +7,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +16,6 @@ var configCmd = &cobra.Command{
 	Aliases: []string{"cfg"},
 	Short:   "Access to configuration related sub-commands, such as 'auth'.",
 	Long:    `Access to configuration related sub-commands, such as 'auth'.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Please specify required sub-command such as 'auth'.")
-	},
 }
 
 func init() {

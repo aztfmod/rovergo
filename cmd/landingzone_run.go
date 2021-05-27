@@ -1,3 +1,10 @@
+//
+// Rover - Landing zone run command is the core of rover
+// * This carries out actions like plan, apply or destroy via terrafrom
+// * TODO: !!THIS IS NOT EVEN CLOSE TO BEING COMPLETED!!
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (

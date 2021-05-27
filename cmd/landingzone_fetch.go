@@ -1,3 +1,9 @@
+//
+// Rover - Landing zone fetch
+// * This fetches the official CAF landing zones from GitHub, replaces the old --clone feature
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (

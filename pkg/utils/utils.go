@@ -1,3 +1,9 @@
+//
+// Rover - utils and shared functions
+// * Common functions and stuff that doesn't have a better home
+// * Ben C, May 2021
+//
+
 package utils
 
 import (
@@ -15,9 +21,10 @@ func StringSliceDel(a []string, i int) []string {
 	return a
 }
 
-func Debug(msg interface{}) {
+// Debug outputs messages if debug is enabled, in delightful shade of magenta
+func Debug(msg string) {
 	if !DebugEnabled {
 		return
 	}
-	color.Magenta("%v", msg)
+	color.Magenta("%s", msg)
 }

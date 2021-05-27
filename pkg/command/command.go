@@ -1,5 +1,7 @@
 //
-// Wrapper and helper for running external commands
+// Rover - Command line wrapper
+// * Helper functions for calling os/exec in a standard way
+// * Ben C, May 2021
 //
 
 package command

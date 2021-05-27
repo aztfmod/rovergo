@@ -1,3 +1,10 @@
+//
+// Rover - Landing zone list command
+// * This carries out listing of deployed landing zones by querying storage
+// * TODO: Stub
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (

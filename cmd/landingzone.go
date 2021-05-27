@@ -1,3 +1,9 @@
+//
+// Rover - Top level landing zone command
+// * Doesn't do anything, all work is done by sub-commands
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (
@@ -14,5 +20,4 @@ var landingzoneCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(landingzoneCmd)
-
 }

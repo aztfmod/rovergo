@@ -1,3 +1,9 @@
+//
+// Rover - Azure auth
+// * Helper functions for signing into Azure to use the Go SDK
+// * Ben C, May 2021
+//
+
 package azure
 
 import (

@@ -1,3 +1,10 @@
+//
+// Rover - Login command
+// * Sets service principal or MSI details into config file, so they can be used for auth
+// * TODO: Probably needs renaming as this really does not login to anything!
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (
@@ -5,7 +12,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/fatih/color"
@@ -13,8 +19,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
-
-var azureAuthorizer autorest.Authorizer
 
 const defaultEnvironment = "public"
 const defaultUseMsi = "false"
@@ -78,7 +82,7 @@ func init() {
 	loginCmd.Flags().Bool("use-msi", useMsiDefault, "Try to use managed service identity for authentication")
 	loginCmd.Flags().Bool("clear", false, "Reset and clear any stored credentials")
 
-	// Important we bind flags to config, and put under the 'auth.' section key
+	// Very important we bind flags to config, and put under the 'auth.' section key
 	loginCmd.Flags().VisitAll(func(f *pflag.Flag) {
 		if f.Name == "clear" {
 			return

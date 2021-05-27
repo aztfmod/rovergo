@@ -1,3 +1,9 @@
+//
+// Rover - Entry point and root command
+// * Handles global flags, initialization, config files and when user runs rover without sub command
+// * Ben C, May 2021
+//
+
 package cmd
 
 import (

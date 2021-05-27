@@ -69,7 +69,7 @@ func CheckVersion(path string) {
 	if !tfVer.GreaterThanOrEqual(requiredMinVer) {
 		cobra.CheckErr(fmt.Sprintf("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
 	}
-	console.Success("Terraform is at version %v", tfVer)
+	console.Successf("Terraform is at version %v", tfVer)
 }
 
 // SetEnvVars should be called before any terraform operations

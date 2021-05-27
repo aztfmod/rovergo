@@ -9,8 +9,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/aztfmod/rover/pkg/utils"
-	"github.com/fatih/color"
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -28,7 +27,7 @@ Azure environment.
 It acts as a toolchain development environment to avoid impacting the local machine but more importantly 
 to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		utils.DebugEnabled, _ = cmd.Flags().GetBool("debug")
+		console.DebugEnabled, _ = cmd.Flags().GetBool("debug")
 	},
 }
 
@@ -77,12 +76,12 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		color.Green("Using config file: %s", viper.ConfigFileUsed())
+		console.Infof("Using config file: %s\n", viper.ConfigFileUsed())
 	} else {
 		// Fall back to creating empty config file
 		fileName := "./.rover.yaml"
 		_, err := os.Create(fileName)
 		cobra.CheckErr(err)
-		color.Yellow("Config file not found, creating new file %s with defaults", fileName)
+		console.Warningf("Config file not found, creating new file %s with defaults\n", fileName)
 	}
 }

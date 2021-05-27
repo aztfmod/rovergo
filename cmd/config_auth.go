@@ -7,13 +7,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
-	"github.com/aztfmod/rover/pkg/utils"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -33,7 +31,7 @@ clear that configuration.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Handle when user passes `--clear` and wipe saved values
 		if doClear, _ := cmd.Flags().GetBool("clear"); doClear {
-			color.Red("Clearing stored credentials and service principal details")
+			console.Warning("Clearing stored credentials and service principal details")
 			for k := range viper.GetStringMap("auth") {
 				viper.Set("auth."+k, "")
 			}
@@ -49,13 +47,13 @@ clear that configuration.`,
 		_, err := terraform.Authenticate()
 
 		if err != nil {
-			cobra.CheckErr(color.RedString("%v", err))
+			cobra.CheckErr(err)
 		}
 
 		saveFlags()
 
 		for k, v := range viper.GetStringMapString("auth") {
-			utils.Debug(fmt.Sprintf("%s = %s", k, v))
+			console.Debugf("%s = %s\n", k, v)
 		}
 	},
 }

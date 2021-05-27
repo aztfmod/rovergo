@@ -16,6 +16,7 @@ import (
 )
 
 // GetAuthorizer used for Azure SDK access logs into Azure
+// This should always be called before any Azure SDK calls
 func GetAuthorizer() autorest.Authorizer {
 	if viper.GetString("auth.client-id") != "" {
 		os.Setenv("AZURE_SUBSCRIPTION_ID", viper.GetString("auth.subscription-id"))
@@ -38,6 +39,7 @@ func GetAuthorizer() autorest.Authorizer {
 
 		return azureAuthorizer
 	} else {
+		// This is fall through, and will fail if user is not logged in
 		azureAuthorizer, err := auth.NewAuthorizerFromCLI()
 		cobra.CheckErr(err)
 

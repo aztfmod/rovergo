@@ -8,10 +8,11 @@ package terraform
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/fatih/color"
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-exec/tfexec"
@@ -33,12 +34,12 @@ func Setup() (string, error) {
 
 	// Try to install and then locate terraform
 	if err != nil && install {
-		color.Yellow("Attempting install of terraform into %s", installPath)
+		console.Infof("Attempting install of terraform into %s\n", installPath)
 		// Any error from install is lost and never set, probably a bug
 		_, _ = tfinstall.Find(context.Background(), tfinstall.LatestVersion(installPath, false))
 		path, err = tfinstall.Find(context.Background(), tfinstall.ExactPath(installPath+"/terraform"))
 		if err != nil {
-			color.Red("Install failed, make sure %s exists and is writable", installPath)
+			console.Errorf("Install failed, make sure %s exists and is writable\n", installPath)
 			return "", err
 		}
 	}
@@ -66,9 +67,9 @@ func CheckVersion(path string) {
 	cobra.CheckErr(err)
 
 	if !tfVer.GreaterThanOrEqual(requiredMinVer) {
-		cobra.CheckErr(color.RedString("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
+		cobra.CheckErr(fmt.Sprintf("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
 	}
-	color.Green("Terraform is at version %v", tfVer)
+	console.Successf("Terraform is at version %v", tfVer)
 }
 
 // SetEnvVars should be called before any terraform operations

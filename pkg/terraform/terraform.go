@@ -74,6 +74,7 @@ func CheckVersion(path string) {
 
 // SetEnvVars should be called before any terraform operations
 // It essentially "logs in" to Terraform with the creds stored in config
+// TODO: REMOVE DEPRECATED 🔥
 func SetEnvVars() {
 	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("auth.subscription-id"))
 	os.Setenv("ARM_CLIENT_ID", viper.GetString("auth.client-id"))
@@ -87,6 +88,7 @@ func SetEnvVars() {
 }
 
 // Authenticate will attempt to auth using the go-azure-helper and return auth config
+// TODO: REMOVE DEPRECATED 🔥
 func Authenticate() (*authentication.Config, error) {
 	builder := &authentication.Builder{
 		TenantOnly:                     false,

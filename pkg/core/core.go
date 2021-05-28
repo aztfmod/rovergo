@@ -10,8 +10,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 
+	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/hashicorp/terraform-exec/tfexec"
@@ -41,9 +43,10 @@ type Config struct {
 	Workspace          string
 	TargetSubscription string
 	StateSubscription  string
+	Account            azure.Account
 }
 
-func NewConfigFromFlags(cmd *cobra.Command) Config {
+func NewConfigFromCmd(cmd *cobra.Command) Config {
 	launchPadMode := false
 	if cmd.Parent().Name() == "launchpad" {
 		launchPadMode = true
@@ -58,16 +61,6 @@ func NewConfigFromFlags(cmd *cobra.Command) Config {
 	stateSub, _ := cmd.Flags().GetString("state-sub")
 	targetSub, _ := cmd.Flags().GetString("target-sub")
 
-	// TODO: Improve this?
-	authConf, err := terraform.Authenticate()
-	cobra.CheckErr(err)
-	if stateSub == "" {
-		stateSub = authConf.SubscriptionID
-	}
-	if targetSub == "" {
-		targetSub = authConf.SubscriptionID
-	}
-
 	c := Config{
 		LaunchPadMode:      launchPadMode,
 		ConfigPath:         configPath,
@@ -80,10 +73,6 @@ func NewConfigFromFlags(cmd *cobra.Command) Config {
 		StateSubscription:  stateSub,
 	}
 
-	if console.DebugEnabled {
-		debugConf, _ := json.MarshalIndent(c, "", "  ")
-		console.Debug(string(debugConf))
-	}
 	return c
 }
 
@@ -91,11 +80,39 @@ func RunCmd(cmd *cobra.Command, args []string) {
 	actionStr, _ := cmd.Flags().GetString("action")
 	action, err := ActionFromString(actionStr)
 	cobra.CheckErr(err)
+	console.Infof("Starting '%s' command with action '%s'\n", cmd.CommandPath(), actionStr)
 
-	lzConfig := NewConfigFromFlags(cmd)
+	// Build config from command flags
+	conf := NewConfigFromCmd(cmd)
+
+	// Get current Azure details, subscription etc from CLI
+	acct := azure.GetAccount()
+	// If they weren't set as flags fall back to logged in account subscription
+	if conf.StateSubscription == "" {
+		conf.StateSubscription = acct.SubscriptionID
+	}
+	if conf.TargetSubscription == "" {
+		conf.TargetSubscription = acct.SubscriptionID
+	}
+	conf.Account = acct
+
+	if console.DebugEnabled {
+		debugConf, _ := json.MarshalIndent(conf, "", "  ")
+		console.Debug(string(debugConf))
+	}
+
+	// This should be enough for Terraform and if TargetSubscription is diff from CLI that's will work
+	os.Setenv("ARM_SUBSCRIPTION_ID", conf.TargetSubscription)
+	os.Setenv("TF_VAR_tfstate_subscription_id", conf.StateSubscription)
+
+	if conf.LaunchPadMode {
+		if conf.TargetSubscription != conf.StateSubscription {
+			cobra.CheckErr("In launchpad mode, state-sub and target-sub must be the same Azure subscription")
+		}
+	}
 
 	// Terraform init is run for all actions
-	err = lzConfig.Init()
+	err = conf.Init()
 	cobra.CheckErr(err)
 
 	// If the action is just init, then stop here
@@ -103,7 +120,7 @@ func RunCmd(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = lzConfig.RunAction(action)
+	err = conf.RunAction(action)
 	cobra.CheckErr(err)
 }
 
@@ -157,7 +174,7 @@ func (c Config) Init() error {
 
 	if c.LaunchPadMode {
 		console.Info("Running init in launchpad mode")
-		err = tf.Init(context.Background())
+		err = tf.Init(context.Background(), tfexec.Upgrade(true))
 		return err
 	}
 

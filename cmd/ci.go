@@ -46,7 +46,7 @@ var ciCmd = &cobra.Command{
 	Long:  `Manage CI operations.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		symphonyConfigFileName, _ := cmd.Flags().GetString("symphony_config")
+		symphonyConfigFileName, _ := cmd.Flags().GetString("symphony-config")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		err := readAndUnmarshallConfig(symphonyConfigFileName)
@@ -84,12 +84,12 @@ func outputVerbose(symphonyConfigFileName string) {
 }
 
 func init() {
-	ciCmd.Flags().StringP("symphony_config", "c", "", "Path/filename of symphony.yml")
+	ciCmd.Flags().StringP("symphony-config", "c", "", "Path/filename of symphony.yml")
 	ciCmd.Flags().SetNormalizeFunc(aliasNormalizeFunc)
 
 	ciCmd.Flags().BoolP("verbose", "v", false, "Output symphony.yml to console")
 
-	err := cobra.MarkFlagRequired(ciCmd.Flags(), "symphony_config")
+	err := cobra.MarkFlagRequired(ciCmd.Flags(), "symphony-config")
 	cobra.CheckErr(err)
 
 	rootCmd.AddCommand(ciCmd)
@@ -98,7 +98,7 @@ func init() {
 func aliasNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
 	switch name {
 	case "sc":
-		name = "symphony_config"
+		name = "symphony-config"
 	}
 	return pflag.NormalizedName(name)
 }

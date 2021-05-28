@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type SymphonyConfig struct {
+type Config struct {
 	Environment  string `yaml:"environment,omitempty"`
 	Repositories []struct {
 		Name   string `yaml:"name,omitempty"`
@@ -29,8 +29,8 @@ type SymphonyConfig struct {
 	}
 }
 
-func NewSymphonyConfig(symphonyConfigFileName string) (*SymphonyConfig, error) {
-	p := new(SymphonyConfig)
+func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
+	p := new(Config)
 	reader, _ := os.Open(symphonyConfigFileName)
 	buf, _ := ioutil.ReadAll(reader)
 	err := yaml.Unmarshal(buf, p)
@@ -38,7 +38,7 @@ func NewSymphonyConfig(symphonyConfigFileName string) (*SymphonyConfig, error) {
 	return p, err
 }
 
-func (sc *SymphonyConfig) OutputDebug(symphonyConfigFileName string) {
+func (sc *Config) OutputDebug(symphonyConfigFileName string) {
 	fmt.Println()
 
 	console.Debugf("Verbose output of %s\n", symphonyConfigFileName)

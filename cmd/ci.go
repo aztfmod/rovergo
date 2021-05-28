@@ -21,7 +21,7 @@ type SymphonyConfig struct {
 	Environment  string `yaml:"environment,omitempty"`
 	Repositories []struct {
 		Name   string `yaml:"name,omitempty"`
-		Uri    string `yaml:"uri,omitempty"`
+		URI    string `yaml:"uri,omitempty"`
 		Branch string `yaml:"branch,omitempty"`
 	}
 	Levels []struct {
@@ -46,38 +46,38 @@ var ciCmd = &cobra.Command{
 	Long:  `Manage CI operations.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		symphony_config, _ := cmd.Flags().GetString("symphony_config")
+		symphonyConfigFileName, _ := cmd.Flags().GetString("symphony_config")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
-		err := read_and_unmarshall_config(symphony_config)
+		err := readAndUnmarshallConfig(symphonyConfigFileName)
 		cobra.CheckErr(err)
 
 		if verbose {
-			output_verbose(symphony_config)
+			outputVerbose(symphonyConfigFileName)
 		}
 
-		run(symphony_config)
+		run(symphonyConfigFileName)
 	},
 }
 
-func run(symphony_config string) {
+func run(symphonyConfigFileName string) {
 	fmt.Println()
 
-	color.Red("Running CI command, config: %s", symphony_config)
+	color.Red("Running CI command, config: %s", symphonyConfigFileName)
 }
 
-func read_and_unmarshall_config(symphony_config string) error {
-	reader, _ := os.Open(symphony_config)
+func readAndUnmarshallConfig(symphonyConfigFileName string) error {
+	reader, _ := os.Open(symphonyConfigFileName)
 	buf, _ := ioutil.ReadAll(reader)
 	err := yaml.Unmarshal(buf, &symphonyConfig)
 
 	return err
 }
 
-func output_verbose(symphony_config string) {
+func outputVerbose(symphonyConfigFileName string) {
 	fmt.Println()
 
-	color.Blue("Verbose output of %s", symphony_config)
+	color.Blue("Verbose output of %s", symphonyConfigFileName)
 	color.Green(" - Environment: %s", symphonyConfig.Environment)
 	color.Green(" - Number of repositories: %d", len(symphonyConfig.Repositories))
 	color.Green(" - Number of levels: %d", len(symphonyConfig.Levels))

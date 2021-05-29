@@ -27,6 +27,17 @@
         "--use_msi",
         "true"
       ]
+    },
+    {
+      "name": "Debug CI CLI",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "ci",
+        "-h",
+      ]
     }
   ]
 }

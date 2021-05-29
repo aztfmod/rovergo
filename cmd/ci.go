@@ -8,6 +8,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/symphony"
@@ -52,6 +54,8 @@ func init() {
 	cobra.CheckErr(err)
 
 	rootCmd.AddCommand(ciCmd)
+
+	addCITasks(ciCmd)
 }
 
 func aliasNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
@@ -60,4 +64,59 @@ func aliasNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
 		name = "symphony-config"
 	}
 	return pflag.NormalizedName(name)
+}
+
+func addCITasks(cmd *cobra.Command) {
+
+	debug, _ := cmd.Flags().GetBool("debug")
+
+	ciTaskConfigFileNames, err := getCITaskConfigFilenames("./ci_tasks")
+	if err != nil {
+		return
+	}
+
+	for _, filename := range ciTaskConfigFileNames {
+
+		taskConfig, err := symphony.NewTaskConfig(filepath.Join("./ci_tasks", filename))
+		cobra.CheckErr(err)
+
+		if debug {
+			taskConfig.OutputDebug(filename)
+		}
+
+		var ciTaskCommand = &cobra.Command{
+			Use: taskConfig.Name,
+			Run: func(cmd *cobra.Command, args []string) {
+				console.Infof("Running ci task %s", taskConfig.Name)
+				if taskConfig.SubCommand != "" {
+					console.Infof(" - with sub-command %s", taskConfig.SubCommand)
+				}
+			},
+		}
+
+		cmd.AddCommand(ciTaskCommand)
+	}
+
+}
+
+func getCITaskConfigFilenames(directoryName string) ([]string, error) {
+	var files []string
+
+	f, err := os.Open(directoryName)
+	if err != nil {
+		return files, err
+	}
+
+	fileInfo, err := f.ReadDir(-1)
+	f.Close()
+	if err != nil {
+		return files, err
+	}
+
+	for _, file := range fileInfo {
+		files = append(files, file.Name())
+	}
+
+	return files, nil
+
 }

@@ -1,5 +1,7 @@
 //
 // Rover - Azure cloud
+// * Because no one can agree what to call these!
+// * The Azure CLI, the Azure SDK and Terraform all use different names 💩
 // * Ben C, May 2021
 //
 

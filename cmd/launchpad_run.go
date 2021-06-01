@@ -1,7 +1,7 @@
 //
 // Rover - Landing zone run command is the core of rover
 // * This carries out actions like plan, apply or destroy via terrafrom
-// * TODO: !!THIS IS NOT EVEN CLOSE TO BEING COMPLETED!!
+// * TODO: Work in progress
 // * Ben C, May 2021
 //
 

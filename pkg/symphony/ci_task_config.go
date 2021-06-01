@@ -2,6 +2,7 @@ package symphony
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/aztfmod/rover/pkg/console"
@@ -9,7 +10,7 @@ import (
 )
 
 type TaskConfig struct {
-	Name           string `yaml:"environment,omitempty"`
+	Name           string `yaml:"name,omitempty"`
 	ExecutableName string `yaml:"executableName,omitempty"`
 	SubCommand     string `yaml:"subCommand,omitempty"`
 	Flags          string `yaml:"flags,omitempty"`
@@ -24,16 +25,20 @@ type TaskConfig struct {
 
 func NewTaskConfig(taskConfigFileName string) (*TaskConfig, error) {
 	p := new(TaskConfig)
-	buf, _ := os.ReadFile(taskConfigFileName)
+	reader, _ := os.Open(taskConfigFileName)
+	buf, _ := ioutil.ReadAll(reader)
 	err := yaml.Unmarshal(buf, p)
 
 	return p, err
 }
 
-func (tc *TaskConfig) OutputDebug(taskConfigFileName string) {
+func (tc *TaskConfig) OutputDebug() {
 	fmt.Println()
 
-	console.Debugf("Verbose output of ci task configuration %s\n", taskConfigFileName)
+	console.Debugf("Verbose output of ci task configuration\n")
 	console.Debugf(" - Task name: %s\n", tc.Name)
-	console.Debugf(" - Executable name: %d\n", tc.ExecutableName)
+	console.Debugf(" - Executable name: %s\n", tc.ExecutableName)
+	if tc.SubCommand != "" {
+		console.Debugf(" - Sub-command name: %s\n", tc.SubCommand)
+	}
 }

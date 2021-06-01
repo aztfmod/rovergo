@@ -14,7 +14,7 @@ import (
 
 var lpRunCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Run an action for launchpad",
+	Short: "Run actions to deploy, update or remove launchpads",
 
 	Run: landingzone.RunCmd,
 }

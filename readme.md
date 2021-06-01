@@ -50,6 +50,25 @@ Flags:
 Use "rover [command] --help" for more information about a command.
 ```
 
+The flags on the launchpad / landingzone are as follows:
+
+```text
+Run actions to deploy, update or remove launchpads
+
+Usage:
+  rover launchpad run [flags]
+
+Flags:
+  -a, --action string        Action to run, one of [init | plan | deploy | destroy] (default "init")
+  -c, --config-path string   Configuration vars directory (required)
+  -e, --environment string   Name of CAF environment (default "sandpit")
+  -h, --help                 help for run
+  -s, --source string        Path to source of landingzone (required)
+      --state-sub string     Azure subscription ID where state is held
+  -n, --statename string     Name for state and plan files, defaults to landingzone name
+      --target-sub string    Azure subscription ID to operate on
+  -w, --workspace string     Name of workspace (default "tfstate")
+```
 # Major Outstanding Work
 
 In very rough order of priority

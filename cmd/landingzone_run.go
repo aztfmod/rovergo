@@ -14,7 +14,7 @@ import (
 
 var lzRunCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Run an action for landingzones",
+	Short: "Run actions to deploy, update or remove landing zones",
 
 	Run: landingzone.RunCmd,
 }

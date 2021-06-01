@@ -1,10 +1,10 @@
 //
-// Rover - Core options
+// Rover - Landing zone & launchpad options
 // * Used to hold the large number of params and vars for landing zone operations in a single place
 // * Ben C, May 2021
 //
 
-package core
+package landingzone
 
 import (
 	"fmt"

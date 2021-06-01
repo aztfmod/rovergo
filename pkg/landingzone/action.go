@@ -1,10 +1,10 @@
 //
-// Rover - Core actions
+// Rover - Landing zone and launchpad actions
 // * Encapsulation of actions
 // * Ben C, May 2021
 //
 
-package core
+package landingzone
 
 import (
 	"errors"

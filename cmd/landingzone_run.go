@@ -8,7 +8,7 @@
 package cmd
 
 import (
-	"github.com/aztfmod/rover/pkg/core"
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
@@ -16,10 +16,10 @@ var lzRunCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run an action for landingzones",
 
-	Run: core.RunCmd,
+	Run: landingzone.RunCmd,
 }
 
 func init() {
 	landingzoneCmd.AddCommand(lzRunCmd)
-	core.SetSharedFlags(lzRunCmd)
+	landingzone.SetSharedFlags(lzRunCmd)
 }

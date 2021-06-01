@@ -4,7 +4,7 @@
 // * Ben C, May 2021
 //
 
-package core
+package landingzone
 
 import (
 	"context"

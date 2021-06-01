@@ -22,6 +22,7 @@ func StringSliceDel(a []string, i int) []string {
 	return a
 }
 
+// CopyFile is a very simple file copy helper
 func CopyFile(src string, dest string) error {
 	srcFile, err := os.Open(src)
 	if err != nil {
@@ -35,7 +36,6 @@ func CopyFile(src string, dest string) error {
 	}
 	defer destFile.Close()
 
-	//This will copy
 	bytesWritten, err := io.Copy(destFile, srcFile)
 	if err != nil {
 		return err

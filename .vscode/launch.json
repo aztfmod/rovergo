@@ -37,10 +37,18 @@
       "args": [
         "ci",
         "terraform-format",
-        "--debug",
         "-c",
-        "examples/sample.symphony.yaml"
+        "samples/sample.symphony.yaml",
+        "--debug"
       ]
+    },
+    {
+      "name": "Debug Root",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": []
     }
   ]
 }

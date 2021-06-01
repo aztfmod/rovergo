@@ -24,12 +24,17 @@ var ciCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(ciCmd)
 
+	ciCmd.PersistentFlags().String("ci-task-dir", "./ci_tasks", "Directory containing the ci task definition files.")
+	ciCmd.PersistentFlags().StringP("symphony-config", "c", "./symphony.yaml", "Path/filename of symphony.yaml.")
+
 	addCITasks(ciCmd)
 }
 
 func addCITasks(cmd *cobra.Command) {
 
-	directoryName := "./ci_tasks"
+	// directoryName := "./ci_tasks"
+	directoryName, _ := cmd.PersistentFlags().GetString("ci-task-dir")
+
 	pTaskConfigs, err := symphony.NewTaskConfigs(directoryName)
 	cobra.CheckErr(err)
 
@@ -41,7 +46,7 @@ func addCITasks(cmd *cobra.Command) {
 		var ciTaskCommand = &cobra.Command{
 			Use: taskConfig.Name,
 			Run: func(cmd *cobra.Command, args []string) {
-				symphonyConfigFileName, _ := cmd.Flags().GetString("symphony-config")
+				symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
 				symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
 				cobra.CheckErr(err)
 
@@ -56,10 +61,6 @@ func addCITasks(cmd *cobra.Command) {
 
 			},
 		}
-
-		ciTaskCommand.Flags().StringP("symphony-config", "c", "", "Path/filename of symphony.yml")
-		err = cobra.MarkFlagRequired(ciTaskCommand.Flags(), "symphony-config")
-		cobra.CheckErr(err)
 
 		cmd.AddCommand(ciTaskCommand)
 	}

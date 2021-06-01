@@ -29,11 +29,11 @@ type Config struct {
 }
 
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
-	p := new(Config)
+	sc := new(Config)
 	buf, _ := os.ReadFile(symphonyConfigFileName)
-	err := yaml.Unmarshal(buf, p)
+	err := yaml.Unmarshal(buf, sc)
 
-	return p, err
+	return sc, err
 }
 
 func (sc *Config) OutputDebug(symphonyConfigFileName string) {

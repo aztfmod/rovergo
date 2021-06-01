@@ -12,14 +12,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var lzRunCmd = &cobra.Command{
+var lpRunCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Run an action for landingzones",
+	Short: "Run an action for launchpad",
 
 	Run: landingzone.RunCmd,
 }
 
 func init() {
-	landingzoneCmd.AddCommand(lzRunCmd)
-	landingzone.SetSharedFlags(lzRunCmd)
+	launchpadCmd.AddCommand(lpRunCmd)
+	landingzone.SetSharedFlags(lpRunCmd)
 }

@@ -8,7 +8,6 @@ package cmd
 
 import (
 	"github.com/aztfmod/rover/pkg/azure"
-	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/spf13/cobra"
 )
 
@@ -26,8 +25,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		auth, _ := terraform.Authenticate()
-		azure.FindStorageAccount("0", "demo", auth.SubscriptionID)
+		azure.UploadFileToBlob(
+			"/subscriptions/52512f28-c6ed-403e-9569-82a9fb9fec91/resourceGroups/odog-rg-launchpad-level0/providers/Microsoft.Storage/storageAccounts/odogstlevel0",
+			"tfstate",
+			"dave.tfstate",
+			"/home/ben/tfstates/level0/tfstate/mystate.tfstate")
 	},
 }
 

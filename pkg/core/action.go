@@ -13,42 +13,48 @@ import (
 
 type Action int
 
+var actionEnum = []string{"init", "plan", "deploy", "destroy"}
+
 const (
 	// ActionInit carries out a just init step and no real action
-	ActionInit Action = 1
+	ActionInit Action = iota
 	// ActionPlan carries out a plan operation
-	ActionPlan Action = 2
+	ActionPlan Action = iota
 	// ActionDeploy carries out a plan AND apply operation
-	ActionDeploy Action = 3
+	ActionDeploy Action = iota
 	// ActionDestroy carries out a destroy operation
-	ActionDestroy Action = 4
+	ActionDestroy Action = iota
 )
 
 func ActionFromString(actionString string) (Action, error) {
 	switch strings.ToLower(actionString) {
-	case "init":
+	case ActionInit.String():
 		return ActionInit, nil
-	case "plan":
+	case ActionPlan.String():
 		return ActionPlan, nil
-	case "deploy":
+	case ActionDeploy.String():
 		return ActionDeploy, nil
-	case "destroy":
+	case ActionDestroy.String():
 		return ActionDestroy, nil
 	default:
 		return 0, errors.New("action is not valid, must be [init | plan | deploy | destroy]")
 	}
 }
 
-func ActionToString(action Action) string {
-	switch action {
-	case ActionInit:
-		return "Init"
-	case ActionPlan:
-		return "Plan"
-	case ActionDeploy:
-		return "Deploy"
-	case ActionDestroy:
-		return "Destroy"
-	}
-	return ""
+func (a Action) String() string {
+	return actionEnum[a]
 }
+
+// func ActionToString(action Action) string {
+// 	switch action {
+// 	case ActionInit:
+// 		return "Init"
+// 	case ActionPlan:
+// 		return "Plan"
+// 	case ActionDeploy:
+// 		return "Deploy"
+// 	case ActionDestroy:
+// 		return "Destroy"
+// 	}
+// 	return ""
+// }

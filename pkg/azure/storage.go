@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
@@ -58,16 +57,6 @@ func GetAccountKey(subID string, accountName string, resGrp string) string {
 	return *(*keysRes.Keys)[0].Value
 }
 
-// ParseResourceID into subscription, resource group and name
-func ParseResourceID(resourceID string) (subID string, resGrp string, resName string) {
-	parts := strings.Split(resourceID, "/")
-	if len(parts) < 9 {
-		cobra.CheckErr("Supplied resource ID has insufficient segments")
-	}
-
-	return parts[2], parts[4], parts[8]
-}
-
 // UploadFileToBlob does what you might expect it to
 func UploadFileToBlob(storageAcctID string, blobContainer string, blobName string, filePath string) {
 	subID, resGrp, accountName := ParseResourceID(storageAcctID)
@@ -89,12 +78,7 @@ func UploadFileToBlob(storageAcctID string, blobContainer string, blobName strin
 	file, err := os.Open(filePath)
 	cobra.CheckErr(err)
 
-	blobOptions := azblob.UploadToBlockBlobOptions{
-		BlockSize:   4 * 1024 * 1024,
-		Parallelism: 16,
-	}
-
-	uploadResp, err := azblob.UploadFileToBlockBlob(context.Background(), file, blobURL, blobOptions)
+	uploadResp, err := azblob.UploadFileToBlockBlob(context.Background(), file, blobURL, azblob.UploadToBlockBlobOptions{})
 	if uploadResp.Response().StatusCode > 201 {
 		cobra.CheckErr(fmt.Sprintf("UploadFileToBlob failed with status %d to upload file '%s' to %s/%s", uploadResp.Response().StatusCode, filePath, blobContainer, blobName))
 	}

@@ -125,7 +125,7 @@ func SetSharedFlags(cmd *cobra.Command) {
 
 // Carry out the plan/deploy/destroy action
 func (o Options) runAction(tf *tfexec.Terraform, action Action) error {
-	console.Infof("Starting '%s' action, this could take some time...\n", ActionToString(action))
+	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
 	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
 	// Plan is run for both plan and deploy actions
@@ -300,7 +300,6 @@ func (o Options) cleanUp() {
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfplan")
 	_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
-	//_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
 }
 
 // By copying this file we enable teh azurerm backend and therefore remote state

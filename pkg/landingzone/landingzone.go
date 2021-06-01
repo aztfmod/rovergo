@@ -26,7 +26,7 @@ import (
 // RunCmd is the shared cobra run function for `landingzone run` and `launchpad run`
 func RunCmd(cmd *cobra.Command, args []string) {
 	actionStr, _ := cmd.Flags().GetString("action")
-	action, err := ActionFromString(actionStr)
+	action, err := NewAction(actionStr)
 	cobra.CheckErr(err)
 	console.Infof("Starting '%s' command with action '%s'\n", cmd.CommandPath(), actionStr)
 

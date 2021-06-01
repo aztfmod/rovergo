@@ -26,7 +26,8 @@ const (
 	ActionDestroy Action = iota
 )
 
-func ActionFromString(actionString string) (Action, error) {
+// NewAction returns an Action type from a string
+func NewAction(actionString string) (Action, error) {
 	switch strings.ToLower(actionString) {
 	case ActionInit.String():
 		return ActionInit, nil
@@ -44,17 +45,3 @@ func ActionFromString(actionString string) (Action, error) {
 func (a Action) String() string {
 	return actionEnum[a]
 }
-
-// func ActionToString(action Action) string {
-// 	switch action {
-// 	case ActionInit:
-// 		return "Init"
-// 	case ActionPlan:
-// 		return "Plan"
-// 	case ActionDeploy:
-// 		return "Deploy"
-// 	case ActionDestroy:
-// 		return "Destroy"
-// 	}
-// 	return ""
-// }

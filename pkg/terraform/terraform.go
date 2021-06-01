@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/hashicorp/terraform-exec/tfinstall"
@@ -49,8 +48,6 @@ func Setup() (string, error) {
 		return "", err
 	}
 
-	// Initialize terraform for use with Azure
-	SetEnvVars()
 	CheckVersion(path)
 
 	path, err = filepath.Abs(path)
@@ -71,41 +68,6 @@ func CheckVersion(path string) {
 		cobra.CheckErr(fmt.Sprintf("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
 	}
 	console.Successf("Terraform is at version %v\n", tfVer)
-}
-
-// SetEnvVars should be called before any terraform operations
-// It essentially "logs in" to Terraform with the creds stored in config
-// TODO: REMOVE DEPRECATED 🔥
-func SetEnvVars() {
-	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("auth.subscription-id"))
-	os.Setenv("ARM_CLIENT_ID", viper.GetString("auth.client-id"))
-	os.Setenv("ARM_TENANT_ID", viper.GetString("auth.tenant-id"))
-	os.Setenv("ARM_ENVIRONMENT", viper.GetString("auth.environment"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PATH", viper.GetString("auth.client-cert-path"))
-	os.Setenv("ARM_CLIENT_CERTIFICATE_PASSWORD", viper.GetString("auth.client-cert-password"))
-	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("auth.client-secret"))
-	os.Setenv("ARM_USE_MSI", viper.GetString("auth.use-msi"))
-	os.Setenv("ARM_MSI_ENDPOINT", viper.GetString("auth.msi-endpoint"))
-}
-
-// Authenticate will attempt to auth using the go-azure-helper and return auth config
-// TODO: REMOVE DEPRECATED 🔥
-func Authenticate() (*authentication.Config, error) {
-	builder := &authentication.Builder{
-		TenantOnly:                     false,
-		SupportsAuxiliaryTenants:       false,
-		AuxiliaryTenantIDs:             nil,
-		SupportsAzureCliToken:          true,
-		ClientID:                       viper.GetString("auth.client-id"),
-		ClientSecret:                   viper.GetString("auth.client-secret"),
-		SubscriptionID:                 viper.GetString("auth.subscription-id"),
-		TenantID:                       viper.GetString("auth.tenant-id"),
-		SupportsClientCertAuth:         true,
-		SupportsClientSecretAuth:       true,
-		SupportsManagedServiceIdentity: viper.GetBool("auth.use-msi"),
-	}
-
-	return builder.Build()
 }
 
 // ExpandVarDirectory returns an array of plan options from a directory of tfvars

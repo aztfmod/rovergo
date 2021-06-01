@@ -64,10 +64,6 @@ func initConfig() {
 		viper.SetDefault("tempDir", "/tmp")
 		viper.SetDefault("terraform.install", true)
 		viper.SetDefault("terraform.install-path", "./bin")
-		viper.SetDefault("state.storage-account", "")
-		viper.SetDefault("state.container", "")
-		viper.SetDefault("state.resource-group", "")
-		viper.SetDefault("state.access-key", "")
 	}
 
 	viper.SetEnvPrefix("rover")
@@ -82,5 +78,6 @@ func initConfig() {
 		_, err := os.Create(fileName)
 		cobra.CheckErr(err)
 		console.Warningf("Config file not found, creating new file %s with defaults\n", fileName)
+		viper.WriteConfig()
 	}
 }

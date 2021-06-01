@@ -2,7 +2,6 @@ package symphony
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/aztfmod/rover/pkg/console"
@@ -30,12 +29,11 @@ type Config struct {
 }
 
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
-	p := new(Config)
-	reader, _ := os.Open(symphonyConfigFileName)
-	buf, _ := ioutil.ReadAll(reader)
-	err := yaml.Unmarshal(buf, p)
+	sc := new(Config)
+	buf, _ := os.ReadFile(symphonyConfigFileName)
+	err := yaml.Unmarshal(buf, sc)
 
-	return p, err
+	return sc, err
 }
 
 func (sc *Config) OutputDebug(symphonyConfigFileName string) {

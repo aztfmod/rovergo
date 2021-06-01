@@ -7,12 +7,11 @@
 package cmd
 
 import (
-	"fmt"
+	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // ciCmd represents the ci command
@@ -20,44 +19,50 @@ var ciCmd = &cobra.Command{
 	Use:   "ci",
 	Short: "Manage CI operations.",
 	Long:  `Manage CI operations.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		symphonyConfigFileName, _ := cmd.Flags().GetString("symphony-config")
-		debug, _ := cmd.Flags().GetBool("debug")
-
-		symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
-		cobra.CheckErr(err)
-
-		if debug {
-			symphonyConfig.OutputDebug(symphonyConfigFileName)
-		}
-
-		run(symphonyConfigFileName)
-	},
-}
-
-func run(symphonyConfigFileName string) {
-	fmt.Println()
-
-	console.Infof("Running CI command, config: %s\n", symphonyConfigFileName)
 }
 
 func init() {
-	ciCmd.Flags().StringP("symphony-config", "c", "", "Path/filename of symphony.yml")
-	ciCmd.Flags().SetNormalizeFunc(aliasNormalizeFunc)
-
-	ciCmd.Flags().BoolP("verbose", "v", false, "Output symphony.yml to console")
-
-	err := cobra.MarkFlagRequired(ciCmd.Flags(), "symphony-config")
-	cobra.CheckErr(err)
-
 	rootCmd.AddCommand(ciCmd)
+
+	ciCmd.PersistentFlags().String("ci-task-dir", "./ci_tasks", "Directory containing the ci task definition files.")
+	ciCmd.PersistentFlags().StringP("symphony-config", "c", "./symphony.yaml", "Path/filename of symphony.yaml.")
+
+	addCITasks(ciCmd)
 }
 
-func aliasNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
-	switch name {
-	case "sc":
-		name = "symphony-config"
+func addCITasks(cmd *cobra.Command) {
+
+	// directoryName := "./ci_tasks"
+	directoryName, _ := cmd.PersistentFlags().GetString("ci-task-dir")
+
+	pTaskConfigs, err := symphony.NewTaskConfigs(directoryName)
+	cobra.CheckErr(err)
+
+	for _, filename := range pTaskConfigs.EnumerateFilenames() {
+
+		taskConfig, err := symphony.NewTaskConfig(filepath.Join(directoryName, filename))
+		cobra.CheckErr(err)
+
+		var ciTaskCommand = &cobra.Command{
+			Use: taskConfig.Name,
+			Run: func(cmd *cobra.Command, args []string) {
+				symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
+				symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
+				cobra.CheckErr(err)
+
+				debug, _ := cmd.Flags().GetBool("debug")
+
+				if debug {
+					symphonyConfig.OutputDebug(symphonyConfigFileName)
+					taskConfig.OutputDebug()
+				}
+
+				console.Infof("Running ci task %s\n", taskConfig.Name)
+
+			},
+		}
+
+		cmd.AddCommand(ciTaskCommand)
 	}
-	return pflag.NormalizedName(name)
+
 }

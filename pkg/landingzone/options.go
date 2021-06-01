@@ -9,6 +9,7 @@ package landingzone
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/spf13/cobra"
@@ -51,6 +52,20 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	// This is a 'just in case' default, it will be changed later
 	outPath, err := os.UserHomeDir()
 	cobra.CheckErr(err)
+
+	// Convert to absolute paths as a precaution
+	sourcePath, err = filepath.Abs(sourcePath)
+	cobra.CheckErr(err)
+	configPath, err = filepath.Abs(configPath)
+	cobra.CheckErr(err)
+
+	// Default state & plan name is taken from the base name of the landingzone source dir
+	if stateName == "" {
+		stateName = filepath.Base(sourcePath)
+		if stateName == "/" || stateName == "." {
+			cobra.CheckErr("Error source-path should be a directory path")
+		}
+	}
 
 	o := Options{
 		LaunchPadMode:      launchPadMode,

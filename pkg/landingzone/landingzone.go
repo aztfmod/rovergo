@@ -107,9 +107,9 @@ func SetSharedFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("action", "a", "init", "Action to run, one of [init | plan | deploy | destroy]")
 	cmd.Flags().StringP("source", "s", "", "Path to source of landingzone (required)")
 	cmd.Flags().StringP("config-path", "c", "", "Configuration vars directory (required)")
-	cmd.Flags().StringP("environment", "e", "caf", "Name of CAF environment")
+	cmd.Flags().StringP("environment", "e", "sandpit", "Name of CAF environment")
 	cmd.Flags().StringP("workspace", "w", "tfstate", "Name of workspace")
-	cmd.Flags().StringP("statename", "n", "mystate", "Base name for state and plan files")
+	cmd.Flags().StringP("statename", "n", "", "Name for state and plan files, defaults to landingzone name")
 	cmd.Flags().String("state-sub", "", "Azure subscription ID where state is held")
 	cmd.Flags().String("target-sub", "", "Azure subscription ID to operate on")
 	cmd.Flags().SortFlags = true

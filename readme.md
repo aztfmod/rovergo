@@ -6,7 +6,7 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
 
 # Current Status
 
-### ☢ This should be considered spike / POC / investigation grade code 🔥
+### ☢ This should be considered poc and work-in-progress grade code 🔥
 
 ## Implemented 
 
@@ -16,9 +16,10 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
   - Actions init, plan and deploy implemented and working
   - Handling of state initialization and upload
   - Handling of locating remote state from level and CAF environment
-- `launchpad ci <task>` - To run any tasks defined in the ci_tasks directory
+- `launchpad ci <task>` - To run any tasks defined in the ci_tasks directory, which are dynamically discovered
 - Config file support, currently `.rover.yaml` is used and looked for in $HOME or cwd
-- Calling Azure APIs to make calls e.g. get storage account, upload blobs
+- Calling Azure APIs to make calls e.g. query resources with ARG, get storage account, upload blobs
+- Interaction with Azure CLI to obtain subscription and current identity details
 - Goreleaser, GitHub Actions, linting, makefile
  
 ```text

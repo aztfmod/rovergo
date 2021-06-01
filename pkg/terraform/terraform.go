@@ -79,6 +79,7 @@ func ExpandVarDirectory(varDir string) ([]tfexec.PlanOption, error) {
 		if !strings.HasSuffix(path, ".tfvars") {
 			return nil
 		}
+
 		planOptions = append(planOptions, tfexec.VarFile(path))
 		console.Debugf("Found var file to use: %s\n", path)
 		return nil

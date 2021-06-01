@@ -3,11 +3,11 @@
 ```bash
 rover -lz /tf/caf/landingzones/caf_launchpad \
   -launchpad \
-  -var-folder /tf/caf/configuration/${environment}/level0/launchpad \
+  -var-folder /tf/caf/starter/configuration/demo/level0/launchpad \
   -parallelism 30 \
   -level level0 \
-  -env ${caf_environment} \
-  -a [plan|apply|destroy]
+  -env contoso_demo \
+  -a plan
 ```
 
 Initial set up

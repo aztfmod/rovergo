@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/hashicorp/go-azure-helpers/authentication"
@@ -101,8 +102,29 @@ func Authenticate() (*authentication.Config, error) {
 		TenantID:                       viper.GetString("auth.tenant-id"),
 		SupportsClientCertAuth:         true,
 		SupportsClientSecretAuth:       true,
-		SupportsManagedServiceIdentity: viper.GetBool("auth.use-msi"), // TODO: Should this be conditional on ARM_USE_MSI ?
+		SupportsManagedServiceIdentity: viper.GetBool("auth.use-msi"),
 	}
 
 	return builder.Build()
+}
+
+// ExpandVarDirectory returns an array of plan options from a directory of tfvars
+func ExpandVarDirectory(varDir string) ([]tfexec.PlanOption, error) {
+	planOptions := []tfexec.PlanOption{}
+
+	// Finds all .tfvars in directory and recurse down
+	err := filepath.Walk(varDir, func(path string, info os.FileInfo, err error) error {
+		if !strings.HasSuffix(path, ".tfvars") {
+			return nil
+		}
+		planOptions = append(planOptions, tfexec.VarFile(path))
+		console.Debugf("Found var file to use: %s\n", path)
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return planOptions, nil
 }

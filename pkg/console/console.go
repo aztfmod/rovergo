@@ -62,3 +62,13 @@ func Success(s string) {
 func Successf(f string, a ...interface{}) {
 	fmt.Printf("\033[1;32m"+f+"\033[0m", a...)
 }
+
+// Printfer implements the tfexec.printfer interface to be used with tfexec SetLogger
+type Printfer struct{}
+
+func (p Printfer) Printf(f string, a ...interface{}) {
+	if !DebugEnabled {
+		return
+	}
+	fmt.Printf("\033[1;35m"+f+"\033[0m", a...)
+}

@@ -1,3 +1,9 @@
+//
+// Rover - Azure CLI
+// * Interactions with the Azure CLI
+// * Ben C, May 2021
+//
+
 package azure
 
 import (
@@ -8,29 +14,54 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Account holds details fetched from `az account show` command
-type Account struct {
-	EnvironmentName  string
-	TenantID         string
-	SubscriptionName string `json:"name"`
-	SubscriptionID   string `json:"id"`
-	User             map[string]string
+// Subscription holds details fetched from `az account show` command
+type Subscription struct {
+	EnvironmentName string
+	TenantID        string
+	Name            string
+	ID              string
 }
 
-// GetAccount gets the current logged in details from the Azure CLI
+// Identity holds an Azure AD identity; user, SP or MSI
+type Identity struct {
+	UserPrincipalName string
+	ObjectType        string
+	ObjectID          string
+	Mail              string
+	MailNickname      string
+	DisplayName       string
+}
+
+// GetSubscription gets the current logged in details from the Azure CLI
 // Will fail and exit if they aren't found
-func GetAccount() Account {
+func GetSubscription() Subscription {
 	err := command.CheckCommand("az")
 	cobra.CheckErr(err)
 
-	accountRes, err := command.QuickRun("az", "account", "show", "-o=json")
+	cmdRes, err := command.QuickRun("az", "account", "show", "-o=json")
 	cobra.CheckErr(err)
 
-	account := &Account{}
-	err = json.Unmarshal([]byte(accountRes), account)
+	sub := &Subscription{}
+	err = json.Unmarshal([]byte(cmdRes), sub)
 	cobra.CheckErr(err)
 
-	console.Successf("Azure account details obtained for user: %s\n", account.User["name"])
-	console.Successf("Azure subscription is: %s (%s)\n", account.SubscriptionName, account.SubscriptionID)
-	return *account
+	console.Successf("Azure subscription is: %s (%s)\n", sub.Name, sub.ID)
+	return *sub
+}
+
+// GetIdentity gets the current logged in user from the Azure CLI
+// Will fail and exit if they aren't found
+func GetIdentity() Identity {
+	err := command.CheckCommand("az")
+	cobra.CheckErr(err)
+
+	cmdRes, err := command.QuickRun("az", "ad", "signed-in-user", "show", "-o=json")
+	cobra.CheckErr(err)
+
+	ident := &Identity{}
+	err = json.Unmarshal([]byte(cmdRes), ident)
+	cobra.CheckErr(err)
+
+	console.Successf("Signed in indentity is '%s' (%s)\n", ident.UserPrincipalName, ident.ObjectType)
+	return *ident
 }

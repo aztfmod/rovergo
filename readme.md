@@ -11,15 +11,14 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
 ## Implemented 
 
 - Shape of commands & sub-commands and CLI structure
-- `rover launchpad fetch` - Implements the existing `--clone` option
-- `rover config auth` - To configure which Azure credentials to use
+- `launchpad fetch` - Implements the existing `--clone` option
+- `launchpad run` - To deploy a launchpad
+  - Actions init, plan and deploy implemented and working
+  - Handling of state initialization and upload
+  - Handling of locating remote state from level and CAF environment
+- `launchpad ci <task>` - To run any tasks defined in the ci_tasks directory
 - Config file support, currently `.rover.yaml` is used and looked for in $HOME or cwd
-- Minimal implementation of Terraform init / plan / apply
-- Authentication into Terraform and Azure API SDK
-  - Service Principal with secret or cert - if configured
-  - Managed Identity - if configured
-  - Azure CLI - default if above not configured
-- Calling Azure API to make calls e.g. get storage account
+- Calling Azure APIs to make calls e.g. get storage account, upload blobs
 - Goreleaser, GitHub Actions, linting, makefile
  
 ```text
@@ -35,11 +34,9 @@ Usage:
 Available Commands:
   cd          Manage CD operations.
   ci          Manage CI operations.
-  config      Access to configuration related sub-commands, such as 'auth'.
   help        Help about any command
   landingzone Manage and deploy landing zones
   launchpad   Manage and deploy launchpad, i.e. landing zone level0.
-  logout      Log out from the Azure account.
   terraform   Manage terraform operations.
   workspace   Manage workspace operations.
 
@@ -56,8 +53,9 @@ Use "rover [command] --help" for more information about a command.
 
 In very rough order of priority
 
-- All launchpad and landing zone operations - priority #1 ☺
-- All handling remote state
+- Rest of launchpad and landing zone operations - priority #1 ☺
+- Other remote state cases, e.g. login_as_launchpad
+- Testing with managed identity (system and user)
 - User impersonation
 - CI operations
 - CD operations

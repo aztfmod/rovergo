@@ -2,8 +2,8 @@ package symphony
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
@@ -15,26 +15,30 @@ type TaskConfigs struct {
 }
 
 type TaskConfig struct {
-	Name           string `yaml:"name,omitempty"`
-	ExecutableName string `yaml:"executableName,omitempty"`
-	SubCommand     string `yaml:"subCommand,omitempty"`
-	Flags          string `yaml:"flags,omitempty"`
-	Debug          bool   `yaml:"debug,omitempty"`
-	RequiresInit   bool   `yaml:"requiresInit,omitempty"`
-	Parameters     []struct {
-		Name   string `yaml:"name,omitempty"`
-		Value  string `yaml:"value,omitempty"`
-		Prefix string `yaml:"prefix,omitempty"`
+	FileName string
+	Content  struct {
+		Name           string `yaml:"name,omitempty"`
+		ExecutableName string `yaml:"executableName,omitempty"`
+		SubCommand     string `yaml:"subCommand,omitempty"`
+		Flags          string `yaml:"flags,omitempty"`
+		Debug          bool   `yaml:"debug,omitempty"`
+		RequiresInit   bool   `yaml:"requiresInit,omitempty"`
+		Parameters     []struct {
+			Name   string `yaml:"name,omitempty"`
+			Value  string `yaml:"value,omitempty"`
+			Prefix string `yaml:"prefix,omitempty"`
+		}
 	}
 }
 
 func NewTaskConfig(taskConfigFileName string) (*TaskConfig, error) {
 	tc := new(TaskConfig)
-	reader, _ := os.Open(taskConfigFileName)
-	buf, _ := ioutil.ReadAll(reader)
-	err := yaml.Unmarshal(buf, tc)
+	tc.FileName = taskConfigFileName
 
-	tc.Name = strings.ToLower(tc.Name)
+	buf, _ := os.ReadFile(taskConfigFileName)
+	err := yaml.Unmarshal(buf, &tc.Content)
+
+	tc.Content.Name = strings.ToLower(tc.Content.Name)
 
 	return tc, err
 }
@@ -42,13 +46,38 @@ func NewTaskConfig(taskConfigFileName string) (*TaskConfig, error) {
 func (tc *TaskConfig) OutputDebug() {
 	fmt.Println()
 
-	console.Debugf("Verbose output of ci task configuration\n")
-	console.Debugf(" - Task name: %s\n", tc.Name)
-	console.Debugf(" - Executable name: %s\n", tc.ExecutableName)
-	if tc.SubCommand != "" {
-		console.Debugf(" - Sub-command name: %s\n", tc.SubCommand)
+	console.Debugf("Verbose output of ci task configuration, file name: %s\n", tc.FileName)
+	console.Debugf(" - Task name: %s\n", tc.Content.Name)
+	console.Debugf(" - Executable name: %s\n", tc.Content.ExecutableName)
+	if tc.Content.SubCommand != "" {
+		console.Debugf(" - Sub-command name: %s\n", tc.Content.SubCommand)
 	}
 }
+
+func FindTaskConfig(directoryName string, taskName string) (*TaskConfig, error) {
+
+	pTaskConfigs, err := NewTaskConfigs(directoryName)
+	if err != nil {
+		return nil, err
+	}
+
+	var foundTaskConfig = new(TaskConfig)
+	for _, filename := range pTaskConfigs.EnumerateFilenames() {
+
+		taskConfig, err := NewTaskConfig(filepath.Join(directoryName, filename))
+		if err != nil {
+			return nil, err
+		}
+
+		if strings.EqualFold(taskConfig.Content.Name, taskName) {
+			foundTaskConfig = taskConfig
+			break
+		}
+	}
+
+	return foundTaskConfig, nil
+}
+
 func NewTaskConfigs(directoryName string) (*TaskConfigs, error) {
 
 	tcs := new(TaskConfigs)

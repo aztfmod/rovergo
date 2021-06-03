@@ -9,7 +9,9 @@ package landingzone
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/spf13/cobra"
@@ -32,6 +34,9 @@ type Options struct {
 	Subscription       azure.Subscription
 	Identity           azure.Identity
 }
+
+const cafLaunchPadDir = "/caf_launchpad"
+const cafLandingzoneDir = "/caf_solution"
 
 // NewOptionsFromCmd builds a Config from command flags
 func NewOptionsFromCmd(cmd *cobra.Command) Options {
@@ -58,6 +63,16 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	cobra.CheckErr(err)
 	configPath, err = filepath.Abs(configPath)
 	cobra.CheckErr(err)
+
+	// IMPORTANT: Append relevant caf directory to source, as required for the mode
+	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
+		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
+	}
+	if launchPadMode {
+		sourcePath = path.Join(sourcePath, cafLaunchPadDir)
+	} else {
+		sourcePath = path.Join(sourcePath, cafLandingzoneDir)
+	}
 
 	// Default state & plan name is taken from the base name of the landingzone source dir
 	if stateName == "" {

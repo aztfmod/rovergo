@@ -12,21 +12,20 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
-	"github.com/briandowns/spinner"
+
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/spf13/cobra"
 )
 
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
-func (o *Options) Execute(action Action) {
+func (o Options) Execute(action Action) {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
@@ -53,7 +52,7 @@ func (o *Options) Execute(action Action) {
 	tf := o.initializeCAF()
 
 	// Find state storage account for this environment and level
-	existingStorageID, err := azure.FindStorageAccount(o.LevelString(), o.CafEnvironment, o.StateSubscription)
+	existingStorageID, err := azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
 	if err != nil {
 		if o.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, it will be created")
@@ -66,7 +65,7 @@ func (o *Options) Execute(action Action) {
 	}
 
 	// Run init in correct mode
-	if action == ActionInit || o.RunInit {
+	if action == ActionInit || action == ActionPlan || action == ActionDeploy {
 		if o.LaunchPadMode && existingStorageID == "" {
 			err = o.runLaunchpadInit(tf)
 		} else {
@@ -82,7 +81,6 @@ func (o *Options) Execute(action Action) {
 	}
 
 	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
-	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
 	// Plan is run for both plan and deploy actions
 	if action == ActionPlan || action == ActionDeploy {
@@ -101,9 +99,9 @@ func (o *Options) Execute(action Action) {
 		planOptions = append(planOptions, varOpts...)
 
 		// Now actually invoke Terraform plan
-		spinner.Start()
+		console.StartSpinner()
 		changes, err := tf.Plan(context.Background(), planOptions...)
-		spinner.Stop()
+		console.StopSpinner()
 		cobra.CheckErr(err)
 		if changes {
 			console.Success("Plan contains infrastructure updates")
@@ -128,13 +126,13 @@ func (o *Options) Execute(action Action) {
 		}
 
 		// Now actually invoke Terraform apply
-		spinner.Start()
+		console.StartSpinner()
 		err := tf.Apply(context.Background(), applyOptions...)
-		spinner.Stop()
+		console.StopSpinner()
 		cobra.CheckErr(err)
 
 		// Special case for post launchpad deployment
-		newStorageID, err := azure.FindStorageAccount(o.LevelString(), o.CafEnvironment, o.StateSubscription)
+		newStorageID, err := azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
 		cobra.CheckErr(err)
 		if o.LaunchPadMode && existingStorageID != newStorageID {
 			console.Info("Detected the launchpad infrastructure has been deployed or updated")
@@ -154,18 +152,16 @@ func (o *Options) Execute(action Action) {
 // Carry out Terraform init operation in launchpad mode has no backend state
 func (o Options) runLaunchpadInit(tf *tfexec.Terraform) error {
 	console.Info("Running init for launchpad")
-	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
-	spinner.Start()
+	console.StartSpinner()
 	err := tf.Init(context.Background(), tfexec.Upgrade(true))
-	spinner.Stop()
+	console.StopSpinner()
 	return err
 }
 
 // Carry out Terraform init operation with remote state backend
 func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	console.Info("Running init with remote state")
-	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
 	// IMPORTANT: This enables remote state in the source terraform dir
 	o.enableAzureBackend()
@@ -184,10 +180,10 @@ func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 		tfexec.Backend(true),
 	}
 
-	spinner.Start()
+	console.StartSpinner()
 	err := tf.Init(context.Background(), initOptions...)
 	cobra.CheckErr(err)
-	spinner.Stop()
+	console.StopSpinner()
 	return err
 }
 
@@ -202,7 +198,7 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
 	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
 	os.Setenv("TF_VAR_workspace", o.Workspace)
-	os.Setenv("TF_VAR_level", o.LevelString())
+	os.Setenv("TF_VAR_level", o.Level)
 	os.Setenv("TF_VAR_environment", o.CafEnvironment)
 	os.Setenv("TF_VAR_rover_version", version.Value)
 	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
@@ -226,7 +222,7 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 	}
 
 	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
-	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.LevelString(), o.Workspace)
+	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
 	err = os.MkdirAll(localStatePath, os.ModePerm)
 	cobra.CheckErr(err)
 	o.OutPath = localStatePath

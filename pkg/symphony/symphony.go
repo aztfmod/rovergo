@@ -41,6 +41,8 @@ type Stack struct {
 
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	sc := new(Config)
+	sc.FileName = symphonyConfigFileName
+
 	buf, _ := os.ReadFile(symphonyConfigFileName)
 	err := yaml.Unmarshal(buf, &sc.Content)
 	if sc.Content.Version != 2 {

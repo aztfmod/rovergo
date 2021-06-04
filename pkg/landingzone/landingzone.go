@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const terraformParallelism = 30
+
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
 func (o Options) Execute(action Action) {
@@ -91,6 +93,7 @@ func (o Options) Execute(action Action) {
 		planOptions := []tfexec.PlanOption{
 			tfexec.Out(planFile),
 			tfexec.Refresh(true),
+			tfexec.Parallelism(terraformParallelism),
 		}
 
 		// Then merge all tfvars found in config directory into -var-file options
@@ -123,6 +126,7 @@ func (o Options) Execute(action Action) {
 		applyOptions := []tfexec.ApplyOption{
 			tfexec.DirOrPlan(planFile),
 			tfexec.StateOut(stateFile),
+			tfexec.Parallelism(terraformParallelism),
 		}
 
 		// Now actually invoke Terraform apply
@@ -187,7 +191,7 @@ func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	return err
 }
 
-// All env vars and other steps need before running Terraform with CAF landingzones
+// This function
 func (o *Options) initializeCAF() *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)

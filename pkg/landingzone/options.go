@@ -54,6 +54,7 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	launchPadMode := false
 	if cmd.Parent().Name() == "launchpad" {
 		launchPadMode = true
+		// TODO: Maybe we have to remove this assumption and add --level flag to the `launchpad` cmd 😥
 		level = "level0"
 	}
 

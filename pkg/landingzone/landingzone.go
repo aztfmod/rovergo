@@ -66,15 +66,15 @@ func (o Options) Execute(action Action) {
 		console.Infof("Located state storage account %s\n", existingStorageID)
 	}
 
+	// TODO: PUT COMMMANDS HERE THAT DONT NEED INIT AND EXIT EARLY
+
 	// Run init in correct mode
-	if action == ActionInit || action == ActionPlan || action == ActionDeploy {
-		if o.LaunchPadMode && existingStorageID == "" {
-			err = o.runLaunchpadInit(tf)
-		} else {
-			err = o.runRemoteInit(tf, existingStorageID)
-		}
-		cobra.CheckErr(err)
+	if o.LaunchPadMode && existingStorageID == "" {
+		err = o.runLaunchpadInit(tf)
+	} else {
+		err = o.runRemoteInit(tf, existingStorageID)
 	}
+	cobra.CheckErr(err)
 
 	// If the action is just init, then stop here and don't proceed
 	if action == ActionInit {

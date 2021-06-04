@@ -9,7 +9,7 @@ import (
 func (c Config) RunAll(action landingzone.Action) {
 	console.Infof("Starting CD process for all levels...\n")
 
-	for _, level := range c.Levels {
+	for _, level := range c.Content.Levels {
 		c.RunLevel(level, action)
 	}
 }
@@ -26,19 +26,19 @@ func (c Config) RunLevel(level Level, action landingzone.Action) {
 func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 	console.Infof("   - Running CD for stack: %s\n", stack.Name)
 
-	ws := c.Workspace
+	ws := c.Content.Workspace
 	if ws == "" {
 		ws = "tfstate"
 	}
 
-	cafEnv := c.Environment
+	cafEnv := c.Content.Environment
 	if cafEnv == "" {
 		cafEnv = "sandpit"
 	}
 
-	sourcePath := c.LandingZonePath
+	sourcePath := stack.LandingZonePath
 	if sourcePath == "" {
-		cobra.CheckErr("Config file is missing 'landingZonePath' key")
+		cobra.CheckErr("Stack is missing 'landingZonePath' key")
 	}
 	configPath := stack.ConfigurationPath
 	if configPath == "" {

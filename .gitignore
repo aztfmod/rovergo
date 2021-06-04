@@ -11,6 +11,9 @@ bin/
 # a cobra command for testing
 test.go
 
+# personal symphony.yaml file
+symphony.yaml
+
 # Goreleaser
 dist/
 

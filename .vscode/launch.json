@@ -14,7 +14,9 @@
         "ci",
         "terraform-format",
         "-c",
-        "samples/sample.symphony.yaml",
+        "symphony.yaml",
+        "-l",
+        "level0",
         "--debug"
       ]
     },

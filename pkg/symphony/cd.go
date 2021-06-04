@@ -1,8 +1,6 @@
 package symphony
 
 import (
-	"path/filepath"
-
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
@@ -23,6 +21,8 @@ func (c Config) RunLevel(level Level, action landingzone.Action) {
 	}
 }
 
+// This runs the given action against the stack
+// It builds a landingzone.Options struct just like landingzone.NewOptionsFromCmd() but uses the YAML as source not the cmd
 func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 	console.Infof("   - Running CD for stack %s\n", stack.Name)
 
@@ -36,17 +36,14 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 		cafEnv = "sandpit"
 	}
 
-	lzPath := c.LandingZonePath
-	if lzPath == "" {
-		cobra.CheckErr("Config file is missing 'landingZonePath' setting")
+	sourcePath := c.LandingZonePath
+	if sourcePath == "" {
+		cobra.CheckErr("Config file is missing 'landingZonePath' key")
 	}
-
-	// Convert to absolute paths as a precaution
-	lzPath, err := filepath.Abs(lzPath)
-	cobra.CheckErr(err)
-	lzPath = landingzone.SetSourceDir(lzPath, level.Launchpad)
-	configPath, err := filepath.Abs(stack.ConfigurationPath)
-	cobra.CheckErr(err)
+	configPath := stack.ConfigurationPath
+	if configPath == "" {
+		cobra.CheckErr("Stack is missing 'configurationPath' key")
+	}
 
 	// TODO: Remove this safe guard when landingzone deploy is working
 	if !level.Launchpad {
@@ -56,13 +53,15 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 
 	opt := landingzone.Options{
 		Level:          level.Number,
-		ConfigPath:     configPath,
-		SourcePath:     lzPath,
 		LaunchPadMode:  level.Launchpad,
 		CafEnvironment: cafEnv,
 		StateName:      stack.Name,
 		Workspace:      ws,
 	}
+	// Safely set the paths up
+	opt.SetSourcePath(sourcePath)
+	opt.SetConfigPath(configPath)
 
+	// Now we can start the execution just like `landingzone run` cmd does
 	landingzone.ExecuteRun(opt, action)
 }

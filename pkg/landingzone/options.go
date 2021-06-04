@@ -58,15 +58,6 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	outPath, err := os.UserHomeDir()
 	cobra.CheckErr(err)
 
-	// Convert to absolute paths as a precaution
-	sourcePath, err = filepath.Abs(sourcePath)
-	cobra.CheckErr(err)
-	configPath, err = filepath.Abs(configPath)
-	cobra.CheckErr(err)
-
-	// IMPORTANT: Append relevant caf directory to source, as required for the mode
-	sourcePath = SetSourceDir(sourcePath, launchPadMode)
-
 	// Default state & plan name is taken from the base name of the landingzone source dir
 	if stateName == "" {
 		stateName = filepath.Base(sourcePath)
@@ -77,8 +68,6 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 
 	o := Options{
 		LaunchPadMode:      launchPadMode,
-		ConfigPath:         configPath,
-		SourcePath:         sourcePath,
 		Level:              level,
 		CafEnvironment:     env,
 		StateName:          stateName,
@@ -87,6 +76,10 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 		StateSubscription:  stateSub,
 		OutPath:            outPath,
 	}
+
+	// Safely set the paths up
+	o.SetSourcePath(sourcePath)
+	o.SetConfigPath(configPath)
 
 	return o
 }
@@ -97,14 +90,29 @@ func (o Options) LevelString() string {
 	return fmt.Sprintf("level%d", o.Level)
 }
 
-func SetSourceDir(sourcePath string, launchPadMode bool) string {
+// SetSourcePath ensures the source path is correct and absolute
+func (o *Options) SetSourcePath(sourcePath string) {
 	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
 		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
 	}
-	if launchPadMode {
-		sourcePath = path.Join(sourcePath, cafLaunchPadDir)
+
+	// TODO: Add validation that path exists and contains some .tf files
+
+	// Convert to absolute paths as a precaution
+	sourcePath, err := filepath.Abs(sourcePath)
+	cobra.CheckErr(err)
+
+	if o.LaunchPadMode {
+		o.SourcePath = path.Join(sourcePath, cafLaunchPadDir)
 	} else {
-		sourcePath = path.Join(sourcePath, cafLandingzoneDir)
+		o.SourcePath = path.Join(sourcePath, cafLandingzoneDir)
 	}
-	return sourcePath
+}
+
+func (o *Options) SetConfigPath(configPath string) {
+	// TODO: Add validation that path exists and contains some .tfvar files
+
+	configPath, err := filepath.Abs(configPath)
+	cobra.CheckErr(err)
+	o.ConfigPath = configPath
 }

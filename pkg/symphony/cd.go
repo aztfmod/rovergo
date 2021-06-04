@@ -15,7 +15,7 @@ func (c Config) RunAll(action landingzone.Action) {
 }
 
 func (c Config) RunLevel(level Level, action landingzone.Action) {
-	console.Infof(" - Running CD for level %d\n", level.Number)
+	console.Infof(" - Running CD for level: %s\n", level.Name)
 	for _, stack := range level.Stacks {
 		c.runStack(level, &stack, action)
 	}
@@ -24,7 +24,7 @@ func (c Config) RunLevel(level Level, action landingzone.Action) {
 // This runs the given action against the stack
 // It builds a landingzone.Options struct just like landingzone.NewOptionsFromCmd() but uses the YAML as source not the cmd
 func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
-	console.Infof("   - Running CD for stack %s\n", stack.Name)
+	console.Infof("   - Running CD for stack: %s\n", stack.Name)
 
 	ws := c.Workspace
 	if ws == "" {
@@ -52,12 +52,11 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 	}
 
 	opt := landingzone.Options{
-		Level:          level.Number,
+		Level:          level.Name,
 		LaunchPadMode:  level.Launchpad,
 		CafEnvironment: cafEnv,
 		StateName:      stack.Name,
 		Workspace:      ws,
-		RunInit:        true,
 	}
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)

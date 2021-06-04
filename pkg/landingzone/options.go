@@ -19,11 +19,12 @@ import (
 
 // Options holds all the settings for a langingzone or launchpad operation
 // It's populated first by calling NewOptionsFromCmd, then the RunCmd func sets Subscription & Identity fields
+// TODO: This probably needs a better name like `Operation` or something
 type Options struct {
 	LaunchPadMode      bool
 	ConfigPath         string
 	SourcePath         string
-	Level              int
+	Level              string
 	CafEnvironment     string
 	StateName          string
 	Workspace          string
@@ -31,7 +32,6 @@ type Options struct {
 	StateSubscription  string
 	Impersonate        bool
 	OutPath            string
-	RunInit            bool
 	Subscription       azure.Subscription
 	Identity           azure.Identity
 }
@@ -41,19 +41,21 @@ const cafLandingzoneDir = "/caf_solution"
 
 // NewOptionsFromCmd builds a Config from command flags
 func NewOptionsFromCmd(cmd *cobra.Command) Options {
-	launchPadMode := false
-	if cmd.Parent().Name() == "launchpad" {
-		launchPadMode = true
-	}
-
 	configPath, _ := cmd.Flags().GetString("config-path")
 	sourcePath, _ := cmd.Flags().GetString("source")
-	level, _ := cmd.Flags().GetInt("level")
+	level, _ := cmd.Flags().GetString("level")
 	env, _ := cmd.Flags().GetString("environment")
 	stateName, _ := cmd.Flags().GetString("statename")
 	ws, _ := cmd.Flags().GetString("workspace")
 	stateSub, _ := cmd.Flags().GetString("state-sub")
 	targetSub, _ := cmd.Flags().GetString("target-sub")
+
+	// Handle the launchpad mode special case
+	launchPadMode := false
+	if cmd.Parent().Name() == "launchpad" {
+		launchPadMode = true
+		level = "level0"
+	}
 
 	// This is a 'just in case' default, it will be changed later
 	outPath, err := os.UserHomeDir()
@@ -76,7 +78,6 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 		TargetSubscription: targetSub,
 		StateSubscription:  stateSub,
 		OutPath:            outPath,
-		RunInit:            true,
 	}
 
 	// Safely set the paths up
@@ -88,9 +89,9 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 
 // LevelString returns the level as formated string
 // This should be used rather than accessing level directly
-func (o Options) LevelString() string {
-	return fmt.Sprintf("level%d", o.Level)
-}
+// func (o Options) LevelString() string {
+// 	return fmt.Sprintf("level%d", o.Level)
+// }
 
 // SetSourcePath ensures the source path is correct and absolute
 func (o *Options) SetSourcePath(sourcePath string) {

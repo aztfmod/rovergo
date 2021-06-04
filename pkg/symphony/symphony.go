@@ -23,7 +23,7 @@ type Config struct {
 }
 
 type Level struct {
-	Number    int    `yaml:"level,omitempty"`
+	Name      string `yaml:"level,omitempty"`
 	Type      string `yaml:"type,omitempty"`
 	Launchpad bool   `yaml:"launchpad,omitempty"`
 	Stacks    []Stack

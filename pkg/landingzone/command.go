@@ -37,9 +37,9 @@ func SetSharedFlags(cmd *cobra.Command) {
 	AddActionFlag(cmd)
 	cmd.Flags().SortFlags = true
 
-	// Level command removed from launchpad cmd as it's always zero
+	// Level command not on launchpad cmd as we fix it to "level0"
 	if cmd.Parent().Name() != "launchpad" {
-		cmd.Flags().IntP("level", "l", 1, "Level")
+		cmd.Flags().StringP("level", "l", "level1", "Level")
 	}
 
 	_ = cobra.MarkFlagRequired(cmd.Flags(), "source")

@@ -22,7 +22,7 @@ var cdCmd = &cobra.Command{
 	Short: "Manage CD operations.",
 	Long:  `Manage CD operations.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		levelInt, _ := cmd.Flags().GetInt("level")
+		levelFlag, _ := cmd.Flags().GetString("level")
 		configPath, _ := cmd.Flags().GetString("symphony-config")
 		actionStr, _ := cmd.Flags().GetString("action")
 		action, err := landingzone.NewAction(actionStr)
@@ -31,19 +31,15 @@ var cdCmd = &cobra.Command{
 		conf, err := symphony.NewSymphonyConfig(configPath)
 		cobra.CheckErr(err)
 
-		if levelInt == allLevels {
+		if levelFlag == "" {
 			conf.RunAll(action)
 			return
 		}
 
-		if levelInt < allLevels {
-			cobra.CheckErr("Level must be greater than zero")
-		}
-
 		var level *symphony.Level
-		// Try to locate level in config from int
+		// Try to locate level in config matching the level flag passed in
 		for _, confLevel := range conf.Levels {
-			if confLevel.Number == levelInt {
+			if confLevel.Name == levelFlag {
 				level = &confLevel
 				break
 			}
@@ -51,7 +47,7 @@ var cdCmd = &cobra.Command{
 
 		//nolint
 		if level == nil {
-			cobra.CheckErr(fmt.Sprintf("level '%d' not found in symphony config file", levelInt))
+			cobra.CheckErr(fmt.Sprintf("level '%s' not found in symphony config file", levelFlag))
 		}
 		//nolint
 		conf.RunLevel(*level, action)
@@ -61,7 +57,7 @@ var cdCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(cdCmd)
 	cdCmd.Flags().StringP("symphony-config", "c", "", "Path to symphony config file")
-	cdCmd.Flags().IntP("level", "l", allLevels, "Level to operate on")
+	cdCmd.Flags().StringP("level", "l", "", "Level to operate on, if omitted all levels will be processed")
 	landingzone.AddActionFlag(cdCmd)
 
 	_ = cobra.MarkFlagRequired(cdCmd.Flags(), "symphony-config")

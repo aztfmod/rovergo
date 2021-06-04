@@ -8,5 +8,8 @@ bin/
 # Config file might have secrets
 .rover.yaml
 
+# a cobra command for testing
+test.go
+
 # Goreleaser
 dist/

@@ -10,16 +10,19 @@ import (
 )
 
 type Config struct {
-	Version         int    `yaml:"symphonyVersion,omitempty"`
-	Environment     string `yaml:"environment,omitempty"`
-	LandingZonePath string `yaml:"landingZonePath,omitempty"`
-	Workspace       string
-	Repositories    []struct {
-		Name   string `yaml:"name,omitempty"`
-		URI    string `yaml:"uri,omitempty"`
-		Branch string `yaml:"branch,omitempty"`
+	FileName string
+	Version  int `yaml:"symphonyVersion,omitempty"`
+	Content  struct {
+		Environment     string `yaml:"environment,omitempty"`
+		LandingZonePath string `yaml:"landingZonePath,omitempty"`
+		Workspace       string
+		Repositories    []struct {
+			Name   string `yaml:"name,omitempty"`
+			URI    string `yaml:"uri,omitempty"`
+			Branch string `yaml:"branch,omitempty"`
+		}
+		Levels []Level
 	}
-	Levels []Level
 }
 
 type Level struct {

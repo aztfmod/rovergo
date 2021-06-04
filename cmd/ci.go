@@ -66,3 +66,27 @@ func addCITasks(cmd *cobra.Command) {
 	}
 
 }
+
+func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, symphonyConfig *symphony.Config, targetLevel string, debug bool) {
+
+	console.Debugf("Running ci task %s\n", subCommandName)
+
+	taskConfig, err := symphony.FindTaskConfig(ciTasksDirectoryName, subCommandName)
+	cobra.CheckErr(err)
+
+	console.Debugf("Running executable %s, sub-command %s, level %s\n\n", taskConfig.Content.ExecutableName, taskConfig.Content.SubCommand, targetLevel)
+
+	for _, level := range symphonyConfig.Content.Levels {
+
+		if targetLevel == "all" || targetLevel == level.Name {
+
+			for _, stack := range level.Stacks {
+
+				lzp := stack.LandingZonePath
+				tfs := stack.TfState
+
+				console.Debugf("Running ci task %s with tfstate %s in folder %s\n", subCommandName, tfs, lzp)
+			}
+		}
+	}
+}

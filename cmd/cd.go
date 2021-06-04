@@ -36,7 +36,7 @@ var cdCmd = &cobra.Command{
 
 		var level *symphony.Level
 		// Try to locate level in config matching the level flag passed in
-		for _, confLevel := range conf.Levels {
+		for _, confLevel := range conf.Content.Levels {
 			if confLevel.Name == levelFlag {
 				level = &confLevel
 				break

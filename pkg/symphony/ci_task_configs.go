@@ -2,7 +2,6 @@ package symphony
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,9 +33,10 @@ type TaskConfig struct {
 
 func NewTaskConfig(taskConfigFileName string) (*TaskConfig, error) {
 	tc := new(TaskConfig)
-	reader, _ := os.Open(taskConfigFileName)
-	buf, _ := ioutil.ReadAll(reader)
-	err := yaml.Unmarshal(buf, tc)
+	tc.FileName = taskConfigFileName
+
+	buf, _ := os.ReadFile(taskConfigFileName)
+	err := yaml.Unmarshal(buf, &tc.Content)
 
 	tc.Content.Name = strings.ToLower(tc.Content.Name)
 

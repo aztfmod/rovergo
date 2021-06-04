@@ -44,7 +44,7 @@ func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	buf, _ := os.ReadFile(symphonyConfigFileName)
 	err := yaml.Unmarshal(buf, sc)
 	if sc.Version != 2 {
-		return nil, errors.New("Bad symphony version number, this version of rover requires version 2")
+		return nil, errors.New("bad symphony version number, this version of rover requires version 2")
 	}
 
 	return sc, err
@@ -54,7 +54,7 @@ func (sc *Config) OutputDebug(symphonyConfigFileName string) {
 	fmt.Println()
 
 	console.Debugf("Verbose output of %s\n", symphonyConfigFileName)
-	console.Debugf(" - Environment: %s\n", sc.Environment)
-	console.Debugf(" - Number of repositories: %d\n", len(sc.Repositories))
-	console.Debugf(" - Number of levels: %d\n", len(sc.Levels))
+	console.Debugf(" - Environment: %s\n", sc.Content.Environment)
+	console.Debugf(" - Number of repositories: %d\n", len(sc.Content.Repositories))
+	console.Debugf(" - Number of levels: %d\n", len(sc.Content.Levels))
 }

@@ -44,7 +44,7 @@ func addCITasks(cmd *cobra.Command) {
 		cobra.CheckErr(err)
 
 		var ciTaskCommand = &cobra.Command{
-			Use: taskConfig.Name,
+			Use: taskConfig.Content.Name,
 			Run: func(cmd *cobra.Command, args []string) {
 				symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
 				symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
@@ -57,7 +57,7 @@ func addCITasks(cmd *cobra.Command) {
 					taskConfig.OutputDebug()
 				}
 
-				console.Infof("Running ci task %s\n", taskConfig.Name)
+				console.Infof("Running ci task %s\n", taskConfig.Content.Name)
 
 			},
 		}

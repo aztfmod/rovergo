@@ -1,12 +1,4 @@
 {
-  "todoHighlighter.include": ["**/*.go"],
-  "go.useLanguageServer": true,
-  "go.lintTool": "golangci-lint",
-  "[go]": {
-    "editor.defaultFormatter": "golang.go",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true
-    }
-  }
+  // There's many TODO: comments scatted in the code, this is useful extension to help manage them
+  "todoHighlighter.include": ["**/*.go"]
 }

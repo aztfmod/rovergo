@@ -50,10 +50,10 @@ func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	return sc, err
 }
 
-func (sc *Config) OutputDebug(symphonyConfigFileName string) {
+func (sc *Config) OutputDebug() {
 	fmt.Println()
 
-	console.Debugf("Verbose output of %s\n", symphonyConfigFileName)
+	console.Debugf("Verbose output of %s\n", sc.FileName)
 	console.Debugf(" - Environment: %s\n", sc.Content.Environment)
 	console.Debugf(" - Number of repositories: %d\n", len(sc.Content.Repositories))
 	console.Debugf(" - Number of levels: %d\n", len(sc.Content.Levels))

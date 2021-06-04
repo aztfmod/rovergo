@@ -26,6 +26,7 @@ func init() {
 
 	ciCmd.PersistentFlags().String("ci-task-dir", "./ci_tasks", "Directory containing the ci task definition files.")
 	ciCmd.PersistentFlags().StringP("symphony-config", "c", "./symphony.yaml", "Path/filename of symphony.yaml.")
+	ciCmd.PersistentFlags().StringP("level", "l", "all", "Landing zone level to run within.")
 
 	addCITasks(ciCmd)
 }
@@ -46,18 +47,25 @@ func addCITasks(cmd *cobra.Command) {
 		var ciTaskCommand = &cobra.Command{
 			Use: taskConfig.Content.Name,
 			Run: func(cmd *cobra.Command, args []string) {
+
 				symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
 				symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
 				cobra.CheckErr(err)
 
-				debug, _ := cmd.Flags().GetBool("debug")
+				directoryName, _ := cmd.Parent().PersistentFlags().GetString("ci-task-dir")
+
+				level, _ := cmd.Parent().PersistentFlags().GetString("level")
+
+				subCommandName := cmd.Use
+
+				debug, _ := rootCmd.PersistentFlags().GetBool("debug")
 
 				if debug {
-					symphonyConfig.OutputDebug(symphonyConfigFileName)
+					symphonyConfig.OutputDebug()
 					taskConfig.OutputDebug()
 				}
 
-				console.Infof("Running ci task %s\n", taskConfig.Content.Name)
+				runCITaskSubCommand(directoryName, subCommandName, symphonyConfig, level, debug)
 
 			},
 		}

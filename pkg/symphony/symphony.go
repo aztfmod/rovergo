@@ -11,8 +11,8 @@ import (
 
 type Config struct {
 	FileName string
-	Version  int `yaml:"symphonyVersion,omitempty"`
 	Content  struct {
+		Version         int    `yaml:"symphonyVersion,omitempty"`
 		Environment     string `yaml:"environment,omitempty"`
 		LandingZonePath string `yaml:"landingZonePath,omitempty"`
 		Workspace       string
@@ -42,8 +42,8 @@ type Stack struct {
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	sc := new(Config)
 	buf, _ := os.ReadFile(symphonyConfigFileName)
-	err := yaml.Unmarshal(buf, sc)
-	if sc.Version != 2 {
+	err := yaml.Unmarshal(buf, &sc.Content)
+	if sc.Content.Version != 2 {
 		return nil, errors.New("bad symphony version number, this version of rover requires version 2")
 	}
 

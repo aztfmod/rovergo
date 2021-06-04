@@ -10,3 +10,6 @@ bin/
 
 # Goreleaser
 dist/
+
+# Local dev, configs etc
+local/

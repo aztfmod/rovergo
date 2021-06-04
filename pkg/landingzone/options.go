@@ -65,14 +65,7 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	cobra.CheckErr(err)
 
 	// IMPORTANT: Append relevant caf directory to source, as required for the mode
-	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
-		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
-	}
-	if launchPadMode {
-		sourcePath = path.Join(sourcePath, cafLaunchPadDir)
-	} else {
-		sourcePath = path.Join(sourcePath, cafLandingzoneDir)
-	}
+	sourcePath = SetSourceDir(sourcePath, launchPadMode)
 
 	// Default state & plan name is taken from the base name of the landingzone source dir
 	if stateName == "" {
@@ -102,4 +95,16 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 // This should be used rather than accessing level directly
 func (o Options) LevelString() string {
 	return fmt.Sprintf("level%d", o.Level)
+}
+
+func SetSourceDir(sourcePath string, launchPadMode bool) string {
+	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
+		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
+	}
+	if launchPadMode {
+		sourcePath = path.Join(sourcePath, cafLaunchPadDir)
+	} else {
+		sourcePath = path.Join(sourcePath, cafLandingzoneDir)
+	}
+	return sourcePath
 }

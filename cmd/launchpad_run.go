@@ -16,7 +16,7 @@ var lpRunCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run actions to deploy, update or remove launchpads",
 
-	Run: landingzone.RunCmd,
+	Run: landingzone.RunFunc,
 }
 
 func init() {

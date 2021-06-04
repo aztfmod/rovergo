@@ -8,7 +8,10 @@ package landingzone
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 type Action int
@@ -44,4 +47,8 @@ func NewAction(actionString string) (Action, error) {
 
 func (a Action) String() string {
 	return actionEnum[a]
+}
+
+func AddActionFlag(cmd *cobra.Command) {
+	cmd.Flags().StringP("action", "a", "init", fmt.Sprintf("Action to run, one of %v", actionEnum))
 }

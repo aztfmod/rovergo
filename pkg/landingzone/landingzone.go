@@ -18,13 +18,14 @@ import (
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/aztfmod/rover/pkg/version"
 	"github.com/briandowns/spinner"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/spf13/cobra"
 )
 
-// RunCmd is the shared cobra run function for `landingzone run` and `launchpad run`
-func RunCmd(cmd *cobra.Command, args []string) {
+// RunFunc is the shared cobra run function for `landingzone run` and `launchpad run`
+func RunFunc(cmd *cobra.Command, args []string) {
 	actionStr, _ := cmd.Flags().GetString("action")
 	action, err := NewAction(actionStr)
 	cobra.CheckErr(err)
@@ -33,6 +34,13 @@ func RunCmd(cmd *cobra.Command, args []string) {
 	// Build config from command flags
 	opt := NewOptionsFromCmd(cmd)
 
+	ExecuteRun(opt, action)
+}
+
+// ExecuteRun is entry point for `landingzone run`, `launchpad run` and `cd` commands
+// This executes a run operation on a option set
+// TODO: refactor Options into something like "RunOperation" then refactor this into having an RunOperation receiver
+func ExecuteRun(opt Options, action Action) {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
@@ -56,10 +64,10 @@ func RunCmd(cmd *cobra.Command, args []string) {
 	opt.cleanUp()
 
 	// All the env vars & other setup needed for CAF and get handle on Terraform
-	tf := opt.initializeCAF(cmd.Root().Version)
+	tf := opt.initializeCAF()
 
 	// Find state storage account for this environment and level
-	storageID, err := azure.FindStorageAccount(opt.LevelString(), opt.CafEnvironment, opt.StateSubscription)
+	existingStorageID, err := azure.FindStorageAccount(opt.LevelString(), opt.CafEnvironment, opt.StateSubscription)
 	if err != nil {
 		if opt.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, it will be created")
@@ -68,43 +76,32 @@ func RunCmd(cmd *cobra.Command, args []string) {
 			cobra.CheckErr("Can't deploy a landing zone without a launchpad")
 		}
 	} else {
-		console.Infof("Located state storage account %s\n", storageID)
+		console.Infof("Located state storage account %s\n", existingStorageID)
 	}
 
 	// Run init in correct mode
-	if opt.LaunchPadMode && storageID == "" {
+	if opt.LaunchPadMode && existingStorageID == "" {
 		err = opt.runLaunchpadInit(tf)
 	} else {
-		err = opt.runRemoteInit(tf, storageID)
+		err = opt.runRemoteInit(tf, existingStorageID)
 	}
 	cobra.CheckErr(err)
 
 	// If the action is just init, then stop here
 	if action == ActionInit {
+		console.Success("Rover completed, only init was run and no infrastructure changes were planned or applied")
 		return
 	}
 
-	err = opt.runAction(tf, action)
+	err = opt.runAction(tf, action, existingStorageID)
 	cobra.CheckErr(err)
 
-	// Special case for post launchpad deployment
-	newStorageID, err := azure.FindStorageAccount(opt.LevelString(), opt.CafEnvironment, opt.StateSubscription)
-	if opt.LaunchPadMode && storageID != newStorageID {
-		console.Info("Detected the launchpad infrastructure has been deployed or updated")
-		cobra.CheckErr(err)
-		stateFileName := opt.OutPath + "/" + opt.StateName + ".tfstate"
-		azure.UploadFileToBlob(newStorageID, opt.Workspace, opt.StateName+".tfstate", stateFileName)
-		console.Info("Uploading state from launchpad process to Azure storage")
-		os.Remove(stateFileName)
-	}
-
-	console.Info("Rover completed")
+	console.Success("Rover completed")
 }
 
 // SetSharedFlags configures command flags for both landingzone and launchpad commands
 func SetSharedFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags()
-	cmd.Flags().StringP("action", "a", "init", "Action to run, one of [init | plan | deploy | destroy]")
 	cmd.Flags().StringP("source", "s", "", "Path to source of landingzone (required)")
 	cmd.Flags().StringP("config-path", "c", "", "Configuration vars directory (required)")
 	cmd.Flags().StringP("environment", "e", "sandpit", "Name of CAF environment")
@@ -112,6 +109,7 @@ func SetSharedFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("statename", "n", "", "Name for state and plan files, (default landingzone source dir name)")
 	cmd.Flags().String("state-sub", "", "Azure subscription ID where state is held")
 	cmd.Flags().String("target-sub", "", "Azure subscription ID to operate on")
+	AddActionFlag(cmd)
 	cmd.Flags().SortFlags = true
 
 	// Level command removed from launchpad cmd as it's always zero
@@ -124,7 +122,7 @@ func SetSharedFlags(cmd *cobra.Command) {
 }
 
 // Carry out the plan/deploy/destroy action
-func (o Options) runAction(tf *tfexec.Terraform, action Action) error {
+func (o Options) runAction(tf *tfexec.Terraform, action Action, existingStorageID string) error {
 	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
 	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
@@ -180,6 +178,18 @@ func (o Options) runAction(tf *tfexec.Terraform, action Action) error {
 			return err
 		}
 
+		// Special case for post launchpad deployment
+		newStorageID, err := azure.FindStorageAccount(o.LevelString(), o.CafEnvironment, o.StateSubscription)
+		cobra.CheckErr(err)
+		if o.LaunchPadMode && existingStorageID != newStorageID {
+			console.Info("Detected the launchpad infrastructure has been deployed or updated")
+
+			stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+			azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+			console.Info("Uploading state from launchpad process to Azure storage")
+			os.Remove(stateFileName)
+		}
+
 		console.Success("Apply was successful")
 	}
 
@@ -227,7 +237,7 @@ func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 }
 
 // All env vars and other steps need before running Terraform with CAF landingzones
-func (o *Options) initializeCAF(roverVersion string) *tfexec.Terraform {
+func (o *Options) initializeCAF() *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
 
@@ -239,7 +249,7 @@ func (o *Options) initializeCAF(roverVersion string) *tfexec.Terraform {
 	os.Setenv("TF_VAR_workspace", o.Workspace)
 	os.Setenv("TF_VAR_level", o.LevelString())
 	os.Setenv("TF_VAR_environment", o.CafEnvironment)
-	os.Setenv("TF_VAR_rover_version", roverVersion)
+	os.Setenv("TF_VAR_rover_version", version.Value)
 	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
 	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
@@ -273,9 +283,9 @@ func (o *Options) initializeCAF(roverVersion string) *tfexec.Terraform {
 	// The debugging done here
 	if console.DebugEnabled {
 		// By default no output from Terraform is seen
-		// Also noote TF_LOG env var is ignored by tfexec
-		// tf.SetStdout(os.Stdout)
-		// tf.SetStderr(os.Stderr)
+		// Also note TF_LOG env var is ignored by tfexec
+		tf.SetStdout(os.Stdout)
+		tf.SetStderr(os.Stderr)
 
 		// This gives us some info level logs we can send to stdout
 		tf.SetLogger(console.Printfer{})

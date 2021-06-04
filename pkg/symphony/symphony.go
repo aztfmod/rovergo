@@ -1,6 +1,7 @@
 package symphony
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,29 +10,39 @@ import (
 )
 
 type Config struct {
-	Environment  string `yaml:"environment,omitempty"`
-	Repositories []struct {
+	Version         int    `yaml:"symphonyVersion,omitempty"`
+	Environment     string `yaml:"environment,omitempty"`
+	LandingZonePath string `yaml:"landingZonePath,omitempty"`
+	Workspace       string
+	Repositories    []struct {
 		Name   string `yaml:"name,omitempty"`
 		URI    string `yaml:"uri,omitempty"`
 		Branch string `yaml:"branch,omitempty"`
 	}
-	Levels []struct {
-		Level     string `yaml:"level,omitempty"`
-		Type      string `yaml:"type,omitempty"`
-		Launchpad bool   `yaml:"launchpad,omitempty"`
-		Stacks    []struct {
-			Stack             string `yaml:"stack,omitempty"`
-			LandingZonePath   string `yaml:"landingZonePath,omitempty"`
-			ConfigurationPath string `yaml:"configurationPath,omitempty"`
-			TfState           string `yaml:"tfState,omitempty"`
-		}
-	}
+	Levels []Level
+}
+
+type Level struct {
+	Number    int    `yaml:"level,omitempty"`
+	Type      string `yaml:"type,omitempty"`
+	Launchpad bool   `yaml:"launchpad,omitempty"`
+	Stacks    []Stack
+}
+
+type Stack struct {
+	Name              string `yaml:"stack,omitempty"`
+	LandingZonePath   string `yaml:"landingZonePath,omitempty"`
+	ConfigurationPath string `yaml:"configurationPath,omitempty"`
+	TfState           string `yaml:"tfState,omitempty"`
 }
 
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	sc := new(Config)
 	buf, _ := os.ReadFile(symphonyConfigFileName)
 	err := yaml.Unmarshal(buf, sc)
+	if sc.Version != 2 {
+		return nil, errors.New("Bad symphony version number, this version of rover requires version 2")
+	}
 
 	return sc, err
 }

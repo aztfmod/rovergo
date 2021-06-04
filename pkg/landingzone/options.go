@@ -19,11 +19,12 @@ import (
 
 // Options holds all the settings for a langingzone or launchpad operation
 // It's populated first by calling NewOptionsFromCmd, then the RunCmd func sets Subscription & Identity fields
+// TODO: This probably needs a better name like `Operation` or something
 type Options struct {
 	LaunchPadMode      bool
 	ConfigPath         string
 	SourcePath         string
-	Level              int
+	Level              string
 	CafEnvironment     string
 	StateName          string
 	Workspace          string
@@ -40,39 +41,26 @@ const cafLandingzoneDir = "/caf_solution"
 
 // NewOptionsFromCmd builds a Config from command flags
 func NewOptionsFromCmd(cmd *cobra.Command) Options {
-	launchPadMode := false
-	if cmd.Parent().Name() == "launchpad" {
-		launchPadMode = true
-	}
-
 	configPath, _ := cmd.Flags().GetString("config-path")
 	sourcePath, _ := cmd.Flags().GetString("source")
-	level, _ := cmd.Flags().GetInt("level")
+	level, _ := cmd.Flags().GetString("level")
 	env, _ := cmd.Flags().GetString("environment")
 	stateName, _ := cmd.Flags().GetString("statename")
 	ws, _ := cmd.Flags().GetString("workspace")
 	stateSub, _ := cmd.Flags().GetString("state-sub")
 	targetSub, _ := cmd.Flags().GetString("target-sub")
 
+	// Handle the launchpad mode special case
+	launchPadMode := false
+	if cmd.Parent().Name() == "launchpad" {
+		launchPadMode = true
+		// TODO: Maybe we have to remove this assumption and add --level flag to the `launchpad` cmd 😥
+		level = "level0"
+	}
+
 	// This is a 'just in case' default, it will be changed later
 	outPath, err := os.UserHomeDir()
 	cobra.CheckErr(err)
-
-	// Convert to absolute paths as a precaution
-	sourcePath, err = filepath.Abs(sourcePath)
-	cobra.CheckErr(err)
-	configPath, err = filepath.Abs(configPath)
-	cobra.CheckErr(err)
-
-	// IMPORTANT: Append relevant caf directory to source, as required for the mode
-	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
-		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
-	}
-	if launchPadMode {
-		sourcePath = path.Join(sourcePath, cafLaunchPadDir)
-	} else {
-		sourcePath = path.Join(sourcePath, cafLandingzoneDir)
-	}
 
 	// Default state & plan name is taken from the base name of the landingzone source dir
 	if stateName == "" {
@@ -84,8 +72,6 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 
 	o := Options{
 		LaunchPadMode:      launchPadMode,
-		ConfigPath:         configPath,
-		SourcePath:         sourcePath,
 		Level:              level,
 		CafEnvironment:     env,
 		StateName:          stateName,
@@ -95,11 +81,42 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 		OutPath:            outPath,
 	}
 
+	// Safely set the paths up
+	o.SetSourcePath(sourcePath)
+	o.SetConfigPath(configPath)
+
 	return o
 }
 
 // LevelString returns the level as formated string
 // This should be used rather than accessing level directly
-func (o Options) LevelString() string {
-	return fmt.Sprintf("level%d", o.Level)
+// func (o Options) LevelString() string {
+// 	return fmt.Sprintf("level%d", o.Level)
+// }
+
+// SetSourcePath ensures the source path is correct and absolute
+func (o *Options) SetSourcePath(sourcePath string) {
+	if strings.HasSuffix(sourcePath, cafLaunchPadDir) || strings.HasSuffix(sourcePath, cafLandingzoneDir) {
+		cobra.CheckErr(fmt.Sprintf("source should not include %s or %s", cafLandingzoneDir, cafLaunchPadDir))
+	}
+
+	// TODO: Add validation that path exists and contains some .tf files
+
+	// Convert to absolute paths as a precaution
+	sourcePath, err := filepath.Abs(sourcePath)
+	cobra.CheckErr(err)
+
+	if o.LaunchPadMode {
+		o.SourcePath = path.Join(sourcePath, cafLaunchPadDir)
+	} else {
+		o.SourcePath = path.Join(sourcePath, cafLandingzoneDir)
+	}
+}
+
+func (o *Options) SetConfigPath(configPath string) {
+	// TODO: Add validation that path exists and contains some .tfvar files
+
+	configPath, err := filepath.Abs(configPath)
+	cobra.CheckErr(err)
+	o.ConfigPath = configPath
 }

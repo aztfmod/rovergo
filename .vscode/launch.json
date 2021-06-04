@@ -5,30 +5,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug CLI",
-      "type": "go",
-      "request": "launch",
-      "mode": "auto",
-      "program": "${workspaceFolder}",
-      "args": [
-        "clone",
-        "--repo",
-        "foo/bar"
-      ]
-    },
-    {
-      "name": "Debug login CLI",
-      "type": "go",
-      "request": "launch",
-      "mode": "auto",
-      "program": "${workspaceFolder}",
-      "args": [
-        "login",
-        "--use_msi",
-        "true"
-      ]
-    },
-    {
       "name": "Debug CI CLI",
       "type": "go",
       "request": "launch",

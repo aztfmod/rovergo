@@ -1,0 +1,4 @@
+{
+  // There's many TODO: comments scatted in the code, this is useful extension to help manage them
+  "todoHighlighter.include": ["**/*.go"]
+}

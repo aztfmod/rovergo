@@ -13,3 +13,6 @@ test.go
 
 # Goreleaser
 dist/
+
+# Local dev, configs etc
+local/

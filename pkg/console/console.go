@@ -2,10 +2,19 @@ package console
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/briandowns/spinner"
 )
 
-// DebugEnabled controls output of debug messages
+// DebugEnabled controls output of debug messages and the spinner
 var DebugEnabled = false
+var consoleSpinner *spinner.Spinner
+
+func init() {
+	// See https://github.com/briandowns/spinner#available-character-sets
+	consoleSpinner = spinner.New(spinner.CharSets[37], 100*time.Millisecond)
+}
 
 // Debug outputs strings if debug is enabled, in delightful shade of magenta
 func Debug(s string) {
@@ -71,4 +80,17 @@ func (p Printfer) Printf(f string, a ...interface{}) {
 		return
 	}
 	fmt.Printf("\033[1;35m"+f+"\033[0m", a...)
+}
+
+// StartSpinner starts the spinner, which is disabled when debug is set
+func StartSpinner() {
+	if DebugEnabled {
+		return
+	}
+	consoleSpinner.Start()
+}
+
+// StopSpinner stops the spinner
+func StopSpinner() {
+	consoleSpinner.Stop()
 }

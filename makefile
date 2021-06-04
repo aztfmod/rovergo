@@ -1,4 +1,4 @@
-VERSION ?= 0.0.1
+VERSION ?= 2.0.1
 
 .PHONY: build help lint lint-fix run test clean
 .DEFAULT_GOAL := help
@@ -19,7 +19,7 @@ lint-fix: ## 🌟 Lint & format, will try to fix errors and modify code
 	$(GOLINT_PATH) run --modules-download-mode=mod ./... --fix
 
 build: ## 🔨 Build the rover binary
-	go build -ldflags "-X main.version='$(VERSION)'" -o bin/rover 
+	go build -ldflags "-X github.com/aztfmod/rover/pkg/version.Value='$(VERSION)'" -o bin/rover 
 
 run: ## 🏃‍ Run locally
 	go run main.go $(ARGS)

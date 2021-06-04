@@ -15,7 +15,7 @@ func RunFunc(cmd *cobra.Command, args []string) {
 	// Build config from command flags
 	opt := NewOptionsFromCmd(cmd)
 
-	ExecuteRun(opt, action)
+	opt.Execute(action)
 }
 
 // SetSharedFlags configures command flags for both landingzone and launchpad commands

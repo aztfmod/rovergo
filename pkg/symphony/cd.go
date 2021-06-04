@@ -57,11 +57,12 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 		CafEnvironment: cafEnv,
 		StateName:      stack.Name,
 		Workspace:      ws,
+		RunInit:        true,
 	}
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)
 
 	// Now we can start the execution just like `landingzone run` cmd does
-	landingzone.ExecuteRun(opt, action)
+	opt.Execute(action)
 }

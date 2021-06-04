@@ -24,42 +24,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ExecuteRun is entry point for `landingzone run`, `launchpad run` and `cd` commands
-// This executes a run operation on a option set
-// TODO: refactor Options into something like "RunOperation" then refactor this into having an RunOperation receiver
-func ExecuteRun(opt Options, action Action) {
+// Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
+// This executes an action against a set of config options
+func (o *Options) Execute(action Action) {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
 	// If they weren't set as flags fall back to logged in account subscription
-	if opt.StateSubscription == "" {
-		opt.StateSubscription = acct.ID
+	if o.StateSubscription == "" {
+		o.StateSubscription = acct.ID
 	}
-	if opt.TargetSubscription == "" {
-		opt.TargetSubscription = acct.ID
+	if o.TargetSubscription == "" {
+		o.TargetSubscription = acct.ID
 	}
-	opt.Subscription = acct
-	opt.Identity = ident
+	o.Subscription = acct
+	o.Identity = ident
 
-	if opt.LaunchPadMode {
-		if opt.TargetSubscription != opt.StateSubscription {
+	if o.LaunchPadMode {
+		if o.TargetSubscription != o.StateSubscription {
 			cobra.CheckErr("In launchpad mode, state-sub and target-sub must be the same Azure subscription")
 		}
 	}
 
 	// Remove old files, reset backend etc
-	opt.cleanUp()
+	o.cleanUp()
 
 	// All the env vars & other setup needed for CAF and get handle on Terraform
-	tf := opt.initializeCAF()
+	tf := o.initializeCAF()
 
 	// Find state storage account for this environment and level
-	existingStorageID, err := azure.FindStorageAccount(opt.LevelString(), opt.CafEnvironment, opt.StateSubscription)
+	existingStorageID, err := azure.FindStorageAccount(o.LevelString(), o.CafEnvironment, o.StateSubscription)
 	if err != nil {
-		if opt.LaunchPadMode {
+		if o.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, it will be created")
 		} else {
-			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", opt.CafEnvironment, opt.Level)
+			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
 			cobra.CheckErr("Can't deploy a landing zone without a launchpad")
 		}
 	} else {
@@ -67,27 +66,21 @@ func ExecuteRun(opt Options, action Action) {
 	}
 
 	// Run init in correct mode
-	if opt.LaunchPadMode && existingStorageID == "" {
-		err = opt.runLaunchpadInit(tf)
-	} else {
-		err = opt.runRemoteInit(tf, existingStorageID)
+	if action == ActionInit || o.RunInit {
+		if o.LaunchPadMode && existingStorageID == "" {
+			err = o.runLaunchpadInit(tf)
+		} else {
+			err = o.runRemoteInit(tf, existingStorageID)
+		}
+		cobra.CheckErr(err)
 	}
-	cobra.CheckErr(err)
 
-	// If the action is just init, then stop here
+	// If the action is just init, then stop here and don't proceed
 	if action == ActionInit {
 		console.Success("Rover completed, only init was run and no infrastructure changes were planned or applied")
 		return
 	}
 
-	err = opt.runAction(tf, action, existingStorageID)
-	cobra.CheckErr(err)
-
-	console.Success("Rover completed")
-}
-
-// Carry out the plan/deploy/destroy action
-func (o Options) runAction(tf *tfexec.Terraform, action Action, existingStorageID string) error {
 	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
 	spinner := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
 
@@ -111,15 +104,14 @@ func (o Options) runAction(tf *tfexec.Terraform, action Action, existingStorageI
 		spinner.Start()
 		changes, err := tf.Plan(context.Background(), planOptions...)
 		spinner.Stop()
-		if err != nil {
-			return err
-		}
+		cobra.CheckErr(err)
 		if changes {
 			console.Success("Plan contains infrastructure updates")
 		} else {
 			console.Success("Plan detected no changes")
 			console.Success("Skipping the apply phase")
-			return nil
+			console.Success("Rover completed")
+			return
 		}
 	}
 
@@ -139,9 +131,7 @@ func (o Options) runAction(tf *tfexec.Terraform, action Action, existingStorageI
 		spinner.Start()
 		err := tf.Apply(context.Background(), applyOptions...)
 		spinner.Stop()
-		if err != nil {
-			return err
-		}
+		cobra.CheckErr(err)
 
 		// Special case for post launchpad deployment
 		newStorageID, err := azure.FindStorageAccount(o.LevelString(), o.CafEnvironment, o.StateSubscription)
@@ -158,7 +148,7 @@ func (o Options) runAction(tf *tfexec.Terraform, action Action, existingStorageI
 		console.Success("Apply was successful")
 	}
 
-	return nil
+	console.Success("Rover completed")
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state

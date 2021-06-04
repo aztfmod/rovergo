@@ -31,6 +31,7 @@ type Options struct {
 	StateSubscription  string
 	Impersonate        bool
 	OutPath            string
+	RunInit            bool
 	Subscription       azure.Subscription
 	Identity           azure.Identity
 }
@@ -75,6 +76,7 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 		TargetSubscription: targetSub,
 		StateSubscription:  stateSub,
 		OutPath:            outPath,
+		RunInit:            true,
 	}
 
 	// Safely set the paths up

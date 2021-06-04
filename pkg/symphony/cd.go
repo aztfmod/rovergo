@@ -51,13 +51,20 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 		return
 	}
 
+	stateName := stack.TfState
+	// IMPORTANT: We use the stack name as the default name if tfState key is not supplied
+	if stateName == "" {
+		stateName = stack.Name
+	}
+
 	opt := landingzone.Options{
 		Level:          level.Name,
 		LaunchPadMode:  level.Launchpad,
 		CafEnvironment: cafEnv,
-		StateName:      stack.Name,
+		StateName:      stateName,
 		Workspace:      ws,
 	}
+
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)

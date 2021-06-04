@@ -12,10 +12,7 @@
       "program": "${workspaceFolder}",
       "args": [
         "ci",
-        "terraform-format",
-        "-c",
-        "samples/sample.symphony.yaml",
-        "--debug"
+        "-h"
       ]
     },
     {

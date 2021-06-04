@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
@@ -49,6 +50,31 @@ func (tc *TaskConfig) OutputDebug() {
 		console.Debugf(" - Sub-command name: %s\n", tc.SubCommand)
 	}
 }
+
+func FindTaskConfig(directoryName string, taskName string) (*TaskConfig, error) {
+
+	pTaskConfigs, err := NewTaskConfigs(directoryName)
+	if err != nil {
+		return nil, err
+	}
+
+	var foundTaskConfig = new(TaskConfig)
+	for _, filename := range pTaskConfigs.EnumerateFilenames() {
+
+		taskConfig, err := NewTaskConfig(filepath.Join(directoryName, filename))
+		if err != nil {
+			return nil, err
+		}
+
+		if strings.EqualFold(taskConfig.Content.Name, taskName) {
+			foundTaskConfig = taskConfig
+			break
+		}
+	}
+
+	return foundTaskConfig, nil
+}
+
 func NewTaskConfigs(directoryName string) (*TaskConfigs, error) {
 
 	tcs := new(TaskConfigs)

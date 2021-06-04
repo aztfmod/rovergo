@@ -1,5 +1,5 @@
 //
-// Rover - Core functions shared by landing zone & launchpad
+// Rover - Core execution of landingzone operations and actions
 // * Curent status is: launchpad deploy works and sets up remote state
 // * Ben C, May 2021
 //

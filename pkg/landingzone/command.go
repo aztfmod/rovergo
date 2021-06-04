@@ -1,3 +1,9 @@
+//
+// Rover - support for landingzone / launchpad cobra cmds
+// * Curent status is: launchpad deploy works and sets up remote state
+// * Ben C, May 2021
+//
+
 package landingzone
 
 import (

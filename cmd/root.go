@@ -83,6 +83,6 @@ func initConfig() {
 		_, err := os.Create(fileName)
 		cobra.CheckErr(err)
 		console.Warningf("Config file not found, creating new file %s with defaults\n", fileName)
-		_ = viper.WriteConfig()
+		viper.WriteConfig()
 	}
 }

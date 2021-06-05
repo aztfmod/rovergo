@@ -19,5 +19,5 @@ var landingzoneCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(landingzoneCmd)
+    	rootCmd.AddCommand(landingzoneCmd)
 }

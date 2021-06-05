@@ -35,7 +35,7 @@ snapshot:
 
 release:
   draft: false
-  prerelease: auto
+  prerelease: false
   header: |
     ## 🐶 Rover v2 Release
 

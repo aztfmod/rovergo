@@ -17,6 +17,7 @@ builds:
       #- darwin
     goarch:
       - amd64
+    binary: rover
 
 # replaces goos values with more readable names
 archives:
@@ -30,7 +31,16 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Tag }}-snap"
+  name_template: '{{ time "2006-01-02" }}-snap'
+
+# GitHub releases created manually
+release:
+  disable: true
+
+# Auto upload to Azure
+blobs:
+  - provider: azblob
+    bucket: rover2
 
 changelog:
   sort: asc

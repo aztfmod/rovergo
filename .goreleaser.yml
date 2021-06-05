@@ -10,11 +10,11 @@ builds:
   - env:
       - CGO_ENABLED=0
     ldflags:
-      - -X main.Version={{ .version }}
+      - -X github.com/aztfmod/rover/pkg/version.Value={{ .Version }}
     goos:
       - linux
-      - windows
-      - darwin
+      #- windows
+      #- darwin
     goarch:
       - amd64
 
@@ -30,7 +30,7 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{ .Tag }}-snap"
 
 changelog:
   sort: asc

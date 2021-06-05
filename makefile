@@ -1,4 +1,4 @@
-VERSION ?= 2.0.1
+VERSION ?= 0.0.1
 
 .PHONY: build help lint lint-fix run test clean
 .DEFAULT_GOAL := help

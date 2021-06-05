@@ -33,14 +33,11 @@ checksum:
 snapshot:
   name_template: '{{ time "2006-01-02" }}-snap'
 
-# GitHub releases created manually
 release:
-  disable: true
-
-# Auto upload to Azure
-blobs:
-  - provider: azblob
-    bucket: rover2
+  draft: false
+  prerelease: auto
+  header: |
+    ## 🐶 Rover v2 Release
 
 changelog:
   sort: asc

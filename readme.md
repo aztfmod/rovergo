@@ -1,4 +1,4 @@
-# Rover Go
+# Rover v2
 
 A project to undertake re-writing the [Rover tool](https://github.com/aztfmod/rover) in Go
 

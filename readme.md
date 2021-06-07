@@ -6,6 +6,7 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
 
 # Current Status
 
+### [👷‍♂️ Project board](https://github.com/orgs/aztfmod/projects/28?card_filter_query=label%3Arover-go)
 ### ☢ This is under heavy development, expect braking changes almost daily 🔥
 
 ## Implemented 

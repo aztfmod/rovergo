@@ -1,5 +1,5 @@
 //
-// Rover - Landing zone and launchpad actions
+// Rover - All landingzone terraform actions
 // * Encapsulation of actions
 // * Ben C, May 2021
 //

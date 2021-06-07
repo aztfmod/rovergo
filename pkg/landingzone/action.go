@@ -6,9 +6,14 @@
 
 package landingzone
 
+import (
+	"errors"
+	"strings"
+)
+
 type Action int
 
-var actionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "format", "validate"}
+var actionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "fmt", "validate"}
 var descriptionEnum = []string{
 	"Perform a terraform init and no other action",
 	"Perform a terraform plan",
@@ -40,20 +45,28 @@ const (
 )
 
 // NewAction returns an Action type from a string
-// func NewAction(actionString string) (Action, error) {
-// 	switch strings.ToLower(actionString) {
-// 	case ActionInit.String():
-// 		return ActionInit, nil
-// 	case ActionPlan.String():
-// 		return ActionPlan, nil
-// 	case ActionRun.String():
-// 		return ActionRun, nil
-// 	case ActionDestroy.String():
-// 		return ActionDestroy, nil
-// 	default:
-// 		return 0, errors.New("action is not valid")
-// 	}
-// }
+func NewAction(actionString string) (Action, error) {
+	switch strings.ToLower(actionString) {
+	case ActionInit.Name():
+		return ActionInit, nil
+	case ActionPlan.Name():
+		return ActionPlan, nil
+	case ActionApply.Name():
+		return ActionApply, nil
+	case ActionRun.Name():
+		return ActionRun, nil
+	case ActionDestroy.Name():
+		return ActionDestroy, nil
+	case ActionTest.Name():
+		return ActionTest, nil
+	case ActionFormat.Name():
+		return ActionFormat, nil
+	case ActionValidate.Name():
+		return ActionValidate, nil
+	default:
+		return 0, errors.New("action is not valid")
+	}
+}
 
 func (a Action) Name() string {
 	return actionEnum[a]

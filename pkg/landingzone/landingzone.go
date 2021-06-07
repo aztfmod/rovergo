@@ -27,7 +27,7 @@ const terraformParallelism = 30
 
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
-func (o Options) Execute(action Action) {
+func (o *Options) Execute(action Action) {
 	console.Infof("Begin execution of action '%s'\n", action.Name())
 
 	// Get current Azure details, subscription etc from CLI
@@ -49,17 +49,17 @@ func (o Options) Execute(action Action) {
 		}
 	}
 
-	// Remove old files, reset backend etc
-	o.cleanUp()
-
 	// All the env vars & other setup needed for CAF and get handle on Terraform
 	tf := o.initializeCAF()
+
+	// Remove old files, reset backend etc
+	o.cleanUp()
 
 	// Find state storage account for this environment and level
 	existingStorageID, err := azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
 	if err != nil {
 		if o.LaunchPadMode {
-			console.Warning("No state storage account found, but running in launchpad mode, it will be created")
+			console.Warning("No state storage account found, but running in launchpad mode, we can continue")
 		} else {
 			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
 			cobra.CheckErr("Can't deploy a landing zone without a launchpad")
@@ -69,10 +69,31 @@ func (o Options) Execute(action Action) {
 	}
 
 	// TODO: PUT COMMMANDS HERE THAT DONT NEED INIT AND EXIT EARLY
+	if action == ActionFormat {
+		console.Info("Carrying out the Terraform fmt command")
+
+		fo := []tfexec.FormatOption{
+			tfexec.Dir(o.SourcePath),
+			tfexec.Recursive(true),
+		}
+		outcome, filesToFix, err := tf.FormatCheck(context.Background(), fo...)
+		cobra.CheckErr(err)
+
+		// TODO: return something (exit code?) so that pipeline can react appropriately
+		if outcome {
+			console.Success("No formatting is necessary.")
+		} else {
+			console.Info("The following file(s) require formatting:\n")
+			for _, filename := range filesToFix {
+				console.Infof("%s\n", filename)
+			}
+		}
+		return
+	}
 
 	// Run init in correct mode
 	if o.LaunchPadMode && existingStorageID == "" {
-		err = o.runLaunchpadInit(tf)
+		err = o.runLaunchpadInit(tf, false)
 	} else {
 		err = o.runRemoteInit(tf, existingStorageID)
 	}
@@ -86,7 +107,9 @@ func (o Options) Execute(action Action) {
 
 	console.Infof("Starting '%s' action, this could take some time...\n", action.Name())
 
-	// Plan is run for both plan and run actions
+	//
+	// Terraform plan step
+	//
 	if action == ActionPlan || action == ActionRun {
 		console.Info("Carrying out the Terraform plan phase")
 
@@ -101,7 +124,10 @@ func (o Options) Execute(action Action) {
 		// Then merge all tfvars found in config directory into -var-file options
 		varOpts, err := terraform.ExpandVarDirectory(o.ConfigPath)
 		cobra.CheckErr(err)
-		planOptions = append(planOptions, varOpts...)
+		for _, vo := range varOpts {
+			// Note. spread operator would not work here, I tried ¯\_(ツ)_/¯
+			planOptions = append(planOptions, vo)
+		}
 
 		// Now actually invoke Terraform plan
 		console.StartSpinner()
@@ -118,6 +144,9 @@ func (o Options) Execute(action Action) {
 		}
 	}
 
+	//
+	// Terraform apply step
+	//
 	if action == ActionRun {
 		console.Info("Carrying out the Terraform apply phase")
 
@@ -152,21 +181,83 @@ func (o Options) Execute(action Action) {
 		console.Success("Apply was successful")
 	}
 
+	//
+	// Destroy action
+	//
+	if action == ActionDestroy {
+		console.Info("Carrying out the Terraform destroy phase")
+
+		stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+
+		// Build apply options, with plan file and state out
+		destroyOptions := []tfexec.DestroyOption{
+			tfexec.Parallelism(terraformParallelism),
+			tfexec.Refresh(false),
+		}
+
+		// We need to do all sorts of extra shenanigans for launchPadMode
+		if o.LaunchPadMode {
+			console.Warning("WARNING! You are destroying the launchpad!")
+			if existingStorageID == "" {
+				console.Error("Looks like this launchpad has already been deleted, bye!")
+				cobra.CheckErr("Destroy was aborted")
+			}
+
+			// IMPORTANT!
+			o.cleanUp()
+
+			// Download the current state
+			azure.DownloadFileFromBlob(existingStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+
+			// Reset back to use local state
+			console.Warning("Resetting state to local, have to re-run init")
+			err = o.runLaunchpadInit(tf, true)
+			cobra.CheckErr(err)
+			// IMPORTANT!
+			_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
+
+			// Tell destroy to use local downloaded state to destroy a launchpad
+			// TODO: This is a deprecated option, the solution is to switch to this
+			// https://www.terraform.io/docs/language/settings/backends/local.html
+			// nolint
+			destroyOptions = append(destroyOptions, tfexec.State(stateFileName))
+		}
+
+		// Merge all tfvars found in config directory into -var-file options
+		varOpts, err := terraform.ExpandVarDirectory(o.ConfigPath)
+		cobra.CheckErr(err)
+		for _, vo := range varOpts {
+			// Note. spread operator would not work here, I tried ¯\_(ツ)_/¯
+			destroyOptions = append(destroyOptions, vo)
+		}
+
+		// Now actually invoke Terraform apply
+		console.Warning("Destroy is now running ...")
+		console.StartSpinner()
+		err = tf.Destroy(context.Background(), destroyOptions...)
+		console.StopSpinner()
+		cobra.CheckErr(err)
+
+		// Remove files
+		o.cleanUp()
+		_ = os.RemoveAll(o.OutPath)
+		console.Success("Destroy was successful")
+	}
 	console.Success("Rover completed")
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state
-func (o Options) runLaunchpadInit(tf *tfexec.Terraform) error {
+func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error {
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()
-	err := tf.Init(context.Background(), tfexec.Upgrade(true))
+	err := tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Reconfigure(reconfigure))
 	console.StopSpinner()
 	return err
 }
 
 // Carry out Terraform init operation with remote state backend
-func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
+func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	console.Info("Running init with remote state")
 
 	// IMPORTANT: This enables remote state in the source terraform dir
@@ -262,7 +353,7 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 }
 
 // Remove files to ensure a clean run, state and plan files are recreated
-func (o Options) cleanUp() {
+func (o *Options) cleanUp() {
 	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfplan")
@@ -270,7 +361,7 @@ func (o Options) cleanUp() {
 }
 
 // By copying this file we enable teh azurerm backend and therefore remote state
-func (o Options) enableAzureBackend() {
+func (o *Options) enableAzureBackend() {
 	console.Info("Enabling backend state with backend.azurerm.tf file")
 	err := utils.CopyFile(o.SourcePath+"/backend.azurerm", o.SourcePath+"/backend.azurerm.tf")
 	cobra.CheckErr(err)

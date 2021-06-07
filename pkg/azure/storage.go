@@ -84,3 +84,28 @@ func UploadFileToBlob(storageAcctID string, blobContainer string, blobName strin
 	}
 	cobra.CheckErr(err)
 }
+
+// DownloadFileFromBlob does what you might expect it to
+func DownloadFileFromBlob(storageAcctID string, blobContainer string, blobName string, filePath string) {
+	subID, resGrp, accountName := ParseResourceID(storageAcctID)
+	console.Debugf("Downloading from storage account '%s' in res grp '%s' and subscription '%s'\n", accountName, resGrp, subID)
+	console.Debugf("Will download blob '%s' from container '%s' to file '%s'\n", blobName, blobContainer, filePath)
+
+	accountKey := GetAccountKey(subID, accountName, resGrp)
+
+	// Create a default request pipeline using your storage account name and account key.
+	credential, err := azblob.NewSharedKeyCredential(accountName, accountKey)
+	cobra.CheckErr(err)
+	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
+
+	containerURL, _ := url.Parse(
+		fmt.Sprintf("https://%s.blob.core.windows.net/%s", accountName, blobContainer))
+
+	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
+	blobURL := blobContainerURL.NewBlockBlobURL(blobName)
+	file, err := os.Create(filePath)
+	cobra.CheckErr(err)
+
+	err = azblob.DownloadBlobToFile(context.Background(), blobURL.BlobURL, 0, 0, file, azblob.DownloadFromBlobOptions{})
+	cobra.CheckErr(err)
+}

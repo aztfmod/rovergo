@@ -1,6 +1,7 @@
 //
 // Rover - Top level ci (continuous integration) command
-// * Doesn't do anything, all work is done by sub-commands
+// * Doesn't do anything, all work is done by sub-commands, the implementations of which
+// *  are methods of symphony.Config
 // * Greg O, May 2021
 //
 
@@ -8,10 +9,7 @@ package cmd
 
 import (
 	"path/filepath"
-	"strings"
 
-	"github.com/aztfmod/rover/pkg/console"
-	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +65,8 @@ func addCITasks(cmd *cobra.Command) {
 					taskConfig.OutputDebug()
 				}
 
-				runCITaskSubCommand(directoryName, subCommandName, symphonyConfig, level, debug)
+				// runCITaskSubCommand(directoryName, subCommandName, symphonyConfig, level, debug)
+				symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
 
 			},
 		}
@@ -77,44 +76,44 @@ func addCITasks(cmd *cobra.Command) {
 
 }
 
-func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, symphonyConfig *symphony.Config, targetLevel string, debug bool) {
+// func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, symphonyConfig *symphony.Config, targetLevel string, debug bool) {
 
-	taskConfig, err := symphony.FindTaskConfig(ciTasksDirectoryName, subCommandName)
-	cobra.CheckErr(err)
+// 	taskConfig, err := symphony.FindTaskConfig(ciTasksDirectoryName, subCommandName)
+// 	cobra.CheckErr(err)
 
-	console.Debugf("Running executable %s, sub-command %s, level %s\n\n", taskConfig.Content.ExecutableName, taskConfig.Content.SubCommand, targetLevel)
+// 	console.Debugf("Running executable %s, sub-command %s, level %s\n\n", taskConfig.Content.ExecutableName, taskConfig.Content.SubCommand, targetLevel)
 
-	for _, level := range symphonyConfig.Content.Levels {
+// 	for _, level := range symphonyConfig.Content.Levels {
 
-		if targetLevel == "all" || targetLevel == level.Name {
+// 		if targetLevel == "all" || targetLevel == level.Name {
 
-			for _, stack := range level.Stacks {
+// 			for _, stack := range level.Stacks {
 
-				console.Debugf("Running ci task %s in environment %s, level %s, stack %s\n",
-					subCommandName,
-					symphonyConfig.Content.Environment,
-					level.Name,
-					stack.Name)
+// 				console.Debugf("Running ci task %s in environment %s, level %s, stack %s\n",
+// 					subCommandName,
+// 					symphonyConfig.Content.Environment,
+// 					level.Name,
+// 					stack.Name)
 
-				opt := landingzone.Options{
-					LaunchPadMode:  level.Launchpad,
-					CafEnvironment: symphonyConfig.Content.Environment,
-					Workspace:      symphonyConfig.Content.Workspace,
-					Level:          level.Name,
-				}
-				opt.SetConfigPath(stack.ConfigurationPath)
-				opt.SetSourcePath(stack.LandingZonePath)
+// 				opt := landingzone.Options{
+// 					LaunchPadMode:  level.Launchpad,
+// 					CafEnvironment: symphonyConfig.Content.Environment,
+// 					Workspace:      symphonyConfig.Content.Workspace,
+// 					Level:          level.Name,
+// 				}
+// 				opt.SetConfigPath(stack.ConfigurationPath)
+// 				opt.SetSourcePath(stack.LandingZonePath)
 
-				var action landingzone.Action
-				if strings.ToLower(taskConfig.Content.ExecutableName) == "terraform" {
-					action, err = landingzone.NewAction(taskConfig.Content.SubCommand)
-					cobra.CheckErr(err)
-				} else {
-					action = landingzone.ActionCustom
-				}
+// 				var action landingzone.Action
+// 				if strings.ToLower(taskConfig.Content.ExecutableName) == "terraform" {
+// 					action, err = landingzone.NewAction(taskConfig.Content.SubCommand)
+// 					cobra.CheckErr(err)
+// 				} else {
+// 					action = landingzone.ActionCustom
+// 				}
 
-				opt.Execute(action)
-			}
-		}
-	}
-}
+// 				opt.Execute(action)
+// 			}
+// 		}
+// 	}
+// }

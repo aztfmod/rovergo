@@ -171,6 +171,16 @@ func (o *Options) Execute(action Action) {
 		console.Success("Apply was successful")
 	}
 
+	if action == ActionValidate {
+		console.Info("Carrying out the Terraform validate phase")
+
+		// Now actually invoke Terraform apply
+		console.StartSpinner()
+		_, err := tf.Validate(context.Background())
+		console.StopSpinner()
+		cobra.CheckErr(err)
+	}
+
 	console.Success("Rover completed")
 }
 

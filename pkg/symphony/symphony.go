@@ -43,8 +43,14 @@ func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	sc := new(Config)
 	sc.FileName = symphonyConfigFileName
 
-	buf, _ := os.ReadFile(symphonyConfigFileName)
-	err := yaml.Unmarshal(buf, &sc.Content)
+	buf, err := os.ReadFile(symphonyConfigFileName)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(buf, &sc.Content)
+	if err != nil {
+		return nil, err
+	}
 	if sc.Content.Version != 2 {
 		return nil, errors.New("bad symphony version number, this version of rover requires version 2")
 	}

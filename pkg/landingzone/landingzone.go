@@ -77,6 +77,7 @@ func (o *Options) Execute(action Action) {
 		outcome, filesToFix, err := tf.FormatCheck(context.Background(), fo...)
 		cobra.CheckErr(err)
 
+		// TODO: return something (exit code?) so that pipeline can react appropriately
 		if outcome {
 			console.Success("No formatting is necessary.")
 		} else {

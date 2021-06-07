@@ -29,6 +29,12 @@ func init() {
 
 	// Dynamically build sub-commands from list of actions
 	for _, actionName := range landingzone.ActionEnum {
+		// These actions are for CI only, makes no sense overlaping with `rover ci` here
+		if actionName == landingzone.ActionFormat.Name() ||
+			actionName == landingzone.ActionValidate.Name() {
+			continue
+		}
+
 		action, err := landingzone.NewAction(actionName)
 		cobra.CheckErr(err)
 		actionSubCmd := &cobra.Command{

@@ -14,16 +14,14 @@ import (
 type Action int
 
 // ActionEnum is the list of all action strings, note order MUST match those defined as consts below
-var ActionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "fmt", "validate"}
+var ActionEnum = []string{"init", "plan", "apply", "destroy", "fmt", "validate"}
 
 // Used when building commands
 var descriptionEnum = []string{
 	"Perform a terraform init and no other action",
 	"Perform a terraform plan",
 	"Perform a terraform plan & apply",
-	"Perform a terraform plan, apply & test",
 	"Perform a terraform destroy",
-	"Run a test using terratest",
 	"Perform a terraform fmt check",
 	"Perform a terraform validate",
 }
@@ -35,12 +33,8 @@ const (
 	ActionPlan Action = iota
 	// ActionApply carries out a plan AND apply
 	ActionApply Action = iota
-	// ActionRun carries out a plan, apply + test
-	ActionRun Action = iota
 	// ActionDestroy carries out a destroy operation
 	ActionDestroy Action = iota
-	// ActionTest carries out a test operation
-	ActionTest Action = iota
 	// ActionFormat carries out a fmt operation
 	ActionFormat Action = iota
 	// ActionValidate carries out a vaildate operation
@@ -56,12 +50,8 @@ func NewAction(actionString string) (Action, error) {
 		return ActionPlan, nil
 	case ActionApply.Name():
 		return ActionApply, nil
-	case ActionRun.Name():
-		return ActionRun, nil
 	case ActionDestroy.Name():
 		return ActionDestroy, nil
-	case ActionTest.Name():
-		return ActionTest, nil
 	case ActionFormat.Name():
 		return ActionFormat, nil
 	case ActionValidate.Name():

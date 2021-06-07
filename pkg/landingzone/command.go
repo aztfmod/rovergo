@@ -27,6 +27,6 @@ func SetSharedFlags(cmd *cobra.Command) {
 		cmd.PersistentFlags().StringP("level", "l", "level1", "Level")
 	}
 
-	_ = cobra.MarkFlagRequired(cmd.Flags(), "source")
-	_ = cobra.MarkFlagRequired(cmd.Flags(), "config-path")
+	_ = cobra.MarkFlagRequired(cmd.PersistentFlags(), "source")
+	_ = cobra.MarkFlagRequired(cmd.PersistentFlags(), "config-path")
 }

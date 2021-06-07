@@ -111,7 +111,7 @@ func (o *Options) Execute(action Action) {
 	// Terraform plan step
 	//
 	planChanges := false
-	if action == ActionPlan || action == ActionApply || action == ActionRun {
+	if action == ActionPlan || action == ActionApply {
 		console.Info("Carrying out the Terraform plan phase")
 
 		// Build plan options starting with tfplan output
@@ -130,7 +130,6 @@ func (o *Options) Execute(action Action) {
 			planOptions = append(planOptions, vo)
 		}
 
-		// Now actually invoke Terraform plan
 		console.StartSpinner()
 		changes, err := tf.Plan(context.Background(), planOptions...)
 		console.StopSpinner()
@@ -146,7 +145,7 @@ func (o *Options) Execute(action Action) {
 	//
 	// Terraform apply step, won't run if plan found no changes
 	//
-	if (action == ActionApply || action == ActionRun) && planChanges {
+	if action == ActionApply && planChanges {
 		console.Info("Carrying out the Terraform apply phase")
 
 		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
@@ -159,7 +158,6 @@ func (o *Options) Execute(action Action) {
 			tfexec.Parallelism(terraformParallelism),
 		}
 
-		// Now actually invoke Terraform apply
 		console.StartSpinner()
 		err := tf.Apply(context.Background(), applyOptions...)
 		console.StopSpinner()
@@ -181,11 +179,15 @@ func (o *Options) Execute(action Action) {
 	}
 
 	//
-	// Terraform test step
+	// Terraform validate step
 	//
-	if action == ActionRun || action == ActionTest {
-		// FIXME: It's very likely we don't want test handled by this Execute function at all
-		console.Warning("TEST COMMAND NOT IMPLEMENTED")
+	if action == ActionValidate {
+		console.Info("Carrying out the Terraform validate phase")
+
+		console.StartSpinner()
+		_, err := tf.Validate(context.Background())
+		console.StopSpinner()
+		cobra.CheckErr(err)
 	}
 
 	//
@@ -238,7 +240,6 @@ func (o *Options) Execute(action Action) {
 			destroyOptions = append(destroyOptions, vo)
 		}
 
-		// Now actually invoke Terraform apply
 		console.Warning("Destroy is now running ...")
 		console.StartSpinner()
 		err = tf.Destroy(context.Background(), destroyOptions...)

@@ -245,7 +245,7 @@ func (o *Options) Execute(action Action) {
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state
-func (o *Options) runLaunchpadInit(tf *tfexec.Terraform) error {
+func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error {
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()

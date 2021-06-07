@@ -28,6 +28,8 @@ const terraformParallelism = 30
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
 func (o Options) Execute(action Action) {
+	console.Infof("Begin execution of action '%s'\n", action.Name())
+
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
@@ -82,10 +84,10 @@ func (o Options) Execute(action Action) {
 		return
 	}
 
-	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
+	console.Infof("Starting '%s' action, this could take some time...\n", action.Name())
 
-	// Plan is run for both plan and deploy actions
-	if action == ActionPlan || action == ActionDeploy {
+	// Plan is run for both plan and run actions
+	if action == ActionPlan || action == ActionRun {
 		console.Info("Carrying out the Terraform plan phase")
 
 		// Build plan options starting with tfplan output
@@ -116,7 +118,7 @@ func (o Options) Execute(action Action) {
 		}
 	}
 
-	if action == ActionDeploy {
+	if action == ActionRun {
 		console.Info("Carrying out the Terraform apply phase")
 
 		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)

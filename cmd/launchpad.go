@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
@@ -19,4 +20,6 @@ var launchpadCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(launchpadCmd)
+	// NOTE: Set shared flags at this level, they will cascade down to all child sub-commands
+	landingzone.SetSharedFlags(launchpadCmd)
 }

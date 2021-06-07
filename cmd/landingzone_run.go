@@ -8,24 +8,23 @@
 package cmd
 
 import (
-	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
 var lzRunCmd = &cobra.Command{
-	Use:   "run",
-	Short: "Run actions to deploy, update or remove landing zones",
-
-	// TODO: Implement this, not working but will us the same shared RunFunc as lp run
-	// See task #21
-	//Run: landingzone.RunFunc,
+	Use:   landingzone.ActionRun.Name(),
+	Short: landingzone.ActionRun.Description(),
 	Run: func(cmd *cobra.Command, args []string) {
-		console.Error("landingzone run command is not implemented yet")
+		// Build config from command flags
+		opt := landingzone.NewOptionsFromCmd(cmd)
+		// And execute the relevant action
+		opt.Execute(landingzone.ActionRun)
 	},
 }
 
 func init() {
+	// Place this command under the main `rover launchpad` command
 	landingzoneCmd.AddCommand(lzRunCmd)
 	landingzone.SetSharedFlags(lzRunCmd)
 }

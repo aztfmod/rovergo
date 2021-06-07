@@ -12,18 +12,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var lpRunCmd = &cobra.Command{
-	Use:   landingzone.ActionRun.Name(),
-	Short: landingzone.ActionRun.Description(),
+var lpFmtCmd = &cobra.Command{
+	Use:   landingzone.ActionFormat.Name(),
+	Short: landingzone.ActionFormat.Description(),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Build config from command flags
 		opt := landingzone.NewOptionsFromCmd(cmd)
 		// And execute the relevant action
-		opt.Execute(landingzone.ActionRun)
+		opt.Execute(landingzone.ActionFormat)
 	},
 }
 
 func init() {
 	// Place this command under the main `rover launchpad` command
-	launchpadCmd.AddCommand(lpRunCmd)
+	launchpadCmd.AddCommand(lpFmtCmd)
 }

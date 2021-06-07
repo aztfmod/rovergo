@@ -20,4 +20,5 @@ var landingzoneCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(landingzoneCmd)
+	// NOTE: CAN NOT set shared flags at this level as some sub-commands don't use those flags
 }

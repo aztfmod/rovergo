@@ -16,10 +16,10 @@ import (
 // listCmd represents the list command
 var lzListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all landingzones",
+	Short: "List all deployed landingzones",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("landingzones list called")
+		fmt.Println("landingzones list is not implemented")
 	},
 }
 

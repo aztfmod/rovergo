@@ -70,9 +70,9 @@ func CheckVersion(path string) {
 	console.Successf("Terraform is at version %v\n", tfVer)
 }
 
-// ExpandVarDirectory returns an array of plan options from a directory of tfvars
-func ExpandVarDirectory(varDir string) ([]tfexec.PlanOption, error) {
-	planOptions := []tfexec.PlanOption{}
+// ExpandVarDirectory returns an array of var file options from a directory of tfvars
+func ExpandVarDirectory(varDir string) ([]*tfexec.VarFileOption, error) {
+	varFileOpts := []*tfexec.VarFileOption{}
 
 	// Finds all .tfvars in directory and recurse down
 	err := filepath.Walk(varDir, func(path string, info os.FileInfo, err error) error {
@@ -80,7 +80,8 @@ func ExpandVarDirectory(varDir string) ([]tfexec.PlanOption, error) {
 			return nil
 		}
 
-		planOptions = append(planOptions, tfexec.VarFile(path))
+		varFileOpt := tfexec.VarFile(path)
+		varFileOpts = append(varFileOpts, varFileOpt)
 		console.Debugf("Found var file to use: %s\n", path)
 		return nil
 	})
@@ -89,5 +90,5 @@ func ExpandVarDirectory(varDir string) ([]tfexec.PlanOption, error) {
 		return nil, err
 	}
 
-	return planOptions, nil
+	return varFileOpts, nil
 }

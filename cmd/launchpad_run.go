@@ -1,5 +1,5 @@
 //
-// Rover - Landing zone run command is the core of rover
+// Rover - Launchpad run command
 // * This carries out actions like plan, apply or destroy via terrafrom
 // * TODO: Work in progress
 // * Ben C, May 2021

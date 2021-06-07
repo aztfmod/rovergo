@@ -58,7 +58,7 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 		level = "level0"
 	}
 
-	// This is a 'just in case' default, it will be changed later
+	// This is a 'just in case' default, it will be changed later, when initializeCAF is called
 	outPath, err := os.UserHomeDir()
 	cobra.CheckErr(err)
 

@@ -1,5 +1,5 @@
 //
-// Rover - Landing zone and launchpad actions
+// Rover - All landingzone terraform actions
 // * Encapsulation of actions
 // * Ben C, May 2021
 //
@@ -7,58 +7,64 @@
 package landingzone
 
 import (
-	"fmt"
+	"errors"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 type Action int
 
-var actionEnum = []string{"init", "plan", "deploy", "destroy", "fmt", "validate"}
+// ActionEnum is the list of all action strings, note order MUST match those defined as consts below
+var ActionEnum = []string{"init", "plan", "apply", "destroy", "fmt", "validate"}
+
+// Used when building commands
+var descriptionEnum = []string{
+	"Perform a terraform init and no other action",
+	"Perform a terraform plan",
+	"Perform a terraform plan & apply",
+	"Perform a terraform destroy",
+	"Perform a terraform fmt check",
+	"Perform a terraform validate",
+}
 
 const (
-	// ActionInit carries out a just init step and no real action
+	// ActionInit carries out a init operation and exits
 	ActionInit Action = iota
 	// ActionPlan carries out a plan operation
 	ActionPlan Action = iota
-	// ActionDeploy carries out a plan AND apply operation
-	ActionDeploy Action = iota
+	// ActionApply carries out a plan AND apply
+	ActionApply Action = iota
 	// ActionDestroy carries out a destroy operation
 	ActionDestroy Action = iota
-	// ActionFmt carries out a fmt operation
-	ActionFmt Action = iota
-	// ActionValidate carries out a validate operation
+	// ActionFormat carries out a fmt operation
+	ActionFormat Action = iota
+	// ActionValidate carries out a vaildate operation
 	ActionValidate Action = iota
-	// ActionCustom carries out a custom non-terraform operation
-	ActionCustom Action = iota
 )
 
 // NewAction returns an Action type from a string
 func NewAction(actionString string) (Action, error) {
 	switch strings.ToLower(actionString) {
-	case ActionInit.String():
+	case ActionInit.Name():
 		return ActionInit, nil
-	case ActionPlan.String():
+	case ActionPlan.Name():
 		return ActionPlan, nil
-	case ActionDeploy.String():
-		return ActionDeploy, nil
-	case ActionDestroy.String():
+	case ActionApply.Name():
+		return ActionApply, nil
+	case ActionDestroy.Name():
 		return ActionDestroy, nil
-	case ActionFmt.String():
-		return ActionFmt, nil
-	case ActionValidate.String():
+	case ActionFormat.Name():
+		return ActionFormat, nil
+	case ActionValidate.Name():
 		return ActionValidate, nil
 	default:
-		return ActionCustom, nil
-		// return 0, errors.New("action is not valid, must be [init | plan | deploy | destroy | fmt | validate]")
+		return 0, errors.New("action is not valid")
 	}
 }
 
-func (a Action) String() string {
-	return actionEnum[a]
+func (a Action) Name() string {
+	return ActionEnum[a]
 }
 
-func AddActionFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP("action", "a", "init", fmt.Sprintf("Action to run, one of %v", actionEnum))
+func (a Action) Description() string {
+	return descriptionEnum[a]
 }

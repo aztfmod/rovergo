@@ -28,6 +28,8 @@ const terraformParallelism = 30
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
 func (o *Options) Execute(action Action) {
+	console.Infof("Begin execution of action '%s'\n", action.Name())
+
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
@@ -67,7 +69,7 @@ func (o *Options) Execute(action Action) {
 	}
 
 	// TODO: PUT COMMMANDS HERE THAT DONT NEED INIT AND EXIT EARLY
-	if action == ActionFmt {
+	if action == ActionFormat {
 		console.Info("Carrying out the Terraform fmt command")
 
 		fo := []tfexec.FormatOption{
@@ -103,12 +105,13 @@ func (o *Options) Execute(action Action) {
 		return
 	}
 
-	console.Infof("Starting '%s' action, this could take some time...\n", action.String())
+	console.Infof("Starting '%s' action, this could take some time...\n", action.Name())
 
 	//
-	// Plan action
+	// Terraform plan step
 	//
-	if action == ActionPlan || action == ActionDeploy {
+	planChanges := false
+	if action == ActionPlan || action == ActionApply {
 		console.Info("Carrying out the Terraform plan phase")
 
 		// Build plan options starting with tfplan output
@@ -127,7 +130,6 @@ func (o *Options) Execute(action Action) {
 			planOptions = append(planOptions, vo)
 		}
 
-		// Now actually invoke Terraform plan
 		console.StartSpinner()
 		changes, err := tf.Plan(context.Background(), planOptions...)
 		console.StopSpinner()
@@ -136,16 +138,14 @@ func (o *Options) Execute(action Action) {
 			console.Success("Plan contains infrastructure updates")
 		} else {
 			console.Success("Plan detected no changes")
-			console.Success("Skipping the apply phase")
-			console.Success("Rover completed")
-			return
+			console.Success("Any apply step will be skipped")
 		}
 	}
 
 	//
-	// Deploy action
+	// Terraform apply step, won't run if plan found no changes
 	//
-	if action == ActionDeploy {
+	if action == ActionApply && planChanges {
 		console.Info("Carrying out the Terraform apply phase")
 
 		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
@@ -158,7 +158,6 @@ func (o *Options) Execute(action Action) {
 			tfexec.Parallelism(terraformParallelism),
 		}
 
-		// Now actually invoke Terraform apply
 		console.StartSpinner()
 		err := tf.Apply(context.Background(), applyOptions...)
 		console.StopSpinner()
@@ -183,6 +182,18 @@ func (o *Options) Execute(action Action) {
 		console.Info("Carrying out the Terraform validate phase")
 
 		// Now actually invoke Terraform apply
+		console.StartSpinner()
+		_, err := tf.Validate(context.Background())
+		console.StopSpinner()
+		cobra.CheckErr(err)
+	}
+
+	//
+	// Terraform validate step
+	//
+	if action == ActionValidate {
+		console.Info("Carrying out the Terraform validate phase")
+
 		console.StartSpinner()
 		_, err := tf.Validate(context.Background())
 		console.StopSpinner()
@@ -239,7 +250,6 @@ func (o *Options) Execute(action Action) {
 			destroyOptions = append(destroyOptions, vo)
 		}
 
-		// Now actually invoke Terraform apply
 		console.Warning("Destroy is now running ...")
 		console.StartSpinner()
 		err = tf.Destroy(context.Background(), destroyOptions...)

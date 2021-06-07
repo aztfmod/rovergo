@@ -36,6 +36,8 @@ func addCITasks(cmd *cobra.Command) {
 	// directoryName := "./ci_tasks"
 	directoryName, _ := cmd.PersistentFlags().GetString("ci-task-dir")
 
+	// BUG: #52 Because this is run inside an init() function it means rover won't run
+	// - if ci_tasks is missing, even if the command you are running is NOT `rover ci`
 	pTaskConfigs, err := symphony.NewTaskConfigs(directoryName)
 	cobra.CheckErr(err)
 

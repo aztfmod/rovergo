@@ -13,7 +13,10 @@ import (
 
 type Action int
 
+// ActionEnum is the list of all action strings, note order MUST match those defined as consts below
 var ActionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "fmt", "validate"}
+
+// Used when building commands
 var descriptionEnum = []string{
 	"Perform a terraform init and no other action",
 	"Perform a terraform plan",

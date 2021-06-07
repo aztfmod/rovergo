@@ -111,6 +111,7 @@ func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, sym
 					cobra.CheckErr(err)
 				} else {
 					//action = landingzone.ActionCustom
+					console.Warning("NOT IMPLEMENTED")
 					//TODO: Greg working on task #48
 				}
 

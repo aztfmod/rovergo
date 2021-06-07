@@ -23,7 +23,7 @@ var cdCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(cdCmd)
-	cdCmd.PersistentFlags().StringP("symphony-config", "c", "", "Path to symphony config file")
+	cdCmd.PersistentFlags().StringP("symphony-config", "c", "./symphony.yaml", "Path to symphony config file")
 	cdCmd.PersistentFlags().StringP("level", "l", "", "Level to operate on, if omitted all levels will be processed")
 	_ = cobra.MarkFlagRequired(cdCmd.PersistentFlags(), "symphony-config")
 

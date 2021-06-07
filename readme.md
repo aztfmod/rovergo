@@ -1,4 +1,4 @@
-# Rover Go
+# Rover v2
 
 A project to undertake re-writing the [Rover tool](https://github.com/aztfmod/rover) in Go
 
@@ -6,22 +6,25 @@ Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robu
 
 # Current Status
 
-### ☢ This should be considered poc and work-in-progress grade code 🔥
+### ☢ This is under heavy development, expect braking changes almost daily 🔥
 
 ## Implemented 
 
 - Shape of commands & sub-commands and CLI structure
 - `launchpad fetch` - Implements the existing `--clone` option
 - `launchpad run` - To deploy a launchpad
-  - Actions init, plan and deploy implemented and working
+  - Actions init, plan, deploy & destroy implemented and working
   - Handling of state initialization and upload
   - Handling of locating remote state from level and CAF environment
-- `launchpad ci <task>` - To run any tasks defined in the ci_tasks directory, which are dynamically discovered
+- `cd run` - To run actions against multiple levels based on symphony config (only level0 currently)
+- `ci <task>` - To run any tasks defined in the ci_tasks directory, which are dynamically discovered
 - Config file support, currently `.rover.yaml` is used and looked for in $HOME or cwd
 - Calling Azure APIs to make calls e.g. query resources with ARG, get storage account, upload blobs
 - Interaction with Azure CLI to obtain subscription and current identity details
 - Goreleaser, GitHub Actions, linting, makefile
- 
+
+### [📝 See the wiki for further details](https://github.com/aztfmod/rovergo/wiki)
+
 ```text
 $ rover
 Azure CAF rover is a command line tool in charge of the deployment of the landing zones in your 

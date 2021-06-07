@@ -7,7 +7,6 @@
 package landingzone
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -16,7 +15,7 @@ import (
 
 type Action int
 
-var actionEnum = []string{"init", "plan", "deploy", "destroy"}
+var actionEnum = []string{"init", "plan", "deploy", "destroy", "fmt", "validate"}
 
 const (
 	// ActionInit carries out a just init step and no real action
@@ -27,6 +26,12 @@ const (
 	ActionDeploy Action = iota
 	// ActionDestroy carries out a destroy operation
 	ActionDestroy Action = iota
+	// ActionFmt carries out a fmt operation
+	ActionFmt Action = iota
+	// ActionValidate carries out a validate operation
+	ActionValidate Action = iota
+	// ActionCustom carries out a custom non-terraform operation
+	ActionCustom Action = iota
 )
 
 // NewAction returns an Action type from a string
@@ -40,8 +45,13 @@ func NewAction(actionString string) (Action, error) {
 		return ActionDeploy, nil
 	case ActionDestroy.String():
 		return ActionDestroy, nil
+	case ActionFmt.String():
+		return ActionFmt, nil
+	case ActionValidate.String():
+		return ActionValidate, nil
 	default:
-		return 0, errors.New("action is not valid, must be [init | plan | deploy | destroy]")
+		return ActionCustom, nil
+		// return 0, errors.New("action is not valid, must be [init | plan | deploy | destroy | fmt | validate]")
 	}
 }
 

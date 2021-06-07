@@ -7,8 +7,21 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    name: Run Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run lint and format checks
+        #run: make lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+
   ci-build:
-    name: Run CI Checks and Build
+    name: Run Tests and Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,9 +34,6 @@ jobs:
         if: ${{ !env.ACT }}
         with:
           go-version: 1.16
-
-      - name: Run lint and format checks
-        run: make lint
 
       - name: Run tests
         run: make test

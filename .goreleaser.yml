@@ -10,13 +10,14 @@ builds:
   - env:
       - CGO_ENABLED=0
     ldflags:
-      - -X main.Version={{ .version }}
+      - -X github.com/aztfmod/rover/pkg/version.Value={{ .Version }}
     goos:
       - linux
-      - windows
-      - darwin
+      #- windows
+      #- darwin
     goarch:
       - amd64
+    binary: rover
 
 # replaces goos values with more readable names
 archives:
@@ -30,7 +31,13 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: '{{ time "2006-01-02" }}-snap'
+
+release:
+  draft: false
+  prerelease: false
+  header: |
+    ## 🐶 Rover v2 Release
 
 changelog:
   sort: asc

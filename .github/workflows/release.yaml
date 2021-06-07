@@ -1,11 +1,12 @@
 name: Release Binaries
 
 on:
-  release:
-    types: ["published"]
+  push:
+    tags:
+      - "*"
 
 jobs:
-  release:
+  auto-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

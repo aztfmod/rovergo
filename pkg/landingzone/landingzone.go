@@ -67,6 +67,27 @@ func (o *Options) Execute(action Action) {
 	}
 
 	// TODO: PUT COMMMANDS HERE THAT DONT NEED INIT AND EXIT EARLY
+	if action == ActionFmt {
+		console.Info("Carrying out the Terraform fmt command")
+
+		fo := []tfexec.FormatOption{
+			tfexec.Dir(o.SourcePath),
+			tfexec.Recursive(true),
+		}
+		outcome, filesToFix, err := tf.FormatCheck(context.Background(), fo...)
+		cobra.CheckErr(err)
+
+		// TODO: return something (exit code?) so that pipeline can react appropriately
+		if outcome {
+			console.Success("No formatting is necessary.")
+		} else {
+			console.Info("The following file(s) require formatting:\n")
+			for _, filename := range filesToFix {
+				console.Infof("%s\n", filename)
+			}
+		}
+		return
+	}
 
 	// Run init in correct mode
 	if o.LaunchPadMode && existingStorageID == "" {
@@ -224,7 +245,7 @@ func (o *Options) Execute(action Action) {
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state
-func (o Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error {
+func (o *Options) runLaunchpadInit(tf *tfexec.Terraform) error {
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()
@@ -234,7 +255,7 @@ func (o Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error 
 }
 
 // Carry out Terraform init operation with remote state backend
-func (o Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
+func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	console.Info("Running init with remote state")
 
 	// IMPORTANT: This enables remote state in the source terraform dir
@@ -330,15 +351,15 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 }
 
 // Remove files to ensure a clean run, state and plan files are recreated
-func (o Options) cleanUp() {
+func (o *Options) cleanUp() {
 	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfplan")
 	_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
 }
 
-// By copying this file we enable the azurerm backend and therefore remote state
-func (o Options) enableAzureBackend() {
+// By copying this file we enable teh azurerm backend and therefore remote state
+func (o *Options) enableAzureBackend() {
 	console.Info("Enabling backend state with backend.azurerm.tf file")
 	err := utils.CopyFile(o.SourcePath+"/backend.azurerm", o.SourcePath+"/backend.azurerm.tf")
 	cobra.CheckErr(err)

@@ -8,8 +8,10 @@ package cmd
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
 )
@@ -77,8 +79,6 @@ func addCITasks(cmd *cobra.Command) {
 
 func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, symphonyConfig *symphony.Config, targetLevel string, debug bool) {
 
-	console.Debugf("Running ci task %s\n", subCommandName)
-
 	taskConfig, err := symphony.FindTaskConfig(ciTasksDirectoryName, subCommandName)
 	cobra.CheckErr(err)
 
@@ -90,10 +90,30 @@ func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, sym
 
 			for _, stack := range level.Stacks {
 
-				lzp := stack.LandingZonePath
-				tfs := stack.TfState
+				console.Debugf("Running ci task %s in environment %s, level %s, stack %s\n",
+					subCommandName,
+					symphonyConfig.Content.Environment,
+					level.Name,
+					stack.Name)
 
-				console.Debugf("Running ci task %s with tfstate %s in folder %s\n", subCommandName, tfs, lzp)
+				opt := landingzone.Options{
+					LaunchPadMode:  level.Launchpad,
+					CafEnvironment: symphonyConfig.Content.Environment,
+					Workspace:      symphonyConfig.Content.Workspace,
+					Level:          level.Name,
+				}
+				opt.SetConfigPath(stack.ConfigurationPath)
+				opt.SetSourcePath(stack.LandingZonePath)
+
+				var action landingzone.Action
+				if strings.ToLower(taskConfig.Content.ExecutableName) == "terraform" {
+					action, err = landingzone.NewAction(taskConfig.Content.SubCommand)
+					cobra.CheckErr(err)
+				} else {
+					action = landingzone.ActionCustom
+				}
+
+				opt.Execute(action)
 			}
 		}
 	}

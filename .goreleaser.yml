@@ -13,8 +13,8 @@ builds:
       - -X github.com/aztfmod/rover/pkg/version.Value={{ .Version }}
     goos:
       - linux
-      #- windows
-      #- darwin
+      - windows
+      - darwin
     goarch:
       - amd64
     binary: rover

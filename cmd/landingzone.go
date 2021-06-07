@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
@@ -20,5 +21,24 @@ var landingzoneCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(landingzoneCmd)
-	// NOTE: CAN NOT set shared flags at this level as some sub-commands don't use those flags
+
+	// Dynamically build sub-commands from list of actions
+	for _, actionName := range landingzone.ActionEnum {
+		action, err := landingzone.NewAction(actionName)
+		cobra.CheckErr(err)
+		actionSubCmd := &cobra.Command{
+			Use:   action.Name(),
+			Short: action.Description(),
+			Run: func(cmd *cobra.Command, args []string) {
+				// Build config from command flags
+				opt := landingzone.NewOptionsFromCmd(cmd)
+				// And execute the relevant action
+				opt.Execute(action)
+			},
+		}
+		// Set all the shared action flags
+		landingzone.SetSharedFlags(actionSubCmd)
+		// Stuff it under the parent launchpad command
+		landingzoneCmd.AddCommand(actionSubCmd)
+	}
 }

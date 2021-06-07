@@ -13,7 +13,7 @@ import (
 
 type Action int
 
-var actionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "fmt", "validate"}
+var ActionEnum = []string{"init", "plan", "apply", "run", "destroy", "test", "fmt", "validate"}
 var descriptionEnum = []string{
 	"Perform a terraform init and no other action",
 	"Perform a terraform plan",
@@ -69,13 +69,9 @@ func NewAction(actionString string) (Action, error) {
 }
 
 func (a Action) Name() string {
-	return actionEnum[a]
+	return ActionEnum[a]
 }
 
 func (a Action) Description() string {
 	return descriptionEnum[a]
 }
-
-// func AddActionFlag(cmd *cobra.Command) {
-// 	cmd.Flags().StringP("action", "a", "init", fmt.Sprintf("Action to run, one of %v", actionEnum))
-// }

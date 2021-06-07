@@ -110,7 +110,8 @@ func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, sym
 					action, err = landingzone.NewAction(taskConfig.Content.SubCommand)
 					cobra.CheckErr(err)
 				} else {
-					action = landingzone.ActionCustom
+					//action = landingzone.ActionCustom
+					//TODO: Greg working on task #48
 				}
 
 				opt.Execute(action)

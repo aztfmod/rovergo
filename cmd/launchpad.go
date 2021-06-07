@@ -14,12 +14,30 @@ import (
 var launchpadCmd = &cobra.Command{
 	Use:     "launchpad",
 	Aliases: []string{"lp"},
-	Short:   "Manage and deploy launchpad, i.e. landing zone level0.",
-	Long:    `Manage and deploy launchpad, i.e. landing zone level0.`,
+	Short:   "Manage and deploy a launchpad, i.e. landing zone level0.",
+	Long:    `Manage and deploy a launchpad, i.e. landing zone level0.`,
 }
 
 func init() {
 	rootCmd.AddCommand(launchpadCmd)
-	// NOTE: Set shared flags at this level, they will cascade down to all child sub-commands
-	landingzone.SetSharedFlags(launchpadCmd)
+
+	// Dynamically build sub-commands from list of actions
+	for _, actionName := range landingzone.ActionEnum {
+		action, err := landingzone.NewAction(actionName)
+		cobra.CheckErr(err)
+		actionSubCmd := &cobra.Command{
+			Use:   action.Name(),
+			Short: action.Description(),
+			Run: func(cmd *cobra.Command, args []string) {
+				// Build config from command flags
+				opt := landingzone.NewOptionsFromCmd(cmd)
+				// And execute the relevant action
+				opt.Execute(action)
+			},
+		}
+		// Set all the shared action flags
+		landingzone.SetSharedFlags(actionSubCmd)
+		// Stuff it under the parent launchpad command
+		launchpadCmd.AddCommand(actionSubCmd)
+	}
 }

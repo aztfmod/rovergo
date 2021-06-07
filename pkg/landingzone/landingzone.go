@@ -110,7 +110,8 @@ func (o *Options) Execute(action Action) {
 	//
 	// Terraform plan step
 	//
-	if action == ActionPlan || action == ActionRun {
+	planChanges := false
+	if action == ActionPlan || action == ActionApply || action == ActionRun {
 		console.Info("Carrying out the Terraform plan phase")
 
 		// Build plan options starting with tfplan output
@@ -138,16 +139,14 @@ func (o *Options) Execute(action Action) {
 			console.Success("Plan contains infrastructure updates")
 		} else {
 			console.Success("Plan detected no changes")
-			console.Success("Skipping the apply phase")
-			console.Success("Rover completed")
-			return
+			console.Success("Any apply step will be skipped")
 		}
 	}
 
 	//
-	// Terraform apply step
+	// Terraform apply step, won't run if plan found no changes
 	//
-	if action == ActionRun {
+	if (action == ActionApply || action == ActionRun) && planChanges {
 		console.Info("Carrying out the Terraform apply phase")
 
 		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
@@ -179,6 +178,14 @@ func (o *Options) Execute(action Action) {
 		}
 
 		console.Success("Apply was successful")
+	}
+
+	//
+	// Terraform test step
+	//
+	if action == ActionRun || action == ActionTest {
+		// FIXME: It's very likely we don't want test handled by this Execute function at all
+		console.Warning("TEST COMMAND NOT IMPLEMENTED")
 	}
 
 	//

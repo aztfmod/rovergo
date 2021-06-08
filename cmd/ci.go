@@ -72,6 +72,7 @@ func addCITasks(cmd *cobra.Command) {
 
 					symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
 
+					console.Success("Rover has finished")
 				},
 			}
 

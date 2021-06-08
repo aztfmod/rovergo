@@ -45,3 +45,6 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^[Mm]erge"
+      - "[Rr]eadme"
+      - "[Ll]int"

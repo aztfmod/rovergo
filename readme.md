@@ -9,14 +9,14 @@ This is a breaking change from the previous version with large scale changes.
 # Current Status
 
 ### [👷‍♂️ Project board](https://github.com/orgs/aztfmod/projects/28?card_filter_query=label%3Arover-go)
-### ☢ This is under heavy development, expect braking changes almost daily 🔥
+### ☢ This is under heavy development, expect breaking changes almost daily 🔥
 
 ## Implemented 
 
 - `launchpad` - To deploy a launchpad
   - Actions init, plan, apply, destroy, fmt & validate implemented and working
   - Handling of state initialization and upload
-  - Handling of destorying a launchpad
+  - Handling of destroying a launchpad
 - `landingzone` - To deploy a landingzone
   - Actions init, plan, apply, destroy, fmt & validate implemented and working
   - Handling of state and connecting to launchpad

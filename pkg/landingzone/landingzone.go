@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
@@ -24,6 +25,9 @@ import (
 )
 
 const terraformParallelism = 30
+const secretTenantID = "tenant-id"
+const secretLowerSAName = "lower-storage-account-name"
+const secretLowerRGName = "lower-resource-group-name"
 
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
@@ -391,7 +395,8 @@ func (o *Options) cleanUp() {
 // By copying this file we enable teh azurerm backend and therefore remote state
 func (o *Options) enableAzureBackend() {
 	console.Info("Enabling backend state with backend.azurerm.tf file")
-	err := utils.CopyFile(o.SourcePath+"/backend.azurerm", o.SourcePath+"/backend.azurerm.tf")
+	filepath.Join(o.SourcePath, "backend.azurerm")
+	err := utils.CopyFile(filepath.Join(o.SourcePath, "backend.azurerm"), filepath.Join(o.SourcePath, "backend.azurerm.tf"))
 	cobra.CheckErr(err)
 }
 
@@ -414,21 +419,21 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 		return err
 	}
 
-	lpTenantID, err := kvClient.GetSecret("tenant-id")
+	lpTenantID, err := kvClient.GetSecret(secretTenantID)
 	if err != nil {
 		return err
 	}
-	lpLowerSAName, err := kvClient.GetSecret("lower-storage-account-name")
+	lpLowerSAName, err := kvClient.GetSecret(secretLowerSAName)
 	if err != nil {
 		return err
 	}
-	lpLowerResGrp, err := kvClient.GetSecret("lower-resource-group-name")
+	lpLowerResGrp, err := kvClient.GetSecret(secretLowerRGName)
 	if err != nil {
 		return err
 	}
 
 	if lpLowerSAName == "" || lpTenantID == "" || lpLowerResGrp == "" {
-		return fmt.Errorf("Required secret(s) not found in launchpad, either you are not authorized ot the launchpad was not deployed correctly")
+		return fmt.Errorf("Required secret(s) not found in launchpad, either you are not authorized or the launchpad was not deployed correctly")
 	}
 
 	_, lpStorageResGrp, lpStorageName := azure.ParseResourceID(lpStorageID)

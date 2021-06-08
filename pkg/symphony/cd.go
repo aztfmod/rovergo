@@ -46,10 +46,10 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 	}
 
 	// TODO: Remove this safe guard when landingzone deploy is working
-	if !level.Launchpad {
-		console.Error("landingzone deployment is not implemented yet")
-		return
-	}
+	// if !level.Launchpad {
+	// 	console.Error("landingzone deployment is not implemented yet")
+	// 	return
+	// }
 
 	stateName := stack.TfState
 	// IMPORTANT: We use the stack name as the default name if tfState key is not supplied
@@ -71,4 +71,5 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 
 	// Now we can start the execution just like `landingzone run` cmd does
 	opt.Execute(action)
+	console.Successf("Finished execution on stack '%s'\n", stack.Name)
 }

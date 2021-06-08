@@ -10,6 +10,7 @@ package cmd
 import (
 	"path/filepath"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
 )
@@ -70,6 +71,7 @@ func addCITasks(cmd *cobra.Command) {
 				// runCITaskSubCommand(directoryName, subCommandName, symphonyConfig, level, debug)
 				symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
 
+				console.Success("Rover has finished")
 			},
 		}
 

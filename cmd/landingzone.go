@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,8 @@ func init() {
 				opt := landingzone.NewOptionsFromCmd(cmd)
 				// And execute the relevant action
 				opt.Execute(action)
+
+				console.Success("Rover has finished")
 			},
 		}
 		// Set all the shared action flags

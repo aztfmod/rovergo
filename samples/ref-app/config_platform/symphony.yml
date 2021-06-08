@@ -1,0 +1,39 @@
+environment: glprod
+repositories:
+  - name: caf_modules
+    uri: rguthrie-gitlab-ce.eastus.cloudapp.azure.com:caf_reference_app/caf_modules.git
+    branch: master
+  - name: config_launchpad
+    uri: rguthrie-gitlab-ce.eastus.cloudapp.azure.com:caf_reference_app/config_launchpad.git
+    branch: master
+  - name: config_platform
+    uri: rguthrie-gitlab-ce.eastus.cloudapp.azure.com:caf_reference_app/config_platform.git
+    branch: master
+  - name: config_app_argocd
+    uri: rguthrie-gitlab-ce.eastus.cloudapp.azure.com:caf_reference_app/config_app_argocd.git
+    branch: master
+  - name: caf_modules_argocd
+    uri: rguthrie-gitlab-ce.eastus.cloudapp.azure.com:caf_reference_app/caf_modules_argocd.git
+    branch: master
+
+ # All paths are relative
+levels:
+- level: level1
+  type: platform
+  stacks:
+  - stack: foundations
+    landingZonePath: caf_modules/landingzones/caf_solution/
+    configurationPath: level1/foundations/
+    tfState: caf_foundations.tfstate
+
+- level: level2
+  stacks:
+  - stack: networking_hub
+    landingZonePath: caf_modules/landingzones/caf_solution/
+    configurationPath: level2/networking/hub/
+    tfState: networking_hub.tfstate
+    
+  - stack: shared_services
+    landingZonePath: caf_modules/landingzones/caf_solution/
+    configurationPath: level2/shared_services
+    tfState: caf_shared_services.tfstate

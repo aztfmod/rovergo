@@ -1,0 +1,95 @@
+variables:
+  environment: 'glprod'
+  action: 'apply'
+  application: 'argocd'
+  landingzone_key : 'cluster_aks'
+  cluster_key: 'cluster_re1'
+  group_url: 'https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}'
+
+#####################################################################
+# APP Deployment
+#####################################################################
+
+stages:
+  - validate_level3
+  - aks
+  - validate_level4
+  - argocd
+
+validate_level3:
+  stage: validate_level3
+  tags:
+    - gitlab-runner-3
+  script:
+    - |
+      echo "pwd=$(pwd)"
+      echo "--------"
+      env
+
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID}
+
+      /tf/rover/rover.sh ci \
+        -sc ${CI_PROJECT_DIR}/symphony.yml \
+        -b ${CI_PROJECT_DIR} \
+        -l level3 \
+        -env ${environment} \
+        -d
+
+aks:
+  stage: aks
+  tags:
+    - gitlab-runner-3
+  script:
+    - |
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID_03}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules/landingzones/caf_solution \
+      -tfstate landing_zone_aks.tfstate \
+      -var-folder ${CI_PROJECT_DIR}/level3/aks \
+      -parallelism 30 \
+      -level level4 \
+      -env ${environment} \
+      -a ${action}
+
+validate_level4:
+  stage: validate_level4
+  tags:
+    - gitlab-runner-4
+  script:
+    - |
+      echo "pwd=$(pwd)"
+      echo "--------"
+      env
+
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID}
+
+      /tf/rover/rover.sh ci \
+        -sc ${CI_PROJECT_DIR}/symphony.yml \
+        -b ${CI_PROJECT_DIR} \
+        -l level2 \
+        -env ${environment} \
+        -d
+
+argocd:
+  stage: argocd
+  tags:
+    - gitlab-runner-4
+  script:
+    - |
+      git clone ${group_url}/caf_modules_argocd.git
+
+      az login --identity --username ${MSI_ID_04}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules_argocd/landingzones/aks_applications \
+      -tfstate ${application}1.tfstate \
+      -var-folder ${CI_PROJECT_DIR}/level4/argocd \
+      -var tags={application=\"${application}\"} \
+      -level level4 \
+      -env ${environment} \
+      -a ${action}

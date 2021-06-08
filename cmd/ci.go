@@ -67,7 +67,6 @@ func addCITasks(cmd *cobra.Command) {
 					taskConfig.OutputDebug()
 				}
 
-				// runCITaskSubCommand(directoryName, subCommandName, symphonyConfig, level, debug)
 				symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
 
 			},
@@ -77,45 +76,3 @@ func addCITasks(cmd *cobra.Command) {
 	}
 
 }
-
-// func runCITaskSubCommand(ciTasksDirectoryName string, subCommandName string, symphonyConfig *symphony.Config, targetLevel string, debug bool) {
-
-// 	taskConfig, err := symphony.FindTaskConfig(ciTasksDirectoryName, subCommandName)
-// 	cobra.CheckErr(err)
-
-// 	console.Debugf("Running executable %s, sub-command %s, level %s\n\n", taskConfig.Content.ExecutableName, taskConfig.Content.SubCommand, targetLevel)
-
-// 	for _, level := range symphonyConfig.Content.Levels {
-
-// 		if targetLevel == "all" || targetLevel == level.Name {
-
-// 			for _, stack := range level.Stacks {
-
-// 				console.Debugf("Running ci task %s in environment %s, level %s, stack %s\n",
-// 					subCommandName,
-// 					symphonyConfig.Content.Environment,
-// 					level.Name,
-// 					stack.Name)
-
-// 				opt := landingzone.Options{
-// 					LaunchPadMode:  level.Launchpad,
-// 					CafEnvironment: symphonyConfig.Content.Environment,
-// 					Workspace:      symphonyConfig.Content.Workspace,
-// 					Level:          level.Name,
-// 				}
-// 				opt.SetConfigPath(stack.ConfigurationPath)
-// 				opt.SetSourcePath(stack.LandingZonePath)
-
-// 				var action landingzone.Action
-// 				if strings.ToLower(taskConfig.Content.ExecutableName) == "terraform" {
-// 					action, err = landingzone.NewAction(taskConfig.Content.SubCommand)
-// 					cobra.CheckErr(err)
-// 				} else {
-// 					action = landingzone.ActionCustom
-// 				}
-
-// 				opt.Execute(action)
-// 			}
-// 		}
-// 	}
-// }

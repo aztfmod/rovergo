@@ -396,7 +396,7 @@ func (o *Options) enableAzureBackend() {
 }
 
 // Sets various TF_VAR_ variables required for a landingzone to be deployed/destroyed
-func (o *Options) connectToLaunchPad(lpStorageId string) error {
+func (o *Options) connectToLaunchPad(lpStorageID string) error {
 	console.Infof("Connecting to launchpad for level '%s'\n", o.Level)
 	lpKeyVaultID, err := azure.FindKeyVault(o.Level, o.CafEnvironment, o.StateSubscription)
 	if err != nil {
@@ -431,7 +431,7 @@ func (o *Options) connectToLaunchPad(lpStorageId string) error {
 		return fmt.Errorf("Required secret(s) not found in launchpad, either you are not authorized ot the launchpad was not deployed correctly")
 	}
 
-	_, lpStorageResGrp, lpStorageName := azure.ParseResourceID(lpStorageId)
+	_, lpStorageResGrp, lpStorageName := azure.ParseResourceID(lpStorageID)
 
 	console.Success("Connected to launchpad OK")
 	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)

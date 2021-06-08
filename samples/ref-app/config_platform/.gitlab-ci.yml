@@ -1,0 +1,113 @@
+variables:
+  environment: 'glprod'
+  action: 'apply'
+  group_url: 'https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}'
+
+#####################################################################
+# Platform Deployment
+#####################################################################
+
+stages:
+  - validate_level1
+  - foundations
+  - validate_level2
+  - shared_services
+  - networking
+
+validate_level1:
+  stage: validate_level1
+  tags:
+    - gitlab-runner-1
+  script:
+    - |
+      echo "pwd=$(pwd)"
+      echo "--------"
+      env
+
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID}
+
+      /tf/rover/rover.sh ci \
+        -sc ${CI_PROJECT_DIR}/symphony.yml \
+        -b ${CI_PROJECT_DIR} \
+        -l level1 \
+        -env ${environment} \
+        -d
+
+
+foundations:
+  stage: foundations
+  tags:
+    - gitlab-runner-1
+  script:
+    - |
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID_01}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules/landingzones/caf_solution \
+      -tfstate caf_foundations.tfstate \
+      -var-folder ${CI_PROJECT_DIR}/level1/foundations \
+      -parallelism 30 \
+      -level level1 \
+      -env ${environment} \
+      -a ${action}
+
+validate_level2:
+  stage: validate_level2
+  tags:
+    - gitlab-runner-1
+  script:
+    - |
+      echo "pwd=$(pwd)"
+      echo "--------"
+      env
+
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID}
+
+      /tf/rover/rover.sh ci \
+        -sc ${CI_PROJECT_DIR}/symphony.yml \
+        -b ${CI_PROJECT_DIR} \
+        -l level2 \
+        -env ${environment} \
+        -d
+
+shared_services:
+  stage: shared_services
+  tags:
+    - gitlab-runner-2
+  script:
+    - |
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID_02}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules/landingzones/caf_solution \
+      -tfstate caf_shared_services.tfstate \
+      -var-folder ${CI_PROJECT_DIR}/level2/shared_services \
+      -parallelism 30 \
+      -level level2 \
+      -env ${environment} \
+      -a ${action}
+
+
+networking:
+  stage: networking
+  tags:
+    - gitlab-runner-2
+  script:
+    - |
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID_02}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules/landingzones/caf_solution \
+      -tfstate networking_hub.tfstate \
+      -var-folder ${CI_PROJECT_DIR}/level2/networking/hub \
+      -parallelism 30 \
+      -level level2 \
+      -env ${environment} \
+      -a ${action}

@@ -1,0 +1,54 @@
+variables:
+  environment: 'glprod'
+  action: 'apply'
+  application: 'argocd'
+  landingzone_key : 'cluster_aks'
+  cluster_key: 'cluster_re1'
+  group_url: 'https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}'
+
+#####################################################################
+# APP Deployment
+#####################################################################
+
+stages:
+  - validate_level0
+  - launchpad
+
+validate_level0:
+  stage: validate_level0
+  tags:
+    - gitlab-runner-1
+  script:
+    - |
+      echo "pwd=$(pwd)"
+      echo "--------"
+      env
+
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID}
+
+      /tf/rover/rover.sh ci \
+        -sc ${CI_PROJECT_DIR}/symphony.yml \
+        -b ${CI_PROJECT_DIR} \
+        -l level0 \
+        -env ${environment} \
+        -d
+
+launchpad:
+  stage: launchpad
+  tags:
+    - gitlab-runner-0
+  script:
+    - |
+      git clone ${group_url}/caf_modules.git
+
+      az login --identity --username ${MSI_ID_00}
+
+      /tf/rover/rover.sh -lz ${CI_PROJECT_DIR}/caf_modules/landingzones/caf_launchpad \
+      -launchpad \
+      -var-folder ${CI_PROJECT_DIR}/level0/launchpad \
+      -parallelism 30 \
+      -level level0 \
+      -env ${caf_environment} \
+      -a apply

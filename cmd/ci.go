@@ -8,8 +8,10 @@
 package cmd
 
 import (
+	"os"
 	"path/filepath"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
 )
@@ -33,46 +35,48 @@ func init() {
 
 func addCITasks(cmd *cobra.Command) {
 
-	// directoryName := "./ci_tasks"
 	directoryName, _ := cmd.PersistentFlags().GetString("ci-task-dir")
 
-	// BUG: #52 Because this is run inside an init() function it means rover won't run
-	// - if ci_tasks is missing, even if the command you are running is NOT `rover ci`
-	pTaskConfigs, err := symphony.NewTaskConfigs(directoryName)
-	cobra.CheckErr(err)
-
-	for _, filename := range pTaskConfigs.EnumerateFilenames() {
-
-		taskConfig, err := symphony.NewTaskConfig(filepath.Join(directoryName, filename))
+	_, err := os.Stat(directoryName)
+	if os.IsNotExist(err) {
+		console.Warning("CI command disabled, required ci-task directory not found: " + directoryName)
+	} else {
+		pTaskConfigs, err := symphony.NewTaskConfigs(directoryName)
 		cobra.CheckErr(err)
 
-		var ciTaskCommand = &cobra.Command{
-			Use: taskConfig.Content.Name,
-			Run: func(cmd *cobra.Command, args []string) {
+		for _, filename := range pTaskConfigs.EnumerateFilenames() {
 
-				symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
-				symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
-				cobra.CheckErr(err)
+			taskConfig, err := symphony.NewTaskConfig(filepath.Join(directoryName, filename))
+			cobra.CheckErr(err)
 
-				directoryName, _ := cmd.Parent().PersistentFlags().GetString("ci-task-dir")
+			var ciTaskCommand = &cobra.Command{
+				Use: taskConfig.Content.Name,
+				Run: func(cmd *cobra.Command, args []string) {
 
-				level, _ := cmd.Parent().PersistentFlags().GetString("level")
+					symphonyConfigFileName, _ := cmd.Parent().PersistentFlags().GetString("symphony-config")
+					symphonyConfig, err := symphony.NewSymphonyConfig(symphonyConfigFileName)
+					cobra.CheckErr(err)
 
-				subCommandName := cmd.Use
+					directoryName, _ := cmd.Parent().PersistentFlags().GetString("ci-task-dir")
 
-				debug, _ := rootCmd.PersistentFlags().GetBool("debug")
+					level, _ := cmd.Parent().PersistentFlags().GetString("level")
 
-				if debug {
-					symphonyConfig.OutputDebug()
-					taskConfig.OutputDebug()
-				}
+					subCommandName := cmd.Use
 
-				symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
+					debug, _ := rootCmd.PersistentFlags().GetBool("debug")
 
-			},
+					if debug {
+						symphonyConfig.OutputDebug()
+						taskConfig.OutputDebug()
+					}
+
+					symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
+
+				},
+			}
+
+			cmd.AddCommand(ciTaskCommand)
 		}
-
-		cmd.AddCommand(ciTaskCommand)
 	}
 
 }

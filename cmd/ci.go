@@ -70,7 +70,7 @@ func addCITasks(cmd *cobra.Command) {
 						taskConfig.OutputDebug()
 					}
 
-				symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
+					symphonyConfig.RunCITask(directoryName, subCommandName, level, debug)
 
 				},
 			}

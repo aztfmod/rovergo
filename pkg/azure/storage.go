@@ -109,3 +109,33 @@ func DownloadFileFromBlob(storageAcctID string, blobContainer string, blobName s
 	err = azblob.DownloadBlobToFile(context.Background(), blobURL.BlobURL, 0, 0, file, azblob.DownloadFromBlobOptions{})
 	cobra.CheckErr(err)
 }
+
+// ListBlobs does what you might expect it to
+func ListBlobs(storageAcctID string, blobContainer string) ([]azblob.BlobItemInternal, error) {
+	subID, resGrp, accountName := ParseResourceID(storageAcctID)
+
+	accountKey := GetAccountKey(subID, accountName, resGrp)
+
+	// Create a default request pipeline using your storage account name and account key.
+	credential, err := azblob.NewSharedKeyCredential(accountName, accountKey)
+	cobra.CheckErr(err)
+	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
+
+	containerURL, _ := url.Parse(
+		fmt.Sprintf("https://%s.blob.core.windows.net/%s", accountName, blobContainer))
+
+	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
+
+	blobs := []azblob.BlobItemInternal{}
+	for marker := (azblob.Marker{}); marker.NotDone(); {
+		listBlob, err := blobContainerURL.ListBlobsFlatSegment(context.Background(), marker, azblob.ListBlobsSegmentOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		marker = listBlob.NextMarker
+		blobs = append(blobs, listBlob.Segment.BlobItems...)
+	}
+
+	return blobs, nil
+}

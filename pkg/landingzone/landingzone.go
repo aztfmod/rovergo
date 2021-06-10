@@ -72,7 +72,9 @@ func (o *Options) Execute(action Action) {
 		console.Infof("Located state storage account %s\n", existingStorageID)
 	}
 
-	// TODO: PUT COMMMANDS HERE THAT DONT NEED INIT AND EXIT EARLY
+	//
+	// Actions that can run without init are executed here
+	//
 	if action == ActionFormat {
 		console.Info("Carrying out the Terraform fmt command")
 
@@ -95,7 +97,9 @@ func (o *Options) Execute(action Action) {
 		return
 	}
 
-	// Run init in correct mode
+	//
+	// Terraform init - run in correct mode, for launchpad or not
+	//
 	if o.LaunchPadMode && existingStorageID == "" {
 		err = o.runLaunchpadInit(tf, false)
 	} else {
@@ -232,7 +236,7 @@ func (o *Options) Execute(action Action) {
 				cobra.CheckErr("Destroy was aborted")
 			}
 
-			// IMPORTANT!
+			// It's critical to remove/cleanup local storage
 			o.cleanUp()
 
 			// Download the current state
@@ -242,7 +246,7 @@ func (o *Options) Execute(action Action) {
 			console.Warning("Resetting state to local, have to re-run init")
 			err = o.runLaunchpadInit(tf, true)
 			cobra.CheckErr(err)
-			// IMPORTANT!
+			// This is critical and stops terraform from trying to use remote state
 			_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 
 			// Tell destroy to use local downloaded state to destroy a launchpad
@@ -343,15 +347,6 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
 	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
-
-	// TODO: Removed for now pending further investigation
-	// envName := o.Account.EnvironmentName
-	// // For some reason the name returned from the CLI for Azure public is not valid!
-	// if envName == "AzureCloud" {
-	// 	envName = "AzurePublicCloud"
-	// }
-	// os.Setenv("AZURE_ENVIRONMENT", envName)
-	// os.Setenv("ARM_ENVIRONMENT", azure.CloudNameToTerraform(envName))
 
 	// Default the TF_DATA_DIR to user's home dir
 	dataDir := os.Getenv("TF_DATA_DIR")

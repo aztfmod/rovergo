@@ -9,6 +9,15 @@ import (
 func (c Config) RunAll(action landingzone.Action) {
 	console.Infof("Starting CD process for all levels...\n")
 
+	// Special case, handle destroy all levels in REVERSE order
+	if action == landingzone.ActionDestroy {
+		console.Warningf("Destroying ALL levels (in reverse order), I hope you know what you are doing...\n")
+		for l := len(c.Content.Levels) - 1; l >= 0; l-- {
+			c.RunLevel(c.Content.Levels[l], action)
+		}
+		return
+	}
+
 	for _, level := range c.Content.Levels {
 		c.RunLevel(level, action)
 	}

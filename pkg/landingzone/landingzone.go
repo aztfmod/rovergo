@@ -283,7 +283,17 @@ func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()
-	err := tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Reconfigure(reconfigure))
+	// Validate that the indentity we are using is owner on subscription, not sure why but it's in rover v1 code
+	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription)
+	cobra.CheckErr(err)
+	if !isOwner {
+		console.StopSpinner()
+		console.Errorf("The identity %s (%s) is not assigned 'Owner' role on subscription %s\n", o.Identity.DisplayName, o.Identity.ObjectID, o.StateSubscription)
+		cobra.CheckErr("To deploy a launchpad the identity used must be assigned the 'Owner' role")
+	}
+
+	// Proceed and run tf init
+	err = tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Reconfigure(reconfigure))
 	console.StopSpinner()
 	return err
 }

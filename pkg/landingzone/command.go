@@ -24,7 +24,7 @@ func SetSharedFlags(cmd *cobra.Command) {
 
 	// Level flag not on launchpad cmd as we fix it to "level0"
 	if cmd.Name() != "launchpad" {
-		cmd.PersistentFlags().StringP("level", "l", "level1", "Level")
+		cmd.PersistentFlags().StringP("level", "l", "level1", "CAF landingzone level name")
 	}
 
 	_ = cobra.MarkFlagRequired(cmd.PersistentFlags(), "source")

@@ -18,7 +18,7 @@ type WellKnownCloud struct {
 	StorageDNS    string
 }
 
-var WellKnownClouds []WellKnownCloud
+var wellKnownClouds []WellKnownCloud
 
 func init() {
 	azure := WellKnownCloud{"AzureCloud", "public", "vault.azure.net", "core.windows.net"}
@@ -27,12 +27,12 @@ func init() {
 	germany := WellKnownCloud{"AzureGermanCloud", "german", "vault.microsoftazure.de", "core.cloudapi.de"}
 	gov := WellKnownCloud{"AzureUSGovernment", "usgovernment", "vault.usgovcloudapi.net", "core.usgovcloudapi.net"}
 
-	WellKnownClouds = []WellKnownCloud{azure, azurePublic, china, germany, gov}
+	wellKnownClouds = []WellKnownCloud{azure, azurePublic, china, germany, gov}
 }
 
 func CloudNameToTerraform(name string) string {
 
-	for _, cloud := range WellKnownClouds {
+	for _, cloud := range wellKnownClouds {
 
 		if cloud.Name == name {
 			return cloud.TerraformName
@@ -50,7 +50,7 @@ func KeyvaultDNSForSubscription() string {
 
 func KeyvaultDNSForCloud(name string) string {
 
-	for _, cloud := range WellKnownClouds {
+	for _, cloud := range wellKnownClouds {
 
 		if cloud.Name == name {
 			return cloud.KeyvaultDNS
@@ -68,7 +68,7 @@ func StorageDNSForSubscription() string {
 
 func StorageDNSForCloud(name string) string {
 
-	for _, cloud := range WellKnownClouds {
+	for _, cloud := range wellKnownClouds {
 
 		if cloud.Name == name {
 			return cloud.StorageDNS

@@ -71,7 +71,7 @@ func UploadFileToBlob(storageAcctID string, blobContainer string, blobName strin
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageDNSForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 	blobURL := blobContainerURL.NewBlockBlobURL(blobName)
@@ -99,7 +99,7 @@ func DownloadFileFromBlob(storageAcctID string, blobContainer string, blobName s
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageDNSForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 	blobURL := blobContainerURL.NewBlockBlobURL(blobName)
@@ -122,7 +122,7 @@ func ListBlobs(storageAcctID string, blobContainer string) ([]azblob.BlobItemInt
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageDNSForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 

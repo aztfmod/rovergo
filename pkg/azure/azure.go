@@ -11,23 +11,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type WellKnownCloud struct {
-	Name          string
-	TerraformName string
-	KeyvaultDNS   string
-	StorageDNS    string
+type wellKnownCloud struct {
+	Name            string
+	TerraformName   string
+	KeyvaultDNS     string
+	StorageEndpoint string
 }
 
-var wellKnownClouds []WellKnownCloud
+var wellKnownClouds []wellKnownCloud
 
 func init() {
-	azure := WellKnownCloud{"AzureCloud", "public", "vault.azure.net", "core.windows.net"}
-	azurePublic := WellKnownCloud{"AzurePublicCloud", "public", "vault.azure.net", "core.windows.net"}
-	china := WellKnownCloud{"AzureChinaCloud", "china", "vault.azure.cn", "core.chinacloudapi.cn"}
-	germany := WellKnownCloud{"AzureGermanCloud", "german", "vault.microsoftazure.de", "core.cloudapi.de"}
-	gov := WellKnownCloud{"AzureUSGovernment", "usgovernment", "vault.usgovcloudapi.net", "core.usgovcloudapi.net"}
+	azure := wellKnownCloud{"AzureCloud", "public", "vault.azure.net", "core.windows.net"}
+	azurePublic := wellKnownCloud{"AzurePublicCloud", "public", "vault.azure.net", "core.windows.net"}
+	china := wellKnownCloud{"AzureChinaCloud", "china", "vault.azure.cn", "core.chinacloudapi.cn"}
+	germany := wellKnownCloud{"AzureGermanCloud", "german", "vault.microsoftazure.de", "core.cloudapi.de"}
+	gov := wellKnownCloud{"AzureUSGovernment", "usgovernment", "vault.usgovcloudapi.net", "core.usgovcloudapi.net"}
 
-	wellKnownClouds = []WellKnownCloud{azure, azurePublic, china, germany, gov}
+	wellKnownClouds = []wellKnownCloud{azure, azurePublic, china, germany, gov}
 }
 
 func CloudNameToTerraform(name string) string {
@@ -43,12 +43,12 @@ func CloudNameToTerraform(name string) string {
 	return "public"
 }
 
-func KeyvaultDNSForSubscription() string {
+func KeyvaultEndpointForSubscription() string {
 	sub := GetSubscription()
-	return KeyvaultDNSForCloud(sub.EnvironmentName)
+	return KeyvaultEndpointForCloud(sub.EnvironmentName)
 }
 
-func KeyvaultDNSForCloud(name string) string {
+func KeyvaultEndpointForCloud(name string) string {
 
 	for _, cloud := range wellKnownClouds {
 
@@ -61,17 +61,17 @@ func KeyvaultDNSForCloud(name string) string {
 	return ""
 }
 
-func StorageDNSForSubscription() string {
+func StorageEndpointForSubscription() string {
 	sub := GetSubscription()
-	return StorageDNSForCloud(sub.EnvironmentName)
+	return StorageEndpointForCloud(sub.EnvironmentName)
 }
 
-func StorageDNSForCloud(name string) string {
+func StorageEndpointForCloud(name string) string {
 
 	for _, cloud := range wellKnownClouds {
 
 		if cloud.Name == name {
-			return cloud.StorageDNS
+			return cloud.StorageEndpoint
 		}
 
 	}

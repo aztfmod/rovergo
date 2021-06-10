@@ -413,8 +413,7 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 
 	_, _, keyVaultName := azure.ParseResourceID(lpKeyVaultID)
 
-	// HACK: Need to support other Azure cloud endpoints
-	kvClient, err := azure.NewKVClient("vault.azure.net", keyVaultName)
+	kvClient, err := azure.NewKVClient(azure.KeyvaultDNSForSubscription(), keyVaultName)
 	if err != nil {
 		return err
 	}

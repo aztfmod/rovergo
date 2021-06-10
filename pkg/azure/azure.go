@@ -11,24 +11,72 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CloudNameToTerraform maps cloud names from Azure CLI and SDK names to Terraform names
-// * Because no one can agree what to call these!
-// * The Azure CLI, the Azure SDK and Terraform all use different names 💩
+type WellKnownCloud struct {
+	Name          string
+	TerraformName string
+	KeyvaultDNS   string
+	StorageDNS    string
+}
+
+var WellKnownClouds []WellKnownCloud
+
+func init() {
+	azure := WellKnownCloud{"AzureCloud", "public", "vault.azure.net", "core.windows.net"}
+	azurePublic := WellKnownCloud{"AzurePublicCloud", "public", "vault.azure.net", "core.windows.net"}
+	china := WellKnownCloud{"AzureChinaCloud", "china", "vault.azure.cn", "core.chinacloudapi.cn"}
+	germany := WellKnownCloud{"AzureGermanCloud", "german", "vault.microsoftazure.de", "core.cloudapi.de"}
+	gov := WellKnownCloud{"AzureUSGovernment", "usgovernment", "vault.usgovcloudapi.net", "core.usgovcloudapi.net"}
+
+	WellKnownClouds = []WellKnownCloud{azure, azurePublic, china, germany, gov}
+}
+
 func CloudNameToTerraform(name string) string {
-	switch name {
-	case "AzureCloud":
-		return "public"
-	case "AzurePublicCloud":
-		return "public"
-	case "AzureChinaCloud":
-		return "china"
-	case "AzureUSGovernment":
-		return "usgovernment"
-	case "AzureGermanCloud":
-		return "german"
-	default:
-		return "public"
+
+	for _, cloud := range WellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.TerraformName
+		}
+
 	}
+
+	return "public"
+}
+
+func KeyvaultDNSForSubscription() string {
+	sub := GetSubscription()
+	return KeyvaultDNSForCloud(sub.EnvironmentName)
+}
+
+func KeyvaultDNSForCloud(name string) string {
+
+	for _, cloud := range WellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.KeyvaultDNS
+		}
+
+	}
+
+	return ""
+}
+
+func StorageDNSForSubscription() string {
+	sub := GetSubscription()
+	return StorageDNSForCloud(sub.EnvironmentName)
+}
+
+func StorageDNSForCloud(name string) string {
+
+	for _, cloud := range WellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.StorageDNS
+		}
+
+	}
+
+	return ""
 }
 
 // ParseResourceID into subscription, resource group and name

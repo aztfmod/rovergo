@@ -10,6 +10,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/briandowns/spinner v1.13.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/terraform-exec v0.13.3
 	github.com/spf13/cobra v1.1.3

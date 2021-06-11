@@ -1,0 +1,5 @@
+name: finder
+executable: "find"
+description: "List all terraform (example custom action)"
+arguments: ["{{SOURCE_DIR}}", "-name", "*.tf"]
+continueOnError: true

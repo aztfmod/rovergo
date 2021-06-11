@@ -7,6 +7,7 @@
 package landingzone
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -19,8 +20,7 @@ import (
 )
 
 // Options holds all the settings for a langingzone or launchpad operation
-// It's populated first by calling NewOptionsFromCmd, then the RunCmd func sets Subscription & Identity fields
-// TODO: This probably needs a better name like `Operation` or something
+// It's populated by NewOptionsFromCmd or from from YAML config, then the Execute func sets Subscription & Identity fields
 type Options struct {
 	LaunchPadMode      bool
 	ConfigPath         string
@@ -33,67 +33,13 @@ type Options struct {
 	StateSubscription  string
 	Impersonate        bool
 	OutPath            string
+	DryRun             bool
 	Subscription       azure.Subscription
 	Identity           azure.Identity
 }
 
 const cafLaunchPadDir = "/caf_launchpad"
 const cafLandingzoneDir = "/caf_solution"
-
-// NewOptionsFromCmd builds a Config from command flags
-func NewOptionsFromCmd(cmd *cobra.Command) Options {
-	configPath, _ := cmd.Flags().GetString("config-path")
-	sourcePath, _ := cmd.Flags().GetString("source")
-	level, _ := cmd.Flags().GetString("level")
-	env, _ := cmd.Flags().GetString("environment")
-	stateName, _ := cmd.Flags().GetString("statename")
-	ws, _ := cmd.Flags().GetString("workspace")
-	stateSub, _ := cmd.Flags().GetString("state-sub")
-	targetSub, _ := cmd.Flags().GetString("target-sub")
-
-	// Handle the launchpad mode special case
-	launchPadMode := false
-	if cmd.Parent().Name() == "launchpad" {
-		launchPadMode = true
-		// TODO: Maybe we have to remove this assumption and add --level flag to the `launchpad` cmd 😥
-		level = "level0"
-	}
-
-	// This is a 'just in case' default, it will be changed later, when initializeCAF is called
-	outPath, err := os.UserHomeDir()
-	cobra.CheckErr(err)
-
-	// Default state & plan name is taken from the base name of the landingzone source dir
-	if stateName == "" {
-		stateName = filepath.Base(sourcePath)
-		if stateName == "/" || stateName == "." {
-			cobra.CheckErr("Error source-path should be a directory path")
-		}
-	}
-
-	o := Options{
-		LaunchPadMode:      launchPadMode,
-		Level:              level,
-		CafEnvironment:     env,
-		StateName:          stateName,
-		Workspace:          ws,
-		TargetSubscription: targetSub,
-		StateSubscription:  stateSub,
-		OutPath:            outPath,
-	}
-
-	// Safely set the paths up
-	o.SetSourcePath(sourcePath)
-	o.SetConfigPath(configPath)
-
-	return o
-}
-
-// LevelString returns the level as formated string
-// This should be used rather than accessing level directly
-// func (o Options) LevelString() string {
-// 	return fmt.Sprintf("level%d", o.Level)
-// }
 
 // SetSourcePath ensures the source path is correct and absolute
 func (o *Options) SetSourcePath(sourcePath string) {
@@ -142,4 +88,12 @@ func (o *Options) SetConfigPath(configPath string) {
 		console.Errorf("Unable to open config directory: %s\n", o.ConfigPath)
 		cobra.CheckErr("Config directory must exist for rover to run")
 	}
+}
+
+func (o *Options) Debug() {
+	if !console.DebugEnabled {
+		return
+	}
+	debugConf, _ := json.MarshalIndent(o, "", "  ")
+	console.Debug(string(debugConf))
 }

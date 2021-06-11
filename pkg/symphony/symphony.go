@@ -40,6 +40,7 @@ type Stack struct {
 }
 
 func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
+	console.Debugf("Loading symphony config from: %s\n", symphonyConfigFileName)
 	sc := new(Config)
 	sc.FileName = symphonyConfigFileName
 
@@ -58,7 +59,7 @@ func NewSymphonyConfig(symphonyConfigFileName string) (*Config, error) {
 	return sc, err
 }
 
-func (sc *Config) OutputDebug() {
+func (sc *Config) Debug() {
 	fmt.Println()
 
 	console.Debugf("Verbose output of %s\n", sc.FileName)

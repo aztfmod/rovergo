@@ -6,34 +6,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c Config) RunAll(action landingzone.Action) {
-	console.Infof("Starting CD process for all levels...\n")
+func (c Config) runAll(action landingzone.ActionI, dryRun bool) {
+	console.Infof("Starting process for all levels...\n")
 
 	// Special case, handle destroy all levels in REVERSE order
-	if action == landingzone.ActionDestroy {
+	if action.Name() == "destroy" {
 		console.Warningf("Destroying ALL levels (in reverse order), I hope you know what you are doing...\n")
 		for l := len(c.Content.Levels) - 1; l >= 0; l-- {
-			c.RunLevel(c.Content.Levels[l], action)
+			c.RunLevel(c.Content.Levels[l], action, dryRun)
 		}
 		return
 	}
 
 	for _, level := range c.Content.Levels {
-		c.RunLevel(level, action)
+		c.RunLevel(level, action, dryRun)
 	}
 }
 
-func (c Config) RunLevel(level Level, action landingzone.Action) {
+func (c Config) RunLevel(level Level, action landingzone.ActionI, dryRun bool) {
 	console.Infof(" - Running CD for level: %s\n", level.Name)
 	for _, stack := range level.Stacks {
-		c.runStack(level, &stack, action)
+		c.runStack(level, &stack, action, dryRun)
 	}
 }
 
 // This runs the given action against the stack
 // It builds a landingzone.Options struct just like landingzone.NewOptionsFromCmd() but uses the YAML as source not the cmd
-func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
-	console.Infof("   - Running CD for stack: %s\n", stack.Name)
+func (c Config) runStack(level Level, stack *Stack, action landingzone.ActionI, dryRun bool) {
+	console.Infof("   - Running stack: %s\n", stack.Name)
 
 	ws := c.Content.Workspace
 	if ws == "" {
@@ -54,14 +54,8 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 		cobra.CheckErr("Stack is missing 'configurationPath' key")
 	}
 
-	// TODO: Remove this safe guard when landingzone deploy is working
-	// if !level.Launchpad {
-	// 	console.Error("landingzone deployment is not implemented yet")
-	// 	return
-	// }
-
 	stateName := stack.TfState
-	// IMPORTANT: We use the stack name as the default name if tfState key is not supplied
+	// NOTE! We use the stack name as the default name if tfState key is not supplied
 	if stateName == "" {
 		stateName = stack.Name
 	}
@@ -72,13 +66,16 @@ func (c Config) runStack(level Level, stack *Stack, action landingzone.Action) {
 		CafEnvironment: cafEnv,
 		StateName:      stateName,
 		Workspace:      ws,
+		DryRun:         dryRun,
 	}
 
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)
 
-	// Now we can start the execution just like `landingzone run` cmd does
-	opt.Execute(action)
+	// Now we can start the execution just like the CLI would
+	// Note errors are ignored they currently handled internally by the action
+	_ = action.Execute(&opt)
+
 	console.Successf("Finished execution on stack '%s'\n", stack.Name)
 }

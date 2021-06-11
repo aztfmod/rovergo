@@ -8,7 +8,6 @@ package landingzone
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,15 +28,13 @@ const secretTenantID = "tenant-id"
 const secretLowerSAName = "lower-storage-account-name"
 const secretLowerRGName = "lower-resource-group-name"
 
-// Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
-// This executes an action against a set of config options
-func (o *Options) Execute(action Action) {
-	console.Infof("Begin execution of action '%s'\n", action.Name())
-
+// Called by all CAF actions to set up Terraform and configure it for CAF landingzones
+func (c *CAFAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
-	// If they weren't set as flags fall back to logged in account subscription
+
+	// If they weren't set already, fall back to logged in account subscription
 	if o.StateSubscription == "" {
 		o.StateSubscription = acct.ID
 	}
@@ -53,14 +50,69 @@ func (o *Options) Execute(action Action) {
 		}
 	}
 
-	// All the env vars & other setup needed for CAF and get handle on Terraform
-	tf := o.initializeCAF()
+	// Slight hack for now, we set debug on when in dry-run mode
+	if o.DryRun {
+		console.DebugEnabled = true
+	}
+
+	tfPath, err := terraform.Setup()
+	cobra.CheckErr(err)
+
+	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
+	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
+	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
+	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
+	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
+	os.Setenv("TF_VAR_workspace", o.Workspace)
+	os.Setenv("TF_VAR_level", o.Level)
+	os.Setenv("TF_VAR_environment", o.CafEnvironment)
+	os.Setenv("TF_VAR_rover_version", version.Value)
+	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
+	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
+	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
+
+	// Default the TF_DATA_DIR to user's home dir
+	dataDir := os.Getenv("TF_DATA_DIR")
+	if dataDir == "" {
+		home, _ := os.UserHomeDir()
+		os.Setenv("TF_DATA_DIR", home)
+	}
+
+	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
+	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
+	err = os.MkdirAll(localStatePath, os.ModePerm)
+	cobra.CheckErr(err)
+	o.OutPath = localStatePath
+
+	// Create new TF exec with the working dir set to source
+	tf, err := tfexec.NewTerraform(o.SourcePath, tfPath)
+	cobra.CheckErr(err)
+
+	// The debugging done here
+	if console.DebugEnabled {
+		// By default no output from Terraform is seen, note TF_LOG env var is ignored by tfexec
+		tf.SetStdout(os.Stdout)
+		tf.SetStderr(os.Stderr)
+
+		// This gives us some info level logs we can send to stdout
+		tf.SetLogger(console.Printfer{})
+
+		console.Debug("==== Execution Context ====")
+		o.Debug()
+
+		console.Debug("==== Environmental Variables ====")
+		for _, env := range os.Environ() {
+			if strings.HasPrefix(env, "ARM_") || strings.HasPrefix(env, "AZURE_") || strings.HasPrefix(env, "TF_") {
+				console.Debugf("   %s\n", env)
+			}
+		}
+	}
 
 	// Remove old files, reset backend etc
 	o.cleanUp()
 
 	// Find state storage account for this environment and level
-	existingStorageID, err := azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
+	c.launchPadStorageID, err = azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
 	if err != nil {
 		if o.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, we can continue")
@@ -69,217 +121,20 @@ func (o *Options) Execute(action Action) {
 			cobra.CheckErr("Can't deploy a landing zone without a launchpad")
 		}
 	} else {
-		console.Infof("Located state storage account %s\n", existingStorageID)
+		console.Infof("Located state storage account %s\n", c.launchPadStorageID)
 	}
+	return tf
+}
 
-	//
-	// Actions that can run without init are executed here
-	//
-	if action == ActionFormat {
-		console.Info("Carrying out the Terraform fmt command")
-
-		fo := []tfexec.FormatOption{
-			tfexec.Dir(o.SourcePath),
-			tfexec.Recursive(true),
-		}
-		outcome, filesToFix, err := tf.FormatCheck(context.Background(), fo...)
-		cobra.CheckErr(err)
-
-		// TODO: return something (exit code?) so that pipeline can react appropriately
-		if outcome {
-			console.Success("No formatting is necessary.")
-		} else {
-			console.Info("The following file(s) require formatting:\n")
-			for _, filename := range filesToFix {
-				console.Infof("%s\n", filename)
-			}
-		}
-		return
-	}
-
-	//
-	// Terraform init - run in correct mode, for launchpad or not
-	//
-	if o.LaunchPadMode && existingStorageID == "" {
+// Runs init in the correct mode
+func (c CAFAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
+	var err error
+	if o.LaunchPadMode && c.launchPadStorageID == "" {
 		err = o.runLaunchpadInit(tf, false)
 	} else {
-		err = o.runRemoteInit(tf, existingStorageID)
+		err = o.runRemoteInit(tf, c.launchPadStorageID)
 	}
 	cobra.CheckErr(err)
-
-	// If the action is just init, then stop here and don't proceed
-	if action == ActionInit {
-		console.Success("Rover completed, only init was run and no infrastructure changes were planned or applied")
-		return
-	}
-
-	console.Success("Init completed, moving to next phase")
-
-	//
-	// Terraform plan step
-	//
-	planChanges := false
-	if action == ActionPlan || action == ActionApply {
-		console.Info("Carrying out the Terraform plan phase")
-
-		// Connect to launchpad, setting all the vars needed by the landingzone
-		if !o.LaunchPadMode {
-			err = o.connectToLaunchPad(existingStorageID)
-			cobra.CheckErr(err)
-		}
-
-		// Build plan options starting with tfplan output
-		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
-		planOptions := []tfexec.PlanOption{
-			tfexec.Out(planFile),
-			tfexec.Refresh(true),
-			tfexec.Parallelism(terraformParallelism),
-		}
-
-		// Then merge all tfvars found in config directory into -var-file options
-		varOpts, err := terraform.ExpandVarDirectory(o.ConfigPath)
-		cobra.CheckErr(err)
-		for _, vo := range varOpts {
-			// Note. spread operator would not work here, I tried ¯\_(ツ)_/¯
-			planOptions = append(planOptions, vo)
-		}
-
-		console.StartSpinner()
-		planChanges, err = tf.Plan(context.Background(), planOptions...)
-		console.StopSpinner()
-		cobra.CheckErr(err)
-		if planChanges {
-			console.Success("Plan contains infrastructure updates")
-		} else {
-			console.Success("Plan detected no changes")
-			console.Success("Any apply step will be skipped")
-		}
-	}
-
-	//
-	// Terraform apply step, won't run if plan found no changes
-	//
-	if action == ActionApply && planChanges {
-		console.Info("Carrying out the Terraform apply phase")
-
-		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
-		stateFile := fmt.Sprintf("%s/%s.tfstate", o.OutPath, o.StateName)
-
-		// Build apply options, with plan file and state out
-		applyOptions := []tfexec.ApplyOption{
-			tfexec.DirOrPlan(planFile),
-			tfexec.StateOut(stateFile),
-			tfexec.Parallelism(terraformParallelism),
-		}
-
-		console.StartSpinner()
-		err := tf.Apply(context.Background(), applyOptions...)
-		console.StopSpinner()
-		cobra.CheckErr(err)
-
-		// Special case for post launchpad deployment
-		newStorageID, err := azure.FindStorageAccount(o.Level, o.CafEnvironment, o.StateSubscription)
-		cobra.CheckErr(err)
-		if o.LaunchPadMode && existingStorageID != newStorageID {
-			console.Info("Detected the launchpad infrastructure has been deployed or updated")
-
-			stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
-			azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
-			console.Info("Uploading state from launchpad process to Azure storage")
-			os.Remove(stateFileName)
-		}
-
-		console.Success("Apply was successful")
-	}
-
-	if action == ActionValidate {
-		console.Info("Carrying out the Terraform validate phase")
-
-		// Now actually invoke Terraform apply
-		console.StartSpinner()
-		_, err := tf.Validate(context.Background())
-		console.StopSpinner()
-		cobra.CheckErr(err)
-	}
-
-	//
-	// Terraform validate step
-	//
-	if action == ActionValidate {
-		console.Info("Carrying out the Terraform validate phase")
-
-		console.StartSpinner()
-		_, err := tf.Validate(context.Background())
-		console.StopSpinner()
-		cobra.CheckErr(err)
-	}
-
-	//
-	// Destroy action
-	//
-	if action == ActionDestroy {
-		console.Info("Carrying out the Terraform destroy phase")
-
-		stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
-
-		// Build apply options, with plan file and state out
-		destroyOptions := []tfexec.DestroyOption{
-			tfexec.Parallelism(terraformParallelism),
-			tfexec.Refresh(false),
-		}
-
-		// We need to do all sorts of extra shenanigans for launchPadMode
-		if o.LaunchPadMode {
-			console.Warning("WARNING! You are destroying the launchpad!")
-			if existingStorageID == "" {
-				console.Error("Looks like this launchpad has already been deleted, bye!")
-				cobra.CheckErr("Destroy was aborted")
-			}
-
-			// It's critical to remove/cleanup local storage
-			o.cleanUp()
-
-			// Download the current state
-			azure.DownloadFileFromBlob(existingStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
-
-			// Reset back to use local state
-			console.Warning("Resetting state to local, have to re-run init")
-			err = o.runLaunchpadInit(tf, true)
-			cobra.CheckErr(err)
-			// This is critical and stops terraform from trying to use remote state
-			_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
-
-			// Tell destroy to use local downloaded state to destroy a launchpad
-			// TODO: This is a deprecated option, the solution is to switch to this
-			// https://www.terraform.io/docs/language/settings/backends/local.html
-			// nolint
-			destroyOptions = append(destroyOptions, tfexec.State(stateFileName))
-		} else {
-			// Connect to launchpad, setting all the vars needed by the landingzone
-			err = o.connectToLaunchPad(existingStorageID)
-			cobra.CheckErr(err)
-		}
-
-		// Merge all tfvars found in config directory into -var-file options
-		varOpts, err := terraform.ExpandVarDirectory(o.ConfigPath)
-		cobra.CheckErr(err)
-		for _, vo := range varOpts {
-			// Note. spread operator would not work here, I tried ¯\_(ツ)_/¯
-			destroyOptions = append(destroyOptions, vo)
-		}
-
-		console.Warning("Destroy is now running ...")
-		console.StartSpinner()
-		err = tf.Destroy(context.Background(), destroyOptions...)
-		console.StopSpinner()
-		cobra.CheckErr(err)
-
-		// Remove files
-		o.cleanUp()
-		_ = os.RemoveAll(o.OutPath)
-		console.Success("Destroy was successful")
-	}
-	console.Successf("Execution of '%s' completed\n", action.Name())
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state
@@ -328,65 +183,6 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	cobra.CheckErr(err)
 	console.StopSpinner()
 	return err
-}
-
-// This function
-func (o *Options) initializeCAF() *tfexec.Terraform {
-	tfPath, err := terraform.Setup()
-	cobra.CheckErr(err)
-
-	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
-	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
-	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
-	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
-	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
-	os.Setenv("TF_VAR_workspace", o.Workspace)
-	os.Setenv("TF_VAR_level", o.Level)
-	os.Setenv("TF_VAR_environment", o.CafEnvironment)
-	os.Setenv("TF_VAR_rover_version", version.Value)
-	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
-	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
-	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
-
-	// Default the TF_DATA_DIR to user's home dir
-	dataDir := os.Getenv("TF_DATA_DIR")
-	if dataDir == "" {
-		home, _ := os.UserHomeDir()
-		os.Setenv("TF_DATA_DIR", home)
-	}
-
-	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
-	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
-	err = os.MkdirAll(localStatePath, os.ModePerm)
-	cobra.CheckErr(err)
-	o.OutPath = localStatePath
-
-	// Create new TF exec with the working dir set to source
-	tf, err := tfexec.NewTerraform(o.SourcePath, tfPath)
-	cobra.CheckErr(err)
-
-	// The debugging done here
-	if console.DebugEnabled {
-		// By default no output from Terraform is seen
-		// Also note TF_LOG env var is ignored by tfexec
-		tf.SetStdout(os.Stdout)
-		tf.SetStderr(os.Stderr)
-
-		// This gives us some info level logs we can send to stdout
-		tf.SetLogger(console.Printfer{})
-
-		console.Debug("##### DEBUG OPTIONS:")
-		debugConf, _ := json.MarshalIndent(o, "", "  ")
-		console.Debug(string(debugConf))
-
-		console.Debug("##### DEBUG ENV VARS:")
-		for _, env := range os.Environ() {
-			if strings.HasPrefix(env, "ARM_") || strings.HasPrefix(env, "AZURE_") || strings.HasPrefix(env, "TF_") {
-				console.Debug(env)
-			}
-		}
-	}
-	return tf
 }
 
 // Remove files to ensure a clean run, state and plan files are recreated

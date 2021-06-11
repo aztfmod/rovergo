@@ -50,7 +50,6 @@ func (c *Command) Execute() error {
 	}
 
 	cmd := exec.Command(c.Exe, c.Args...)
-
 	// Set extra env vars if they exist
 	for _, envVar := range c.EnvVars {
 		cmd.Env = append(cmd.Env,
@@ -80,6 +79,8 @@ func (c *Command) Execute() error {
 	// Actually run the thing
 	if err := cmd.Run(); err != nil {
 		console.Errorf("Failed, %s", stderr.String())
+		c.StdOut = stdout.String()
+		c.StdErr = stderr.String()
 		return err
 	}
 

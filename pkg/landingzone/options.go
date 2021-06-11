@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
-	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 )
 

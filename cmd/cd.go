@@ -9,6 +9,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/spf13/cobra"
@@ -54,6 +55,7 @@ func init() {
 
 				if levelFlag == "" {
 					conf.RunAll(action)
+					console.Success("Rover has finished")
 					return
 				}
 
@@ -72,6 +74,7 @@ func init() {
 				}
 				//nolint
 				conf.RunLevel(*level, action)
+				console.Success("Rover has finished")
 			},
 		}
 

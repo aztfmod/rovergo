@@ -25,7 +25,7 @@ run: ## 🏃‍ Run locally
 	go run main.go $(ARGS)
 
 test: ## 🤡 Run tests
-	@echo "This is a reminder to write some tests!!"
+	go test ./pkg/... -count 1 -v
 
 clean: ## 🧹 Cleanup project
 	rm -rf bin

@@ -74,20 +74,23 @@ func CheckVersion(path string) {
 func ExpandVarDirectory(varDir string) ([]*tfexec.VarFileOption, error) {
 	varFileOpts := []*tfexec.VarFileOption{}
 
-	// Finds all .tfvars in directory and recurse down
-	err := filepath.Walk(varDir, func(path string, info os.FileInfo, err error) error {
-		if !strings.HasSuffix(path, ".tfvars") {
-			return nil
-		}
-
-		varFileOpt := tfexec.VarFile(path)
-		varFileOpts = append(varFileOpts, varFileOpt)
-		console.Debugf("Found var file to use: %s\n", path)
-		return nil
-	})
-
+	// Finds all .tfvars in directory, note. we no longer use walk as it was recursive
+	tfvarFiles, err := os.ReadDir(varDir)
 	if err != nil {
 		return nil, err
+	}
+	for _, file := range tfvarFiles {
+		if !strings.HasSuffix(file.Name(), ".tfvars") {
+			continue
+		}
+		varFileName := filepath.Join(varDir, file.Name())
+		varFileOpts = append(varFileOpts, tfexec.VarFile(varFileName))
+		console.Debugf("Found tfvar file to use: %s\n", varFileName)
+	}
+
+	// Ensure we have some tfvars, otherwise we're going to have a really bad time
+	if len(varFileOpts) <= 0 {
+		return nil, fmt.Errorf("failed to find any tfvars files in config directory: %s", varDir)
 	}
 
 	return varFileOpts, nil

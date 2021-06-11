@@ -11,24 +11,72 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CloudNameToTerraform maps cloud names from Azure CLI and SDK names to Terraform names
-// * Because no one can agree what to call these!
-// * The Azure CLI, the Azure SDK and Terraform all use different names 💩
+type wellKnownCloud struct {
+	Name            string
+	TerraformName   string
+	KeyvaultDNS     string
+	StorageEndpoint string
+}
+
+var wellKnownClouds []wellKnownCloud
+
+func init() {
+	azure := wellKnownCloud{"AzureCloud", "public", "vault.azure.net", "core.windows.net"}
+	azurePublic := wellKnownCloud{"AzurePublicCloud", "public", "vault.azure.net", "core.windows.net"}
+	china := wellKnownCloud{"AzureChinaCloud", "china", "vault.azure.cn", "core.chinacloudapi.cn"}
+	germany := wellKnownCloud{"AzureGermanCloud", "german", "vault.microsoftazure.de", "core.cloudapi.de"}
+	gov := wellKnownCloud{"AzureUSGovernment", "usgovernment", "vault.usgovcloudapi.net", "core.usgovcloudapi.net"}
+
+	wellKnownClouds = []wellKnownCloud{azure, azurePublic, china, germany, gov}
+}
+
 func CloudNameToTerraform(name string) string {
-	switch name {
-	case "AzureCloud":
-		return "public"
-	case "AzurePublicCloud":
-		return "public"
-	case "AzureChinaCloud":
-		return "china"
-	case "AzureUSGovernment":
-		return "usgovernment"
-	case "AzureGermanCloud":
-		return "german"
-	default:
-		return "public"
+
+	for _, cloud := range wellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.TerraformName
+		}
+
 	}
+
+	return "public"
+}
+
+func KeyvaultEndpointForSubscription() string {
+	sub := GetSubscription()
+	return KeyvaultEndpointForCloud(sub.EnvironmentName)
+}
+
+func KeyvaultEndpointForCloud(name string) string {
+
+	for _, cloud := range wellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.KeyvaultDNS
+		}
+
+	}
+
+	return ""
+}
+
+func StorageEndpointForSubscription() string {
+	sub := GetSubscription()
+	return StorageEndpointForCloud(sub.EnvironmentName)
+}
+
+func StorageEndpointForCloud(name string) string {
+
+	for _, cloud := range wellKnownClouds {
+
+		if cloud.Name == name {
+			return cloud.StorageEndpoint
+		}
+
+	}
+
+	return ""
 }
 
 // ParseResourceID into subscription, resource group and name

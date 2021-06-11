@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
@@ -24,6 +25,9 @@ import (
 )
 
 const terraformParallelism = 30
+const secretTenantID = "tenant-id"
+const secretLowerSAName = "lower-storage-account-name"
+const secretLowerRGName = "lower-resource-group-name"
 
 // Execute is entry point for `landingzone run`, `launchpad run` and `cd` operations
 // This executes an action against a set of config options
@@ -105,7 +109,7 @@ func (o *Options) Execute(action Action) {
 		return
 	}
 
-	console.Infof("Starting '%s' action, this could take some time...\n", action.Name())
+	console.Success("Init completed, moving to next phase")
 
 	//
 	// Terraform plan step
@@ -113,6 +117,12 @@ func (o *Options) Execute(action Action) {
 	planChanges := false
 	if action == ActionPlan || action == ActionApply {
 		console.Info("Carrying out the Terraform plan phase")
+
+		// Connect to launchpad, setting all the vars needed by the landingzone
+		if !o.LaunchPadMode {
+			err = o.connectToLaunchPad(existingStorageID)
+			cobra.CheckErr(err)
+		}
 
 		// Build plan options starting with tfplan output
 		planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
@@ -131,10 +141,10 @@ func (o *Options) Execute(action Action) {
 		}
 
 		console.StartSpinner()
-		changes, err := tf.Plan(context.Background(), planOptions...)
+		planChanges, err = tf.Plan(context.Background(), planOptions...)
 		console.StopSpinner()
 		cobra.CheckErr(err)
-		if changes {
+		if planChanges {
 			console.Success("Plan contains infrastructure updates")
 		} else {
 			console.Success("Plan detected no changes")
@@ -240,6 +250,10 @@ func (o *Options) Execute(action Action) {
 			// https://www.terraform.io/docs/language/settings/backends/local.html
 			// nolint
 			destroyOptions = append(destroyOptions, tfexec.State(stateFileName))
+		} else {
+			// Connect to launchpad, setting all the vars needed by the landingzone
+			err = o.connectToLaunchPad(existingStorageID)
+			cobra.CheckErr(err)
 		}
 
 		// Merge all tfvars found in config directory into -var-file options
@@ -261,7 +275,7 @@ func (o *Options) Execute(action Action) {
 		_ = os.RemoveAll(o.OutPath)
 		console.Success("Destroy was successful")
 	}
-	console.Success("Rover completed")
+	console.Successf("Execution of '%s' completed\n", action.Name())
 }
 
 // Carry out Terraform init operation in launchpad mode has no backend state
@@ -269,7 +283,17 @@ func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()
-	err := tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Reconfigure(reconfigure))
+	// Validate that the indentity we are using is owner on subscription, not sure why but it's in rover v1 code
+	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription)
+	cobra.CheckErr(err)
+	if !isOwner {
+		console.StopSpinner()
+		console.Errorf("The identity %s (%s) is not assigned 'Owner' role on subscription %s\n", o.Identity.DisplayName, o.Identity.ObjectID, o.StateSubscription)
+		cobra.CheckErr("To deploy a launchpad the identity used must be assigned the 'Owner' role")
+	}
+
+	// Proceed and run tf init
+	err = tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.Reconfigure(reconfigure))
 	console.StopSpinner()
 	return err
 }
@@ -381,6 +405,65 @@ func (o *Options) cleanUp() {
 // By copying this file we enable teh azurerm backend and therefore remote state
 func (o *Options) enableAzureBackend() {
 	console.Info("Enabling backend state with backend.azurerm.tf file")
-	err := utils.CopyFile(o.SourcePath+"/backend.azurerm", o.SourcePath+"/backend.azurerm.tf")
+	filepath.Join(o.SourcePath, "backend.azurerm")
+	err := utils.CopyFile(filepath.Join(o.SourcePath, "backend.azurerm"), filepath.Join(o.SourcePath, "backend.azurerm.tf"))
 	cobra.CheckErr(err)
+}
+
+// Sets various TF_VAR_ variables required for a landingzone to be deployed/destroyed
+func (o *Options) connectToLaunchPad(lpStorageID string) error {
+	console.Infof("Connecting to launchpad for level '%s'\n", o.Level)
+	lpKeyVaultID, err := azure.FindKeyVault(o.Level, o.CafEnvironment, o.StateSubscription)
+	if err != nil {
+		return err
+	}
+	if lpKeyVaultID == "" {
+		return fmt.Errorf("Unable to locate the launchpad for environment '%s' and level '%s'", o.CafEnvironment, o.Level)
+	}
+
+	_, _, keyVaultName := azure.ParseResourceID(lpKeyVaultID)
+
+	kvClient, err := azure.NewKVClient(azure.KeyvaultEndpointForSubscription(), keyVaultName)
+	if err != nil {
+		return err
+	}
+
+	lpTenantID, err := kvClient.GetSecret(secretTenantID)
+	if err != nil {
+		return err
+	}
+	lpLowerSAName, err := kvClient.GetSecret(secretLowerSAName)
+	if err != nil {
+		return err
+	}
+	lpLowerResGrp, err := kvClient.GetSecret(secretLowerRGName)
+	if err != nil {
+		return err
+	}
+
+	if lpLowerSAName == "" || lpTenantID == "" || lpLowerResGrp == "" {
+		return fmt.Errorf("Required secret(s) not found in launchpad, either you are not authorized or the launchpad was not deployed correctly")
+	}
+
+	_, lpStorageResGrp, lpStorageName := azure.ParseResourceID(lpStorageID)
+
+	console.Success("Connected to launchpad OK")
+	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)
+	console.Debugf(" - TF_VAR_tfstate_storage_account_name=%s\n", lpStorageName)
+	console.Debugf(" - TF_VAR_tfstate_resource_group_name=%s\n", lpStorageResGrp)
+	console.Debugf(" - TF_VAR_lower_storage_account_name=%s\n", lpLowerSAName)
+	console.Debugf(" - TF_VAR_lower_resource_group_name=%s\n", lpLowerResGrp)
+
+	_ = os.Setenv("TF_VAR_tenant_id", lpTenantID)
+	_ = os.Setenv("TF_VAR_tfstate_storage_account_name", lpStorageName)
+	_ = os.Setenv("TF_VAR_tfstate_resource_group_name", lpStorageResGrp)
+	_ = os.Setenv("TF_VAR_lower_storage_account_name", lpLowerSAName)
+	_ = os.Setenv("TF_VAR_lower_resource_group_name", lpLowerResGrp)
+
+	_ = os.Setenv("TF_VAR_tfstate_container_name", o.Workspace)
+	_ = os.Setenv("TF_VAR_lower_container_name", o.Workspace)
+	// NOTE: This will have been set by initializeCAF()
+	_ = os.Setenv("TF_VAR_tfstate_key", os.Getenv("TF_VAR_tf_name"))
+
+	return nil
 }

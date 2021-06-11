@@ -8,8 +8,10 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 
@@ -51,14 +53,15 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+
+	home, err := utils.GetHomeDirectory()
+	cobra.CheckErr(err)
+
 	if cfgFile != "" {
 		// Use config file from the flag.
+		console.Info("Use config file from the flag")
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
 		// Search config in home directory and CWD with name ".rover" (without extension).
 		viper.AddConfigPath(home)
 		viper.AddConfigPath(".")
@@ -66,7 +69,7 @@ func initConfig() {
 		viper.SetConfigName(".rover")
 
 		// Config defaults
-		viper.SetDefault("tempDir", "/tmp")
+		viper.SetDefault("tempDir", filepath.Join(home, "/tmp")) // Modify to be $home/.rover/tmp
 		viper.SetDefault("terraform.install", true)
 		viper.SetDefault("terraform.install-path", "./bin")
 	}
@@ -79,7 +82,7 @@ func initConfig() {
 		console.Infof("Using config file: %s\n", viper.ConfigFileUsed())
 	} else {
 		// Fall back to creating empty config file
-		fileName := "./.rover.yaml"
+		fileName := filepath.Join(home, "/.rover.yaml") // Modify to be home/.rover/.rover.yaml
 		_, err := os.Create(fileName)
 		cobra.CheckErr(err)
 		console.Warningf("Config file not found, creating new file %s with defaults\n", fileName)

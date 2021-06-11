@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
 )
@@ -53,15 +54,13 @@ func GetHomeDirectory() (string, error) {
 		return "", errors.New("Unable to access user home directory")
 	}
 
-	home += "/.rover"
+	roverhome := filepath.Join(home, "/.rover")
 
-	_, direrr := os.Stat(home)
-	if os.IsNotExist(direrr) {
-		newdir := os.Mkdir(home, 0777) // unmask is 0022 which means real mask is 0755 on Linux?
-		if newdir != nil {
-			return "", errors.New("Failed to create $home/.rover directory")
-		}
+	direrr := os.MkdirAll(roverhome, 0777)
+
+	if direrr != nil {
+		return "", errors.New("Failed to create $home/.rover directory")
 	}
 
-	return home, nil
+	return roverhome, nil
 }

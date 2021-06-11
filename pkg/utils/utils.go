@@ -46,13 +46,9 @@ func CopyFile(src string, dest string) error {
 	return nil
 }
 
-// Add home + .rover directory functions here, so they are generally available
-// string GetHomeDirectory()
-// Error ValidateHomeDirectory() or Error ValidateDirectory(string directory)
-// String, Error ValidateAndCreateHomeDirectory()
 func GetHomeDirectory() (string, error) {
 	home, err := os.UserHomeDir()
-	//cobra.CheckErr(err)
+
 	if err != nil {
 		return "", errors.New("Unable to access user home directory")
 	}

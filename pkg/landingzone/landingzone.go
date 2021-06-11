@@ -332,7 +332,7 @@ func (o *Options) initializeCAF() *tfexec.Terraform {
 	// Default the TF_DATA_DIR to user's home dir
 	dataDir := os.Getenv("TF_DATA_DIR")
 	if dataDir == "" {
-		home, _ := utils.GetHomeDirectory() //os.UserHomeDir()
+		home, _ := utils.GetHomeDirectory()
 		os.Setenv("TF_DATA_DIR", home)
 	}
 

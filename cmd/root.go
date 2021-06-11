@@ -63,12 +63,12 @@ func initConfig() {
 	} else {
 		// Search config in home directory and CWD with name ".rover" (without extension).
 		viper.AddConfigPath(home)
-		//viper.AddConfigPath(".") - look only in home directory
+		viper.AddConfigPath(".")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".rover")
 
 		// Config defaults
-		viper.SetDefault("tempDir", home+"/tmp") // Modify to be home/.rover/tmp
+		viper.SetDefault("tempDir", home+"/tmp") // Modify to be $home/.rover/tmp
 		viper.SetDefault("terraform.install", true)
 		viper.SetDefault("terraform.install-path", "./bin")
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunFromCLI(cmd *cobra.Command, action ActionI) {
+func RunFromCLI(cmd *cobra.Command, action Action) {
 	launchPadMode, _ := cmd.Flags().GetBool("launchpad")
 	configPath, _ := cmd.Flags().GetString("config-dir")
 	sourcePath, _ := cmd.Flags().GetString("source")

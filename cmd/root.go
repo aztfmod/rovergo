@@ -19,7 +19,7 @@ import (
 )
 
 var cfgFile string
-var actionMap = map[string]landingzone.ActionI{
+var actionMap = map[string]landingzone.Action{
 	"init":     landingzone.NewInitAction(),
 	"plan":     landingzone.NewPlanAction(),
 	"apply":    landingzone.NewApplyAction(),

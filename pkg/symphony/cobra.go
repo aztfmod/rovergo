@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunFromConfig(cmd *cobra.Command, action landingzone.ActionI) {
+func RunFromConfig(cmd *cobra.Command, action landingzone.Action) {
 	launchPadMode, _ := cmd.Flags().GetBool("launchpad")
 	configFile, _ := cmd.Flags().GetString("config-file")
 	sourcePath, _ := cmd.Flags().GetString("source")

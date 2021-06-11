@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
-type ActionI interface {
+type Action interface {
 	Execute(o *Options) error
 	Name() string
 	Description() string

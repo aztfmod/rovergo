@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c Config) runAll(action landingzone.ActionI, dryRun bool) {
+func (c Config) runAll(action landingzone.Action, dryRun bool) {
 	console.Infof("Starting process for all levels...\n")
 
 	// Special case, handle destroy all levels in REVERSE order
@@ -23,7 +23,7 @@ func (c Config) runAll(action landingzone.ActionI, dryRun bool) {
 	}
 }
 
-func (c Config) RunLevel(level Level, action landingzone.ActionI, dryRun bool) {
+func (c Config) RunLevel(level Level, action landingzone.Action, dryRun bool) {
 	console.Infof(" - Running CD for level: %s\n", level.Name)
 	for _, stack := range level.Stacks {
 		c.runStack(level, &stack, action, dryRun)
@@ -32,7 +32,7 @@ func (c Config) RunLevel(level Level, action landingzone.ActionI, dryRun bool) {
 
 // This runs the given action against the stack
 // It builds a landingzone.Options struct just like landingzone.NewOptionsFromCmd() but uses the YAML as source not the cmd
-func (c Config) runStack(level Level, stack *Stack, action landingzone.ActionI, dryRun bool) {
+func (c Config) runStack(level Level, stack *Stack, action landingzone.Action, dryRun bool) {
 	console.Infof("   - Running stack: %s\n", stack.Name)
 
 	ws := c.Content.Workspace

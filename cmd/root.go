@@ -63,7 +63,7 @@ func initConfig() {
 	} else {
 		// Search config in home directory and CWD with name ".rover" (without extension).
 		viper.AddConfigPath(home)
-		viper.AddConfigPath(".")
+		//viper.AddConfigPath(".") - look only in home directory
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".rover")
 

@@ -8,12 +8,12 @@ package landingzone
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func NewOptionsFromCmd(cmd *cobra.Command) Options {
 	}
 
 	// This is a 'just in case' default, it will be changed later, when initializeCAF is called
-	outPath, err := os.UserHomeDir()
+	outPath, err := utils.GetHomeDirectory() //os.UserHomeDir()
 	cobra.CheckErr(err)
 
 	// Default state & plan name is taken from the base name of the landingzone source dir

@@ -7,6 +7,7 @@
 package utils
 
 import (
+	"errors"
 	"io"
 	"os"
 
@@ -43,4 +44,28 @@ func CopyFile(src string, dest string) error {
 
 	console.Debugf("Completed copying file '%s' to '%s' (%d bytes)", src, dest, bytesWritten)
 	return nil
+}
+
+// Add home + .rover directory functions here, so they are generally available
+// string GetHomeDirectory()
+// Error ValidateHomeDirectory() or Error ValidateDirectory(string directory)
+// String, Error ValidateAndCreateHomeDirectory()
+func GetHomeDirectory() (string, error) {
+	home, err := os.UserHomeDir()
+	//cobra.CheckErr(err)
+	if err != nil {
+		return "", errors.New("Unable to access user home directory")
+	}
+
+	home += "/.rover"
+
+	_, direrr := os.Stat(home)
+	if os.IsNotExist(direrr) {
+		newdir := os.Mkdir(home, 0777) // unmask is 0022 which means real mask is 0755 on Linux?
+		if newdir != nil {
+			return "", errors.New("Failed to create $home/.rover directory")
+		}
+	}
+
+	return home, nil
 }

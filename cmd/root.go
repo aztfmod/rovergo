@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 
@@ -52,19 +53,8 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 
-	home, err := os.UserHomeDir()
+	home, err := utils.GetHomeDirectory()
 	cobra.CheckErr(err)
-
-	home += "/.rover"
-
-	_, direrr := os.Stat(home)
-	if os.IsNotExist(direrr) {
-		newdir := os.Mkdir(home, 0777) // unmask is 0022 which means real mask is 0755 on Linux?
-		if newdir != nil {
-			console.Error("Failed to create home/.rover directory")
-			os.Exit(1)
-		}
-	}
 
 	if cfgFile != "" {
 		// Use config file from the flag.

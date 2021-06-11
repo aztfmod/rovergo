@@ -9,12 +9,12 @@ import (
 )
 
 type FormatAction struct {
-	CAFAction
+	TerraformAction
 }
 
 func NewFormatAction() *FormatAction {
 	return &FormatAction{
-		CAFAction: CAFAction{
+		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{

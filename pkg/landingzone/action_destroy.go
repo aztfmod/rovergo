@@ -12,12 +12,12 @@ import (
 )
 
 type DestroyAction struct {
-	CAFAction
+	TerraformAction
 }
 
 func NewDestroyAction() *DestroyAction {
 	return &DestroyAction{
-		CAFAction: CAFAction{
+		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{

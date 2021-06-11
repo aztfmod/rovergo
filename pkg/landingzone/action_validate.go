@@ -8,12 +8,12 @@ import (
 )
 
 type ValidateAction struct {
-	CAFAction
+	TerraformAction
 }
 
 func NewValidateAction() *ValidateAction {
 	return &ValidateAction{
-		CAFAction: CAFAction{
+		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{

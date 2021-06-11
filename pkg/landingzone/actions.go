@@ -15,7 +15,7 @@ type ActionBase struct {
 	description string
 }
 
-type CAFAction struct {
+type TerraformAction struct {
 	ActionBase
 	launchPadStorageID string
 	tfexec             *tfexec.Terraform

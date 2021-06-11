@@ -12,12 +12,12 @@ import (
 )
 
 type ApplyAction struct {
-	CAFAction
+	TerraformAction
 }
 
 func NewApplyAction() *ApplyAction {
 	return &ApplyAction{
-		CAFAction: CAFAction{
+		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{

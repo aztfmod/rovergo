@@ -29,7 +29,7 @@ const secretLowerSAName = "lower-storage-account-name"
 const secretLowerRGName = "lower-resource-group-name"
 
 // Called by all CAF actions to set up Terraform and configure it for CAF landingzones
-func (c *CAFAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
+func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 	ident := azure.GetIdentity()
@@ -127,7 +127,7 @@ func (c *CAFAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 }
 
 // Runs init in the correct mode
-func (c CAFAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
+func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
 	var err error
 	if o.LaunchPadMode && c.launchPadStorageID == "" {
 		err = o.runLaunchpadInit(tf, false)

@@ -11,14 +11,14 @@ import (
 )
 
 type PlanAction struct {
-	CAFAction
+	TerraformAction
 	hasChanges bool
 }
 
 func NewPlanAction() *PlanAction {
 	return &PlanAction{
 		hasChanges: false,
-		CAFAction: CAFAction{
+		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{

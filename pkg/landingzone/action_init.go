@@ -3,12 +3,12 @@ package landingzone
 import "github.com/aztfmod/rover/pkg/console"
 
 type InitAction struct {
-	CAFAction
+	TerraformAction
 }
 
 func NewInitAction() *InitAction {
 	return &InitAction{
-		CAFAction{
+		TerraformAction{
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				name:        "init",

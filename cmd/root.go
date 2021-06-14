@@ -94,19 +94,19 @@ func init() {
 				}
 
 				var optionsList []landingzone.Options
-				// Handle symphony mode where config file and level is passed
+				// Handle symphony mode where config file and level is passed, this will return optionsList with MANY items
 				if configFile != "" {
 					// Depending on if we're running single or mult-level this will return one or many options
 					optionsList = symphony.BuildOptions(cmd)
 				}
 
-				// Handle CLI or standalone mode
+				// Handle CLI or standalone mode, this will return optionsList with a single item
 				if configPath != "" {
 					optionsList = landingzone.BuildOptions(cmd)
 				}
 
 				for _, options := range optionsList {
-					// Now start the action execution,
+					// Now start the action execution...
 					// NOTE: Errors are ignored, they handled internally by the action with cobra.CheckErr
 					_ = action.Execute(&options)
 				}

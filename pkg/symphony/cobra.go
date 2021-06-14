@@ -52,6 +52,7 @@ func BuildOptions(cmd *cobra.Command) []landingzone.Options {
 		cobra.CheckErr(fmt.Sprintf("level '%s' not found in symphony config file", levelName))
 	}
 
+	// nolint
 	console.Infof("Rover will operate on level '%s'...\n", level.Name)
 	// nolint
 	optionsList := conf.parseLevel(*level)

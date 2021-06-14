@@ -16,7 +16,7 @@ import (
 const defaultWorkspace = "tfstate"
 const defaultEnv = "sandpit"
 
-// Parse the CLI params and flags and return a single Option
+// BuildOptions parses the CLI params and flags and return a single Option
 // Note. it's returned as an single item array for symmetry with symphony.BuildOptions
 func BuildOptions(cmd *cobra.Command) []Options {
 	launchPadMode, _ := cmd.Flags().GetBool("launchpad")

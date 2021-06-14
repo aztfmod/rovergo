@@ -17,7 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var actionMap = map[string]landingzone.Action{
+// ActionMap is exported so tests can use
+var ActionMap = map[string]landingzone.Action{
 	"init":     landingzone.NewInitAction(),
 	"plan":     landingzone.NewPlanAction(),
 	"apply":    landingzone.NewApplyAction(),
@@ -60,11 +61,11 @@ func init() {
 		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		actionMap[ca.GetName()] = ca
+		ActionMap[ca.GetName()] = ca
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range actionMap {
+	for name, action := range ActionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
 			Short: action.GetDescription(),
@@ -73,7 +74,7 @@ func init() {
 			Run: func(cmd *cobra.Command, args []string) {
 				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
 				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = actionMap[cmd.Name()]
+				action = ActionMap[cmd.Name()]
 
 				configFile, _ := cmd.Flags().GetString("config-file")
 				configPath, _ := cmd.Flags().GetString("config-dir")

@@ -3,11 +3,12 @@ package symphony
 import (
 	"fmt"
 
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
-func RunFromConfig(cmd *cobra.Command, action landingzone.Action) {
+func BuildOptions(cmd *cobra.Command) []landingzone.Options {
 	launchPadMode, _ := cmd.Flags().GetBool("launchpad")
 	configFile, _ := cmd.Flags().GetString("config-file")
 	sourcePath, _ := cmd.Flags().GetString("source")
@@ -27,8 +28,14 @@ func RunFromConfig(cmd *cobra.Command, action landingzone.Action) {
 	cobra.CheckErr(err)
 
 	if levelName == "" {
-		conf.runAll(action, dryRun)
-		return
+		console.Info("Rover will operate on ALL levels...")
+		isDestroy := cmd.Name() == "destroy"
+		optionsList := conf.parseAllLevels(isDestroy)
+		// We munge some options here rather than passing it through all the parser functions
+		for _, o := range optionsList {
+			o.DryRun = dryRun
+		}
+		return optionsList
 	}
 
 	var level *Level
@@ -40,11 +47,18 @@ func RunFromConfig(cmd *cobra.Command, action landingzone.Action) {
 		}
 	}
 
-	//nolint
+	// nolint
 	if level == nil {
 		cobra.CheckErr(fmt.Sprintf("level '%s' not found in symphony config file", levelName))
 	}
 
-	//nolint
-	conf.RunLevel(*level, action, dryRun)
+	console.Infof("Rover will operate on level '%s'...\n", level.Name)
+	// nolint
+	optionsList := conf.parseLevel(*level)
+
+	// We munge some options here rather than passing it through all the parser functions
+	for _, o := range optionsList {
+		o.DryRun = dryRun
+	}
+	return optionsList
 }

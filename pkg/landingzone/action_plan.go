@@ -22,8 +22,8 @@ func NewPlanAction() *PlanAction {
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{
-				name:        "plan",
-				description: "Perform a terraform plan",
+				Name:        "plan",
+				Description: "Perform a terraform plan",
 			},
 		},
 	}

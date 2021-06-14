@@ -21,15 +21,14 @@ func NewApplyAction() *ApplyAction {
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{
-				name:        "apply",
-				description: "Perform a terraform plan & apply",
+				Name:        "apply",
+				Description: "Perform a terraform plan & apply",
 			},
 		},
 	}
 }
 
 func (a *ApplyAction) Execute(o *Options) error {
-
 	planAction := NewPlanAction()
 	_ = planAction.Execute(o)
 

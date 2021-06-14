@@ -17,8 +17,8 @@ func NewValidateAction() *ValidateAction {
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{
-				name:        "validate",
-				description: "Perform a terraform validate",
+				Name:        "validate",
+				Description: "Perform a terraform validate",
 			},
 		},
 	}

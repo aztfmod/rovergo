@@ -6,13 +6,13 @@ import (
 
 type Action interface {
 	Execute(o *Options) error
-	Name() string
-	Description() string
+	GetName() string
+	GetDescription() string
 }
 
 type ActionBase struct {
-	name        string
-	description string
+	Name        string
+	Description string
 }
 
 type TerraformAction struct {
@@ -21,10 +21,10 @@ type TerraformAction struct {
 	tfexec             *tfexec.Terraform
 }
 
-func (ab ActionBase) Name() string {
-	return ab.name
+func (ab ActionBase) GetName() string {
+	return ab.Name
 }
 
-func (ab ActionBase) Description() string {
-	return ab.description
+func (ab ActionBase) GetDescription() string {
+	return ab.Description
 }

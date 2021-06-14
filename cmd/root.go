@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/aztfmod/rover/pkg/version"
@@ -59,20 +60,20 @@ func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
 
 	// Find and load in custom actions
-	custActions, err := landingzone.FetchCustomActions()
+	custActions, err := custom.FetchActions()
 	if err != nil {
 		console.Errorf("Failed %s", err)
 		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		actionMap[ca.Name()] = ca
+		actionMap[ca.GetName()] = ca
 	}
 
 	// Dynamically build sub-commands from list of actions
 	for name, action := range actionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
-			Short: action.Description(),
+			Short: action.GetDescription(),
 			PreRun: func(cmd *cobra.Command, args []string) {
 			},
 			Run: func(cmd *cobra.Command, args []string) {
@@ -89,22 +90,29 @@ func init() {
 					os.Exit(0)
 				}
 				if configPath != "" && configFile != "" {
-					cobra.CheckErr("--config and --config-dir options must not be combined, specify only one")
+					cobra.CheckErr("--config-file and --config-dir options must not be combined, specify only one")
 				}
 
+				var optionsList []landingzone.Options
 				// Handle symphony mode where config file and level is passed
 				if configFile != "" {
-					symphony.RunFromConfig(cmd, action)
-					console.Success("Rover has finished")
-					os.Exit(0)
+					// Depending on if we're running single or mult-level this will return one or many options
+					optionsList = symphony.BuildOptions(cmd)
 				}
 
 				// Handle CLI or standalone mode
 				if configPath != "" {
-					landingzone.RunFromCLI(cmd, action)
-					console.Success("Rover has finished")
-					os.Exit(0)
+					optionsList = landingzone.BuildOptions(cmd)
 				}
+
+				for _, options := range optionsList {
+					// Now start the action execution,
+					// NOTE: Errors are ignored, they handled internally by the action with cobra.CheckErr
+					_ = action.Execute(&options)
+				}
+
+				console.Success("Rover has finished")
+				os.Exit(0)
 			},
 		}
 

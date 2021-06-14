@@ -24,9 +24,9 @@ import (
 )
 
 const terraformParallelism = 30
-const secretTenantID = "tenant-id"
-const secretLowerSAName = "lower-storage-account-name"
-const secretLowerRGName = "lower-resource-group-name"
+const SecretTenantID = "tenant-id"
+const SecretLowerSAName = "lower-storage-account-name"
+const SecretLowerRGName = "lower-resource-group-name"
 
 // Called by all CAF actions to set up Terraform and configure it for CAF landingzones
 func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
@@ -219,15 +219,15 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 		return err
 	}
 
-	lpTenantID, err := kvClient.GetSecret(secretTenantID)
+	lpTenantID, err := kvClient.GetSecret(SecretTenantID)
 	if err != nil {
 		return err
 	}
-	lpLowerSAName, err := kvClient.GetSecret(secretLowerSAName)
+	lpLowerSAName, err := kvClient.GetSecret(SecretLowerSAName)
 	if err != nil {
 		return err
 	}
-	lpLowerResGrp, err := kvClient.GetSecret(secretLowerRGName)
+	lpLowerResGrp, err := kvClient.GetSecret(SecretLowerRGName)
 	if err != nil {
 		return err
 	}

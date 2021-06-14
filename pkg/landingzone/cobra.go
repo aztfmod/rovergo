@@ -13,7 +13,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunFromCLI(cmd *cobra.Command, action Action) {
+const defaultWorkspace = "tfstate"
+const defaultEnv = "sandpit"
+
+// Parse the CLI params and flags and return a single Option
+// Note. it's returned as an single item array for symmetry with symphony.BuildOptions
+func BuildOptions(cmd *cobra.Command) []Options {
 	launchPadMode, _ := cmd.Flags().GetBool("launchpad")
 	configPath, _ := cmd.Flags().GetString("config-dir")
 	sourcePath, _ := cmd.Flags().GetString("source")
@@ -37,10 +42,10 @@ func RunFromCLI(cmd *cobra.Command, action Action) {
 		cobra.CheckErr("--source option must be supplied when not using a config file")
 	}
 	if ws == "" {
-		ws = "tfstate"
+		ws = defaultWorkspace
 	}
 	if env == "" {
-		env = "sandpit"
+		env = defaultEnv
 	}
 
 	// Default state & plan name is taken from the base name of the landingzone source dir
@@ -67,7 +72,5 @@ func RunFromCLI(cmd *cobra.Command, action Action) {
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)
 
-	// Now start the action execution,
-	// Note errors are ignored they currently handled internally by the action
-	_ = action.Execute(&opt)
+	return []Options{opt}
 }

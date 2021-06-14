@@ -18,8 +18,8 @@ func NewFormatAction() *FormatAction {
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{
-				name:        "fmt",
-				description: "Perform a terraform format",
+				Name:        "fmt",
+				Description: "Perform a terraform format",
 			},
 		},
 	}

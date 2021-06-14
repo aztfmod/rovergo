@@ -21,8 +21,8 @@ func NewDestroyAction() *DestroyAction {
 			launchPadStorageID: "",
 			tfexec:             nil,
 			ActionBase: ActionBase{
-				name:        "destroy",
-				description: "Perform a terraform destroy",
+				Name:        "destroy",
+				Description: "Perform a terraform destroy",
 			},
 		},
 	}

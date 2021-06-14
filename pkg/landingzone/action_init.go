@@ -11,8 +11,8 @@ func NewInitAction() *InitAction {
 		TerraformAction{
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
-				name:        "init",
-				description: "Perform a terraform init and no other action",
+				Name:        "init",
+				Description: "Perform a terraform init and no other action",
 			},
 		},
 	}

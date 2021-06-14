@@ -139,7 +139,7 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 
-	home, err := utils.GetHomeDirectory()
+	home, err := utils.GetRoverDirectory()
 	cobra.CheckErr(err)
 
 	if cfgFile != "" {

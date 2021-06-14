@@ -74,7 +74,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Default the TF_DATA_DIR to special rover dir
 	dataDir := os.Getenv("TF_DATA_DIR")
 	if dataDir == "" {
-		home, _ := utils.GetHomeDirectory()
+		home, _ := utils.GetRoverDirectory()
 		os.Setenv("TF_DATA_DIR", home)
 	}
 

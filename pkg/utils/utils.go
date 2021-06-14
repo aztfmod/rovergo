@@ -47,7 +47,7 @@ func CopyFile(src string, dest string) error {
 	return nil
 }
 
-func GetHomeDirectory() (string, error) {
+func GetRoverDirectory() (string, error) {
 	home, err := os.UserHomeDir()
 
 	if err != nil {

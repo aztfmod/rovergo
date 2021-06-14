@@ -71,10 +71,10 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
 	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
 
-	// Default the TF_DATA_DIR to user's home dir
+	// Default the TF_DATA_DIR to special rover dir
 	dataDir := os.Getenv("TF_DATA_DIR")
 	if dataDir == "" {
-		home, _ := os.UserHomeDir()
+		home, _ := utils.GetHomeDirectory()
 		os.Setenv("TF_DATA_DIR", home)
 	}
 

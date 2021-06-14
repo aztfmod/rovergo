@@ -93,6 +93,8 @@ Rover v2 actions take two forms:
 
 # Running Rover v2
 
+Rover has two main modes of operation, which applies across all actions, these modes are "ad-hoc mode" and "multi-level mode", the switches you supply `--config-dir` and `--config-file` determine which mode is used.
+
 In these examples we assume to have a copy of the CAF landingzones in `./landingzones` and our configuration directory at `./caf-config/` there will be sub-directories under there for our various levels
 
 ## Running in "Ad-hoc mode" (single level)
@@ -153,13 +155,12 @@ rover destroy --config-file ./symphony.yaml
 ### Ad-hoc mode switches
 
 - `--source` The source landingzone repo location
-- `--launchpad` Run deployment in launchpad mode, *only* run this with a valid launchpad config and with lebel set to "level0"
+- `--launchpad` Run deployment in launchpad mode, *only* run this with a valid launchpad config and with level set to "level0"
 - `--environment` Set the CAF environment, **defaults to "sandpit"**
 - `--statename` Set the state name used for naming tfstate files, **defaults to "caf_solution" or "caf_launchpad"** depending if --launchpad is set
 - `--target-sub` Subscription ID to deploy resources into, defaults to current set on Azure CLI
 - `--state-sub` Subscription ID where state (i.e. the launchpad) is held, defaults to current set on Azure CLI
 - `--workspace` Workspace is used to name the containers used for state, **defaults to "tfstate"**
-
 
 # Custom Actions
 

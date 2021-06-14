@@ -36,7 +36,7 @@ Rover v2 provides a way to manage entire environments consisting of any number o
 
 ## 📦 Installation
 
-The easiest way to install rover is directly from GitHub using the install script. 
+The easiest way to install Rover v2 is directly from GitHub using the install script. 
 
 To install into the current directory `./bin/` directory just run:
 ```bash
@@ -53,15 +53,17 @@ If you wish to fetch the binary yourself or install older versions, please refer
 
 ## 🏃‍♂️ Running
 
-Rover relies on some external tools and dependencies:
- - Azure CLI - [Install here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
- - Terraform v0.15+ - [Install here](https://www.terraform.io/downloads.html)
+This is a very basic introduction into running Rover v2
 
-If you want to get up and running and try Rover out, please [check out the sample app](./samples/readme.md)
+Firdtly Rover v2 relies on some external tools and dependencies:
+ - Azure CLI for authentication and sign-in to Azure - [Install here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+ - Terraform v0.15+ for deployment of landing zones - [Install here](https://www.terraform.io/downloads.html)
+
+If you want to get up and running and try Rover out, please [check out the sample app](./samples/readme.md) which has sample CAF configurations to use.
 
 Otherwise:
-- Rover will also require a [set of CAF Landingzones](https://github.com/Azure/caf-terraform-landingzones) on your system
-- You will also require a set of configuration, this is a complex topic beyond the scope of this readme, see the [full user guide](docs/user-guide.md) for some details.
+- You will also require a [set of CAF Landingzones](https://github.com/Azure/caf-terraform-landingzones) on your system
+- In addtion you will need a set of of landing zone configurations, this is a complex topic beyond the scope of this readme, see the [full user guide](docs/user-guide.md) for some details.
 
 Run rover with `rover --help` to get information about the commands available, e.g.
 

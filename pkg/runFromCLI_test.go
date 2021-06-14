@@ -48,7 +48,7 @@ func Test_RoverCLI_Apply_Launchpad(t *testing.T) {
 	getActionMap()
 	action := cmd.ActionMap["mock"]
 	console.DebugEnabled = true
-	action.Execute(&optionsList[0])
+	_ = action.Execute(&optionsList[0])
 
 }
 

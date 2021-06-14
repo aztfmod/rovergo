@@ -22,6 +22,8 @@ import (
 )
 
 var cfgFile string
+
+// ActionMap is exported so tests can use
 var ActionMap = map[string]landingzone.Action{
 	"init":     landingzone.NewInitAction(),
 	"plan":     landingzone.NewPlanAction(),

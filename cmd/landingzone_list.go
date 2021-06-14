@@ -48,7 +48,7 @@ var lzListCmd = &cobra.Command{
 }
 
 func init() {
-	lzListCmd.Flags().StringP("level", "l", "level1", "CAF landingzone level name")
+	lzListCmd.Flags().StringP("level", "l", "level1", "CAF level name")
 	lzListCmd.Flags().StringP("environment", "e", "sandpit", "Name of CAF environment")
 	lzListCmd.Flags().StringP("workspace", "w", "tfstate", "Name of workspace")
 	lzListCmd.Flags().String("state-sub", "", "Azure subscription ID where state is held")

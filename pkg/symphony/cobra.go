@@ -32,8 +32,8 @@ func BuildOptions(cmd *cobra.Command) []landingzone.Options {
 		isDestroy := cmd.Name() == "destroy"
 		optionsList := conf.parseAllLevels(isDestroy)
 		// We munge some options here rather than passing it through all the parser functions
-		for _, o := range optionsList {
-			o.DryRun = dryRun
+		for i := range optionsList {
+			optionsList[i].DryRun = dryRun
 		}
 		return optionsList
 	}
@@ -58,8 +58,13 @@ func BuildOptions(cmd *cobra.Command) []landingzone.Options {
 	optionsList := conf.parseLevel(*level)
 
 	// We munge some options here rather than passing it through all the parser functions
-	for _, o := range optionsList {
-		o.DryRun = dryRun
+	for i := range optionsList {
+		optionsList[i].DryRun = dryRun
 	}
+
 	return optionsList
+}
+
+func SetDry(o *landingzone.Options) {
+	o.DryRun = true
 }

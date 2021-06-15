@@ -120,3 +120,19 @@ func CheckCommand(reqCmdName string) error {
 	}
 	return nil
 }
+
+func ValidateDependencies() {
+	azErr := CheckCommand("az")
+	if azErr != nil {
+		console.Errorf("The %s.\nPlease install from https://docs.microsoft.com/en-us/cli/azure/install-azure-cli", azErr.Error())
+	}
+
+	tfErr := CheckCommand("terraform")
+	if tfErr != nil {
+		console.Errorf("The %s.\nPlease install from https://www.terraform.io/downloads.html \n", tfErr.Error())
+	}
+
+	if azErr != nil || tfErr != nil {
+		os.Exit(1)
+	}
+}

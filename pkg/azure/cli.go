@@ -16,6 +16,7 @@ import (
 )
 
 // User holds details of the signed in user, might be a managed identity
+// populated with values from 'az account show'
 type User struct {
 	AssignedIdentityInfo string `json:"assignedIdentityInfo,omitempty"`
 	Name                 string `json:"name,omitempty"`

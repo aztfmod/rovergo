@@ -70,6 +70,10 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
 
+	if acct.User.Usertype == "servicePrincipal" && acct.User.AssignedIdentityInfo == "MSI" {
+		os.Setenv("ARM_USE_MSI", "true")
+	}
+
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
 	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)

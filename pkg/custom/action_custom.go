@@ -160,9 +160,6 @@ func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
 }
 
 func UnpackCustomActions(targetDir string) {
-	// Test existance of roverHomeCustomActionsDir
-	// If not present, then unpack embedded examples into the directory
-
 	_, err := os.Stat(targetDir)
 
 	if os.IsNotExist(err) {
@@ -172,16 +169,19 @@ func UnpackCustomActions(targetDir string) {
 			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
 		} else {
 			for _, file := range customActionFiles {
-				console.Infof("%s \n", file.Name())
-				fileBytes, _ := customActionsContent.ReadFile(filepath.Join("custom_actions_src", file.Name()))
-				fileErr := os.WriteFile(filepath.Join(targetDir, file.Name()), fileBytes, 0755)
+				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS seperator
+				fileBytes, fErr := customActionsContent.ReadFile("custom_actions_src/" + file.Name())
+				if fErr != nil {
+					console.Errorf("Embedded file %s Error: %s", file.Name(), fErr.Error())
+				}
+				fileErr := os.WriteFile(filepath.Join(targetDir, file.Name()), fileBytes, 0777)
 				if fileErr != nil {
 					console.Error(fileErr.Error())
 				}
 			}
 		}
 	} else {
-		console.Info("Custom Actions directory exists - will not extract example files")
+		console.Info("$Home/custom_actions directory exists - will not extract example files")
 	}
 
 }

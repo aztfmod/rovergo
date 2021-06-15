@@ -98,7 +98,7 @@ rover apply --config-dir ./caf-config/level0/launchpad --source ./landingzones -
 
 - Running destroy action for a landing zone with config held in `level1/myapp`
 ```bash
-rover apply --config-dir ./caf-config/level1/myapp --source ./landingzones --level level1
+rover destroy --config-dir ./caf-config/level1/myapp --source ./landingzones --level level1
 ```
 
 - Running apply action for a landing zone with config held in `level1/myapp` this time we deploy with the CAF environment set to "prod"

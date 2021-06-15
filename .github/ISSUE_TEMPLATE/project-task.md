@@ -1,6 +1,6 @@
 ---
 name: Project Task
-about: Create a task for this project
+about: Create a task for this project (Rover Devs Only)
 title: "<task name here>"
 labels: rover-go
 assignees: ''

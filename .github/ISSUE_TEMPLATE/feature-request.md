@@ -2,7 +2,7 @@
 name: Feature Request
 about: Suggest an idea for this project
 title: ''
-labels: rover-go
+labels: enhancement ✨, rover-go
 assignees: ''
 
 ---

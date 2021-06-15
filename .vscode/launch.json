@@ -5,19 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug CI CLI",
+      "name": "Debug CLI",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "ci",
-        "terraform-format",
-        "-c",
-        "symphony.yaml",
+        "init",
+        "--launchpad",
+        "-v",
+        "pkg/testdata/launchpad",
         "-l",
         "level0",
-        "--debug"
+        "-s",
+        "/home/greg/git/caf-terraform-landingzones",
       ]
     },
     {

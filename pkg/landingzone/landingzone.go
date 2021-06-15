@@ -32,7 +32,20 @@ const SecretLowerRGName = "lower-resource-group-name"
 func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
-	ident := azure.GetIdentity()
+
+	var azureIdent azure.Identity
+	if acct.User.Usertype == "User" {
+		azureIdent = azure.GetIdentity()
+		o.Identity.DisplayName = azureIdent.DisplayName
+		o.Identity.ObjectID = azureIdent.ObjectID
+		o.Identity.ObjectType = azureIdent.ObjectType
+	} else if acct.User.Usertype == "servicePrincipal" && acct.User.AssignedIdentityInfo == "MSI" {
+		metadata := azure.VMInstanceMetadataService()
+		vmIdent := azure.GetVMIdentity(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+		o.Identity.DisplayName = vmIdent.DisplayName
+		o.Identity.ObjectID = vmIdent.ObjectID
+		o.Identity.ObjectType = vmIdent.ObjectType
+	}
 
 	// If they weren't set already, fall back to logged in account subscription
 	if o.StateSubscription == "" {
@@ -42,9 +55,6 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		o.TargetSubscription = acct.ID
 	}
 	o.Subscription = acct
-	o.Identity.DisplayName = ident.DisplayName
-	o.Identity.ObjectID = ident.ObjectID
-	o.Identity.ObjectType = ident.ObjectType
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {

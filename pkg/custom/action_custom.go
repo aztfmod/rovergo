@@ -8,6 +8,7 @@ import (
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -94,9 +95,33 @@ func FetchActions() ([]landingzone.Action, error) {
 	actions := []landingzone.Action{}
 
 	// Finds all .tfvars in directory, note. we no longer use walk as it was recursive
+	roverHomeDir, _ := utils.GetRoverDirectory()
+	roverHomeCustomActionsDir := filepath.Join(roverHomeDir, "custom_actions")
+
+	actionsDef, _ := ProcessActionFiles(customActionPath)
+	actionsHome, _ := ProcessActionFiles(roverHomeCustomActionsDir)
+
+	if actionsDef != nil {
+		actions = append(actions, actionsDef...)
+	}
+	if actionsHome != nil {
+		actions = append(actions, actionsHome...)
+	}
+
+	if len(actions) == 0 {
+		console.Warning("Warning: No rover custom_actions found")
+		return nil, nil
+	}
+
+	console.Debugf("Number of custom actions found: %d\n", len(actions))
+
+	return actions, nil
+}
+
+func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
+	actions := []landingzone.Action{}
 	actionFiles, err := os.ReadDir(customActionPath)
 	if err != nil {
-		console.Warning("Warning: No rover custom_actions directory found")
 		return nil, nil
 	}
 
@@ -131,6 +156,5 @@ func FetchActions() ([]landingzone.Action, error) {
 
 		actions = append(actions, newCustomAction(definition))
 	}
-
 	return actions, nil
 }

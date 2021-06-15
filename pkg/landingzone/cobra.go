@@ -48,14 +48,6 @@ func BuildOptions(cmd *cobra.Command) []Options {
 		env = defaultEnv
 	}
 
-	// Default state & plan name is taken from the base name of the landingzone source dir
-	if stateName == "" {
-		stateName = filepath.Base(sourcePath)
-		if stateName == "/" || stateName == "." {
-			cobra.CheckErr("Error source-path should be a directory path")
-		}
-	}
-
 	opt := Options{
 		LaunchPadMode:      launchPadMode,
 		Level:              level,
@@ -71,6 +63,16 @@ func BuildOptions(cmd *cobra.Command) []Options {
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)
+
+	// Default state & plan name is taken from the base name of the landingzone source dir
+	if stateName == "" {
+		stateName = filepath.Base(opt.SourcePath)
+		if stateName == "/" || stateName == "." {
+			cobra.CheckErr("Error --source should be a directory path")
+		}
+		// Update the StateName, we have to do this after SetSourcePath is called
+		opt.StateName = stateName
+	}
 
 	return []Options{opt}
 }

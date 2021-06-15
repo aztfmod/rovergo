@@ -38,7 +38,7 @@ You can debug with VS Code, and a [launch.json](./../.vscode/launch.json) config
 
 # Main concepts, structs types and interfaces
 
-The two principal data types & struts in Rover v2 are `Action` and `Options`
+The two principal data types & structs in Rover v2 are `Action` and `Options`
 
 ## Action
 

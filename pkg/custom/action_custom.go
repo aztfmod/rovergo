@@ -96,7 +96,6 @@ func (c Action) Execute(o *landingzone.Options) error {
 func FetchActions() ([]landingzone.Action, error) {
 	actions := []landingzone.Action{}
 
-	// Finds all .tfvars in directory, note. we no longer use walk as it was recursive
 	roverHomeDir, _ := utils.GetRoverDirectory()
 	roverHomeCustomActionsDir := filepath.Join(roverHomeDir, "custom_actions")
 
@@ -169,7 +168,7 @@ func UnpackCustomActions(targetDir string) {
 			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
 		} else {
 			for _, file := range customActionFiles {
-				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS seperator
+				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS separator
 				fileBytes, fErr := customActionsContent.ReadFile("custom_actions_src/" + file.Name())
 				if fErr != nil {
 					console.Errorf("Embedded file %s Error: %s", file.Name(), fErr.Error())

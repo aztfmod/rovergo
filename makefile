@@ -21,10 +21,10 @@ lint-fix: ## 🌟 Lint & format, will try to fix errors and modify code
 build: ## 🔨 Build the rover binary
 	go build -ldflags "-X github.com/aztfmod/rover/pkg/version.Value='$(VERSION)'" -o bin/rover 
 
-run: ## 🏃‍ Run locally
+run: ## 🏃‍ Run locally, with hot reload, it's not very useful
 	go run main.go $(ARGS)
 
-test: ## 🤡 Run tests
+test: ## 🤡 Run unit tests
 	go test ./pkg/... -count 1 -v
 
 clean: ## 🧹 Cleanup project

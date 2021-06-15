@@ -8,21 +8,17 @@ package cmd
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/symphony"
-	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
-
-	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var actionMap = map[string]landingzone.Action{
+// ActionMap is exported so tests can use
+var ActionMap = map[string]landingzone.Action{
 	"init":     landingzone.NewInitAction(),
 	"plan":     landingzone.NewPlanAction(),
 	"apply":    landingzone.NewApplyAction(),
@@ -56,9 +52,6 @@ func GetVersion() string {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "rover-config", "", "config file (default is ./.rover.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
 
 	// Find and load in custom actions
@@ -68,11 +61,11 @@ func init() {
 		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		actionMap[ca.GetName()] = ca
+		ActionMap[ca.GetName()] = ca
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range actionMap {
+	for name, action := range ActionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
 			Short: action.GetDescription(),
@@ -81,7 +74,7 @@ func init() {
 			Run: func(cmd *cobra.Command, args []string) {
 				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
 				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = actionMap[cmd.Name()]
+				action = ActionMap[cmd.Name()]
 
 				configFile, _ := cmd.Flags().GetString("config-file")
 				configPath, _ := cmd.Flags().GetString("config-dir")
@@ -133,44 +126,5 @@ func init() {
 
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
-	}
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-
-	home, err := utils.GetRoverDirectory()
-	cobra.CheckErr(err)
-
-	if cfgFile != "" {
-		// Use config file from the flag.
-		console.Info("Use config file from the flag")
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Search config in home directory and CWD with name ".rover" (without extension).
-		viper.AddConfigPath(home)
-		viper.AddConfigPath(".")
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".rover")
-
-		// Config defaults
-		viper.SetDefault("tempDir", filepath.Join(home, "/tmp")) // Modify to be $home/.rover/tmp
-		viper.SetDefault("terraform.install", true)
-		viper.SetDefault("terraform.install-path", "./bin")
-	}
-
-	viper.SetEnvPrefix("rover")
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		console.Infof("Using config file: %s\n", viper.ConfigFileUsed())
-	} else {
-		// Fall back to creating empty config file
-		fileName := filepath.Join(home, "/.rover.yaml") // Modify to be home/.rover/.rover.yaml
-		_, err := os.Create(fileName)
-		cobra.CheckErr(err)
-		console.Warningf("Config file not found, creating new file %s with defaults\n", fileName)
-		_ = viper.WriteConfig()
 	}
 }

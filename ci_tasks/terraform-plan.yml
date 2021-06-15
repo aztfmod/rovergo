@@ -1,6 +1,0 @@
-name: "terraform-plan"
-executableName: "terraform"
-subCommand: "plan"
-flags: ""
-debug: false
-requiresInit: true

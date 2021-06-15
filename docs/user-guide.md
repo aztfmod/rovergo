@@ -1,26 +1,8 @@
 # Rover v2 User Guide
 
-This is a guide to the Rover v2 command line and operation
+This is a guide to the Rover v2 command line and operation.
 
-## Concepts
-
-This is not intended to be a complete guide to CAF Landing Zones, which is a complex & nuanced topic, [some of the complete CAF docs can be found here](https://github.com/Azure/caf-terraform-landingzones/tree/master/documentation). However there are a few concepts and terms you will need to understand when running Rover v2
-
-- **Landing zone**   
-Landing zones (or *CAF Landing Zones*) are simply sets of Azure resources deployed via CAF Terraform modules, they are highly opinionated, governed and designed to support one or more application workloads.
-
-- **Launchpad**  
-The launchpad is a special type of landing zone which holds Terraform remote state and configuration for all other landing zones. It consists of Azure Storage accounts and Key Vaults. As the launch pad zone holds the state for all other landing zones it has a special lifecycle. It is always deployed with a level identifier of "level0" aka level zero.
-
-- **Level**  
-Every landing zone is deployed into a level, level 0 is reserved for the launchpad. Levels 1-4 are for normal workload landingzones. **Note**. Even though levels are numeric integers, within CAF they are represented as strings e.g. `level0` and `level1` this is for historical reasons nobody understands.   
-See the [CAF landing zone docs](https://github.com/Azure/caf-terraform-landingzones/blob/master/documentation/code_architecture/hierarchy.md) for more details on levels
-
-- **Configuration**  
-When deploying a landing zone you don't write any Terraform directly, but instead provide input configuration and settings in the form of a directory holding `.tfvar` files. This is what Rover refers to as the configuration directory, or simply the configuration (see below)
-
-- **Source Terraform**  
-The source terraform for the CAF landingzones, in many cases this can be cloned directly from the https://github.com/Azure/caf-terraform-landingzones repo and used unmodified. Rover needs to access this as it contains the Terraform HCL required to deploy a landingzone.
+If you are not familiar with CAF landing zones, please [refer to the concepts section below](#caf-concepts)
 
 # The Rover v2 CLI
 
@@ -89,7 +71,7 @@ Rover v2 actions take two forms:
    - destroy
    - fmt
    - validate
- - **Custom actions**, these extend the Rover v2 command set, and allow you to run an external command against the given CAF config, level, source etc.
+ - **Custom actions**, these extend the Rover v2 command set, and allow you to run an external command against the given CAF config, level, source etc. [See below](#custom-actions)
 
 # Running Rover v2
 
@@ -125,11 +107,13 @@ rover apply --config-dir ./caf-config/level1/myapp --source ./landingzones --lev
 ```
 
 ## Running in "Config file mode" (multi level)
-This mode is intended for use in CI/CD pipelines when multiple levels are being managed at once, and each of those levels contains multiple "stacks". All settings are held within a YAML configuration file (which is [part of project symphony](https://github.com/aztfmod/symphony)). When running with Rover either a single level is specified or all levels are run
+This mode is intended for use in CI/CD pipelines when multiple levels are being managed at once, and each of those levels contains multiple "stacks". All settings are held within a YAML configuration file (which is [part of project symphony](https://github.com/aztfmod/symphony)). Rover requires either a single level to be specified, or by default all levels are run, all other settings are obtained from the YAML file.
 
 For an example and reference symphony config file see [samples/ref-app-symphony.yaml](./../samples/ref-app-symphony.yaml)
 
 **💬 NOTE. This mode is engaged by the use of the `--config-file` switch**
+
+Examples:
 
 - Running plan for level 2
 ```bash
@@ -148,11 +132,11 @@ rover destroy --config-file ./symphony.yaml
 
 ## Switch Reference
 
-### Shared switches
+### Shared - Switches
 - `--level` Set which level is being operated on
 - `--dry-run` Set to perform a dry run and output details of the operation without executing it.
 
-### Ad-hoc mode switches
+### Ad-hoc Mode - Switches
 
 - `--source` The source landingzone repo location
 - `--launchpad` Run deployment in launchpad mode, *only* run this with a valid launchpad config and with level set to "level0"
@@ -164,4 +148,47 @@ rover destroy --config-file ./symphony.yaml
 
 # Custom Actions
 
-## Rover home
+Rover v2 has an extensible CLI and command set. A directory called `./custom_actions/` is located at start up, which is scanned for action definitions in YAML format, these are parsed and loaded.
+
+## Custom Actions Reference
+
+```yaml
+# Command display name
+name: <command-name>
+# Command executable
+executable: <command>
+# Help text
+description: "Some words here"
+# Args passed to command, supports substitution
+arguments: [ "--foo", "bar" ]
+```
+
+The `arguments:` section, supports a basic form of dynamic variable substitution with the following strings being replaced at runtime: `{{SOURCE_DIR}}`, `{{CONFIG_DIR}}`, `{{LEVEL}}`, `{{STATE_NAME}}`, `{{CAF_ENV}}`, `{{WORKSPACE}}`
+
+See the [custom_actions directory](../custom_actions/) in the repo.
+
+## Rover Home Dir
+
+Rover uses `$HOME/.rover` to store data during execution of actions, e.g. as the Terraform data directory, this is created if it doesn't exist at startup.
+
+---
+
+# CAF Concepts
+
+This is not intended to be a complete guide to CAF Landing Zones, which is a complex & nuanced topic, [some of the complete CAF docs can be found here](https://github.com/Azure/caf-terraform-landingzones/tree/master/documentation). However there are a few concepts and terms you will need to understand when running Rover v2
+
+- **Landing zone**   
+Landing zones (or *CAF Landing Zones*) are simply sets of Azure resources deployed via CAF Terraform modules, they are highly opinionated, governed and designed to support one or more application workloads.
+
+- **Launchpad**  
+The launchpad is a special type of landing zone which holds Terraform remote state and configuration for all other landing zones. It consists of Azure Storage accounts and Key Vaults. As the launch pad zone holds the state for all other landing zones it has a special lifecycle. It is always deployed with a level identifier of "level0" aka level zero.
+
+- **Level**  
+Every landing zone is deployed into a level, level 0 is reserved for the launchpad. Levels 1-4 are for normal workload landingzones. **Note**. Even though levels are numeric integers, within CAF they are represented as strings e.g. `level0` and `level1` this is for historical reasons nobody understands.   
+See the [CAF landing zone docs](https://github.com/Azure/caf-terraform-landingzones/blob/master/documentation/code_architecture/hierarchy.md) for more details on levels
+
+- **Configuration**  
+When deploying a landing zone you don't write any Terraform directly, but instead provide input configuration and settings in the form of a directory holding `.tfvar` files. This is what Rover refers to as the configuration directory, or simply the configuration (see below)
+
+- **Source Terraform**  
+The source terraform for the CAF landingzones, in many cases this can be cloned directly from the https://github.com/Azure/caf-terraform-landingzones repo and used unmodified. Rover needs to access this as it contains the Terraform HCL required to deploy a landingzone.

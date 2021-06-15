@@ -5,35 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug CI CLI",
+      // Example, copy and/or modify as required
+      "name": "Init with config-file",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
+      "internalConsoleOptions": "neverOpen",
       "args": [
-        "ci",
-        "terraform-format",
-        "-c",
-        "symphony.yaml",
-        "-l",
-        "level0",
-        "--debug"
-      ]
-    },
-    {
-      "name": "Debug CD CLI",
-      "type": "go",
-      "request": "launch",
-      "mode": "auto",
-      "program": "${workspaceFolder}",
-      "args": [
-        "cd",
+        "init",
+        "--config-file",
+        "local/symphony.yaml",
         "--level",
-        "level0",
-        "-c",
-        "./local/symphony.yaml",
-        "-a",
-        "init"
+        "level1",
+        "--debug"
       ]
     },
     {

@@ -18,34 +18,19 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/hashicorp/terraform-exec/tfinstall"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var requiredMinVer, _ = version.NewVersion("0.15.0")
 
 // Setup gets a path to Terraform, optionally install it, and check version
 func Setup() (string, error) {
-	// Config to control if install happens and where
-	install := viper.GetBool("terraform.install")
-	installPath := viper.GetString("terraform.install-path")
 
 	// First look in system path & installPath
-	path, err := tfinstall.Find(context.Background(), tfinstall.LookPath(), tfinstall.ExactPath(installPath+"/terraform"))
-
-	// Try to install and then locate terraform
-	if err != nil && install {
-		console.Infof("Attempting install of terraform into %s\n", installPath)
-		// Any error from install is lost and never set, probably a bug
-		_, _ = tfinstall.Find(context.Background(), tfinstall.LatestVersion(installPath, false))
-		path, err = tfinstall.Find(context.Background(), tfinstall.ExactPath(installPath+"/terraform"))
-		if err != nil {
-			console.Errorf("Install failed, make sure %s exists and is writable\n", installPath)
-			return "", err
-		}
-	}
+	path, err := tfinstall.Find(context.Background(), tfinstall.LookPath())
 
 	if err != nil {
-		return "", err
+		console.Error("Failed to find Terraform installation")
+		os.Exit(1)
 	}
 
 	CheckVersion(path)

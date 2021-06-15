@@ -2,7 +2,7 @@
 
 A project to undertake re-writing the [Rover tool](https://github.com/aztfmod/rover) in Go
 
-Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robust and familiar CLI tool and [Viper](https://github.com/spf13/viper) for configuration
+Uses [Cobra](https://github.com/spf13/cobra) to provide the framework for a robust and familiar CLI tool.
 
 This is a breaking change from the previous version with large scale changes.
 

@@ -42,7 +42,9 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		o.TargetSubscription = acct.ID
 	}
 	o.Subscription = acct
-	o.Identity = ident
+	o.Identity.DisplayName = ident.DisplayName
+	o.Identity.ObjectID = ident.ObjectID
+	o.Identity.ObjectType = ident.ObjectType
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {

@@ -19,6 +19,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Identity struct {
+	DisplayName string
+	ObjectID    string
+	ObjectType  string
+}
+
 // Options holds all the settings for a langingzone or launchpad operation
 // It's populated by NewOptionsFromCmd or from from YAML config, then the Execute func sets Subscription & Identity fields
 type Options struct {
@@ -35,7 +41,7 @@ type Options struct {
 	OutPath            string
 	DryRun             bool
 	Subscription       azure.Subscription
-	Identity           azure.Identity
+	Identity           Identity
 }
 
 const cafLaunchPadDir = "/caf_launchpad"

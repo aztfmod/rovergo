@@ -1,6 +1,7 @@
 package custom
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const customActionPath = "./custom_actions"
+//go:embed custom_actions_src/*.yaml
+var customActionsContent embed.FS
 
 // Action is an custom action implementation which runs external executables
 type Action struct {
@@ -98,12 +100,10 @@ func FetchActions() ([]landingzone.Action, error) {
 	roverHomeDir, _ := utils.GetRoverDirectory()
 	roverHomeCustomActionsDir := filepath.Join(roverHomeDir, "custom_actions")
 
-	actionsDef, _ := ProcessActionFiles(customActionPath)
+	UnpackCustomActions(roverHomeCustomActionsDir)
+
 	actionsHome, _ := ProcessActionFiles(roverHomeCustomActionsDir)
 
-	if actionsDef != nil {
-		actions = append(actions, actionsDef...)
-	}
 	if actionsHome != nil {
 		actions = append(actions, actionsHome...)
 	}
@@ -157,4 +157,31 @@ func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
 		actions = append(actions, newCustomAction(definition))
 	}
 	return actions, nil
+}
+
+func UnpackCustomActions(targetDir string) {
+	// Test existance of roverHomeCustomActionsDir
+	// If not present, then unpack embedded examples into the directory
+
+	_, err := os.Stat(targetDir)
+
+	if os.IsNotExist(err) {
+		command.EnsureDirectory(targetDir)
+		customActionFiles, err := customActionsContent.ReadDir("custom_actions_src")
+		if err != nil {
+			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
+		} else {
+			for _, file := range customActionFiles {
+				console.Infof("%s \n", file.Name())
+				fileBytes, _ := customActionsContent.ReadFile(filepath.Join("custom_actions_src", file.Name()))
+				fileErr := os.WriteFile(filepath.Join(targetDir, file.Name()), fileBytes, 0755)
+				if fileErr != nil {
+					console.Error(fileErr.Error())
+				}
+			}
+		}
+	} else {
+		console.Info("Custom Actions directory exists - will not extract example files")
+	}
+
 }

@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-//go:embed custom_actions_src/*.yaml
+//go:embed source/*.yaml
 var customActionsContent embed.FS
 
 // Action is an custom action implementation which runs external executables
@@ -165,13 +165,13 @@ func UnpackCustomActions(targetDir string) {
 
 	if os.IsNotExist(err) {
 		command.EnsureDirectory(targetDir)
-		customActionFiles, err := customActionsContent.ReadDir("custom_actions_src")
+		customActionFiles, err := customActionsContent.ReadDir("source")
 		if err != nil {
 			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
 		} else {
 			for _, file := range customActionFiles {
 				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS separator
-				fileBytes, fErr := customActionsContent.ReadFile("custom_actions_src/" + file.Name())
+				fileBytes, fErr := customActionsContent.ReadFile("source/" + file.Name())
 				if fErr != nil {
 					console.Errorf("Embedded file %s Error: %s", file.Name(), fErr.Error())
 				}

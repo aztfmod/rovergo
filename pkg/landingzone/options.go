@@ -35,7 +35,7 @@ type Options struct {
 	OutPath            string
 	DryRun             bool
 	Subscription       azure.Subscription
-	Identity           azure.BasicIdentity
+	Identity           azure.Identity
 }
 
 const cafLaunchPadDir = "/caf_launchpad"

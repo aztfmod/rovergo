@@ -16,9 +16,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// User holds details of the signed in user, might be a managed identity
+// AccountUser holds details of the signed in user, might be a managed identity
 // populated with values from 'az account show'
-type User struct {
+type AccountUser struct {
 	AssignedIdentityInfo string `json:"assignedIdentityInfo,omitempty"`
 	Name                 string `json:"name,omitempty"`
 	Usertype             string `json:"type,omitempty"`
@@ -30,11 +30,11 @@ type Subscription struct {
 	TenantID        string
 	Name            string
 	ID              string
-	User            User
+	User            AccountUser
 }
 
 // Identity holds an Azure AD identity; user, SP or MSI
-type Identity struct {
+type signedInUserIdentity struct {
 	UserPrincipalName string
 	ObjectType        string
 	ObjectID          string
@@ -56,8 +56,8 @@ type VMIdentity struct {
 	UserAssignedIdentities map[string]json.RawMessage `json:"userAssignedIdentities,omitempty"`
 }
 
-// BasicIdentity - can be either User or ServicePrincipal
-type BasicIdentity struct {
+// Identity - can be either User or ServicePrincipal
+type Identity struct {
 	DisplayName string
 	ObjectID    string
 	ObjectType  string
@@ -65,7 +65,7 @@ type BasicIdentity struct {
 }
 
 type VMIdentities struct {
-	IDList []BasicIdentity
+	IDList []Identity
 }
 
 // GetSubscription gets the current logged in details from the Azure CLI
@@ -87,18 +87,18 @@ func GetSubscription() Subscription {
 
 // GetIdentity gets the current logged in user from the Azure CLI
 // Will fail and exit if they aren't found
-func GetIdentity() BasicIdentity {
+func GetIdentity() Identity {
 	err := command.CheckCommand("az")
 	cobra.CheckErr(err)
 
 	cmdRes, err := command.QuickRun("az", "ad", "signed-in-user", "show", "-o=json")
 	cobra.CheckErr(err)
 
-	ident := &Identity{}
+	ident := &signedInUserIdentity{}
 	err = json.Unmarshal([]byte(cmdRes), ident)
 	cobra.CheckErr(err)
 
-	basicIdent := BasicIdentity{
+	basicIdent := Identity{
 		DisplayName: ident.DisplayName,
 		ObjectID:    ident.ObjectID,
 		ObjectType:  ident.ObjectType,
@@ -128,7 +128,7 @@ func GetVMIdentities(resourceGroupName string, vmName string) VMIdentities {
 
 	var identities VMIdentities
 	if strings.Contains(vmident.IdentityType, "SystemAssigned") {
-		identities.IDList = append(identities.IDList, BasicIdentity{
+		identities.IDList = append(identities.IDList, Identity{
 			DisplayName: "SystemAssigned",
 			ObjectType:  "servicePrincipal",
 			ObjectID:    vmident.PrincipalID,
@@ -143,7 +143,7 @@ func GetVMIdentities(resourceGroupName string, vmName string) VMIdentities {
 			err = json.Unmarshal([]byte(uai), ids)
 			cobra.CheckErr(err)
 
-			identities.IDList = append(identities.IDList, BasicIdentity{
+			identities.IDList = append(identities.IDList, Identity{
 				DisplayName: "UserAssigned",
 				ObjectType:  "servicePrincipal",
 				ObjectID:    ids.PrincipalID,

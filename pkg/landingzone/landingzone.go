@@ -78,6 +78,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
 
+	// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
 	if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 		os.Setenv("ARM_USE_MSI", "true")
 		if o.Identity.DisplayName == "UserAssigned" {

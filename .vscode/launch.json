@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug CLI",
+      "name": "Deploy Launchpad Standalone",
       "type": "go",
       "request": "launch",
       "mode": "auto",
@@ -14,16 +14,18 @@
         "apply",
         "--launchpad",
         "-v",
-        "pkg/testdata/launchpad",
+        "pkg/testdata/configs/level0/launchpad",
         "-l",
         "level0",
         "-s",
         "/home/greg/git/caf-terraform-landingzones",
+        "-n",
+        "launchpad",
         "--debug",
       ]
     },
     {
-      "name": "Debug Destroy CLI",
+      "name": "Destroy Launchpad Standalone",
       "type": "go",
       "request": "launch",
       "mode": "auto",
@@ -32,7 +34,7 @@
         "destroy",
         "--launchpad",
         "-v",
-        "pkg/testdata/launchpad",
+        "pkg/testdata/configs/level0/launchpad",
         "-l",
         "level0",
         "-s",
@@ -41,12 +43,64 @@
       ]
     },
     {
-      "name": "Debug Root",
+      "name": "Deploy Launchpad Symphony",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": []
-    }
+      "args": [
+        "apply",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level0",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Destroy Launchpad Symphony",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "apply",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level0",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Deploy Landing Zone Level1",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "apply",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level1",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Destroy Landing Zone Level1",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "destroy",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level1",
+        "--debug",
+      ]
+    },
   ]
 }

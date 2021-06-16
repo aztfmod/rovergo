@@ -33,20 +33,6 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 
-	var azureIdent azure.Identity
-	if acct.User.Usertype == "User" {
-		azureIdent = azure.GetIdentity()
-		o.Identity.DisplayName = azureIdent.DisplayName
-		o.Identity.ObjectID = azureIdent.ObjectID
-		o.Identity.ObjectType = azureIdent.ObjectType
-	} else if acct.User.Usertype == "servicePrincipal" && acct.User.AssignedIdentityInfo == "MSI" {
-		metadata := azure.VMInstanceMetadataService()
-		vmIdent := azure.GetVMIdentity(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
-		o.Identity.DisplayName = vmIdent.DisplayName
-		o.Identity.ObjectID = vmIdent.ObjectID
-		o.Identity.ObjectType = vmIdent.ObjectType
-	}
-
 	// If they weren't set already, fall back to logged in account subscription
 	if o.StateSubscription == "" {
 		o.StateSubscription = acct.ID
@@ -55,6 +41,28 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		o.TargetSubscription = acct.ID
 	}
 	o.Subscription = acct
+
+	if acct.User.Usertype == "User" {
+
+		o.Identity = azure.GetIdentity()
+
+	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+
+		metadata := azure.VMInstanceMetadataService()
+		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+
+		for _, id := range vmIdentities.IDList {
+
+			isOwner, err := azure.CheckIsOwner(id.ObjectID, o.TargetSubscription)
+			cobra.CheckErr(err)
+
+			if isOwner {
+				o.Identity = id
+				break
+			}
+		}
+
+	}
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {
@@ -70,8 +78,11 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
 
-	if acct.User.Usertype == "servicePrincipal" && acct.User.AssignedIdentityInfo == "MSI" {
+	if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 		os.Setenv("ARM_USE_MSI", "true")
+		if o.Identity.DisplayName == "UserAssigned" {
+			os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
+		}
 	}
 
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)

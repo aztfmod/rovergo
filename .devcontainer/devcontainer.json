@@ -1,0 +1,29 @@
+{
+  //
+  // This is the Rover 2 devcontainer *FOR DEVELOPERS*
+  // Intended for Rover maintainers only
+  //
+  "name": "Rover v2 Dev",
+  "image": "symphonydev.azurecr.io/rover2-dev:latest",
+  "remoteUser": "rover",
+  "runArgs": ["--init"],
+  // TODO: This needs more work, see https://github.com/microsoft/vscode-dev-containers/tree/main/containers/docker-from-docker#enabling-non-root-access-to-docker-in-the-container
+  //"mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
+  "settings": {
+    "terminal.integrated.profiles.linux": {
+      "zsh": {
+        "path": "zsh",
+        "args": ["-l"]
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh"
+  },
+  "postStartCommand": "go mod tidy && go get -v golang.org/x/tools/gopls",
+  "extensions": [
+    "Gruntfuggly.todo-tree",
+    "golang.go",
+    "github.vscode-pull-request-github",
+    "redhat.vscode-yaml",
+    "ms-azuretools.vscode-docker"
+  ]
+}

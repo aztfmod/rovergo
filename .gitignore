@@ -19,3 +19,4 @@ dist/
 
 # Local dev, configs etc
 local/
+.github/.secrets

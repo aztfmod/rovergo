@@ -101,14 +101,14 @@ func FetchActions() ([]landingzone.Action, error) {
 
 	UnpackCustomActions(roverHomeCustomActionsDir)
 
-	actionsHome, _ := ProcessActionFiles(roverHomeCustomActionsDir)
+	actionsHome := ProcessActionFiles(roverHomeCustomActionsDir)
 
 	if actionsHome != nil {
 		actions = append(actions, actionsHome...)
 	}
 
 	if len(actions) == 0 {
-		console.Warning("Warning: No rover custom_actions found")
+		console.Debug("Warning: No rover custom_actions found")
 		return nil, nil
 	}
 
@@ -117,11 +117,11 @@ func FetchActions() ([]landingzone.Action, error) {
 	return actions, nil
 }
 
-func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
+func ProcessActionFiles(customActionPath string) []landingzone.Action {
 	actions := []landingzone.Action{}
 	actionFiles, err := os.ReadDir(customActionPath)
 	if err != nil {
-		return nil, nil
+		return nil
 	}
 
 	for _, file := range actionFiles {
@@ -131,14 +131,16 @@ func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
 
 		buf, err := os.ReadFile(filepath.Join(customActionPath, file.Name()))
 		if err != nil {
-			return nil, err
+			console.Error(err.Error())
+			continue
 		}
 
 		definition := actionDefinition{}
 
 		err = yaml.Unmarshal(buf, &definition)
 		if err != nil {
-			return nil, err
+			console.Error(err.Error())
+			continue
 		}
 
 		if definition.Name == "" {
@@ -155,7 +157,7 @@ func ProcessActionFiles(customActionPath string) ([]landingzone.Action, error) {
 
 		actions = append(actions, newCustomAction(definition))
 	}
-	return actions, nil
+	return actions
 }
 
 func UnpackCustomActions(targetDir string) {
@@ -180,7 +182,7 @@ func UnpackCustomActions(targetDir string) {
 			}
 		}
 	} else {
-		console.Info("$Home/custom_actions directory exists - will not extract example files")
+		console.Info("$HOME/custom_actions directory exists - will not extract example files")
 	}
 
 }

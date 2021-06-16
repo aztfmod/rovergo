@@ -5,6 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Nuke it",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "destroy",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "--debug",
+      ]
+    },
+    {
       "name": "Deploy Launchpad Standalone",
       "type": "go",
       "request": "launch",
@@ -64,7 +77,7 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "apply",
+        "destroy",
         "-c",
         "pkg/testdata/symphony.yaml",
         "-l",

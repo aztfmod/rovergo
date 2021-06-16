@@ -85,9 +85,9 @@ func GetSubscription() Subscription {
 	return *sub
 }
 
-// GetIdentity gets the current logged in user from the Azure CLI
+// GetSignedInIdentity gets the current logged in user from the Azure CLI
 // Will fail and exit if they aren't found
-func GetIdentity() Identity {
+func GetSignedInIdentity() Identity {
 	err := command.CheckCommand("az")
 	cobra.CheckErr(err)
 

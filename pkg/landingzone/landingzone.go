@@ -44,7 +44,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 
 	if strings.ToLower(acct.User.Usertype) == "user" {
 
-		o.Identity = azure.GetIdentity()
+		o.Identity = azure.GetSignedInIdentity()
 
 	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 

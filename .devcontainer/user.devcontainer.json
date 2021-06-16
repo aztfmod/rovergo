@@ -1,0 +1,18 @@
+{
+  //
+  // This is the Rover 2 devcontainer *FOR END USERS*
+  // Intended for Rover users only
+  //
+  "name": "Rover v2",
+  "image": "symphonydev.azurecr.io/rover2:latest",
+  "settings": {
+    "terminal.integrated.profiles.linux": {
+      "zsh": {
+        "path": "zsh",
+        "args": ["-l"]
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh"
+  },
+  "extensions": ["hashicorp.terraform"]
+}

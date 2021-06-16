@@ -42,7 +42,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	}
 	o.Subscription = acct
 
-	if acct.User.Usertype == "User" {
+	if strings.ToLower(acct.User.Usertype) == "user" {
 
 		o.Identity = azure.GetIdentity()
 

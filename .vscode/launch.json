@@ -11,7 +11,7 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "init",
+        "apply",
         "--launchpad",
         "-v",
         "pkg/testdata/launchpad",
@@ -19,22 +19,25 @@
         "level0",
         "-s",
         "/home/greg/git/caf-terraform-landingzones",
+        "--debug",
       ]
     },
     {
-      "name": "Debug CD CLI",
+      "name": "Debug Destroy CLI",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "cd",
-        "--level",
+        "destroy",
+        "--launchpad",
+        "-v",
+        "pkg/testdata/launchpad",
+        "-l",
         "level0",
-        "-c",
-        "./local/symphony.yaml",
-        "-a",
-        "init"
+        "-s",
+        "/home/greg/git/caf-terraform-landingzones",
+        "--debug",
       ]
     },
     {

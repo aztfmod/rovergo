@@ -48,20 +48,33 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 
 	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 
+		userAssignedByObjectID := strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSIObject")
+		userAssignedByClientID := strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSIClient")
+		systemAssigned := (acct.User.AssignedIdentityInfo == "MSI")
+
+		var vmIdentityID string
+		if userAssignedByObjectID || userAssignedByClientID {
+			vmIdentityID = strings.SplitAfterN(acct.User.AssignedIdentityInfo, "-", 2)[1]
+		}
+
 		metadata := azure.VMInstanceMetadataService()
 		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
 
+		// look for the vm identity that matches the az login id
+		// it could be a system assigned (AssignedIdentityInfo="MSI")
+		// it could be a user assigned (AssignedIdentityInfo="MSIObject" or "MSIClient")
 		for _, id := range vmIdentities.IDList {
 
-			isOwner, err := azure.CheckIsOwner(id.ObjectID, o.TargetSubscription)
-			cobra.CheckErr(err)
-
-			if isOwner {
+			if systemAssigned {
+				if id.DisplayName == "SystemAssigned" {
+					o.Identity = id
+					break
+				}
+			} else if (userAssignedByObjectID && id.ObjectID == vmIdentityID) || (userAssignedByClientID && id.ClientID == vmIdentityID) {
 				o.Identity = id
 				break
 			}
 		}
-
 	}
 
 	if o.LaunchPadMode {

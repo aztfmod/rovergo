@@ -11,7 +11,7 @@ import (
 
 func Test_IsOwnerCLI(t *testing.T) {
 	// If you're not an owner on the subscription you are using with the az CLI this test will fail
-	i := GetIdentity()
+	i := GetSignedInIdentity()
 	s := GetSubscription()
 
 	isOwner, err := CheckIsOwner(i.ObjectID, s.ID)
@@ -20,7 +20,7 @@ func Test_IsOwnerCLI(t *testing.T) {
 }
 
 func Test_IsNotOwnerSub(t *testing.T) {
-	i := GetIdentity()
+	i := GetSignedInIdentity()
 
 	// Random GUID for subscription
 	isOwner, err := CheckIsOwner(i.ObjectID, "63f3ec63-61c7-432c-9a10-9513ec3f889e")

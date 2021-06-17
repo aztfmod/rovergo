@@ -5,29 +5,116 @@
   "version": "0.2.0",
   "configurations": [
     {
-      // Example, copy and/or modify as required
-      "name": "Init with config-file",
+      "name": "Nuke it",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
       "internalConsoleOptions": "neverOpen",
       "args": [
-        "init",
-        "--config-file",
-        "local/symphony.yaml",
-        "--level",
-        "level1",
-        "--debug"
+        "destroy",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "--debug",
       ]
     },
     {
-      "name": "Debug Root",
+      "name": "Deploy Launchpad Standalone",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": []
-    }
+      "args": [
+        "apply",
+        "--launchpad",
+        "-v",
+        "pkg/testdata/configs/level0/launchpad",
+        "-l",
+        "level0",
+        "-s",
+        "/home/greg/git/caf-terraform-landingzones",
+        "-n",
+        "launchpad",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Destroy Launchpad Standalone",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "destroy",
+        "--launchpad",
+        "-v",
+        "pkg/testdata/configs/level0/launchpad",
+        "-l",
+        "level0",
+        "-s",
+        "/home/greg/git/caf-terraform-landingzones",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Deploy Launchpad Symphony",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "apply",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level0",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Destroy Launchpad Symphony",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "destroy",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level0",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Deploy Landing Zone Level1",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "apply",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level1",
+        "--debug",
+      ]
+    },
+    {
+      "name": "Destroy Landing Zone Level1",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": [
+        "destroy",
+        "-c",
+        "pkg/testdata/symphony.yaml",
+        "-l",
+        "level1",
+        "--debug",
+      ]
+    },
   ]
 }

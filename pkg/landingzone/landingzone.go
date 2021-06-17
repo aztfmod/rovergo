@@ -32,7 +32,6 @@ const SecretLowerRGName = "lower-resource-group-name"
 func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
-	ident := azure.GetIdentity()
 
 	// If they weren't set already, fall back to logged in account subscription
 	if o.StateSubscription == "" {
@@ -42,7 +41,28 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		o.TargetSubscription = acct.ID
 	}
 	o.Subscription = acct
-	o.Identity = ident
+
+	if strings.ToLower(acct.User.Usertype) == "user" {
+
+		o.Identity = azure.GetSignedInIdentity()
+
+	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+
+		metadata := azure.VMInstanceMetadataService()
+		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+
+		for _, id := range vmIdentities.IDList {
+
+			isOwner, err := azure.CheckIsOwner(id.ObjectID, o.TargetSubscription)
+			cobra.CheckErr(err)
+
+			if isOwner {
+				o.Identity = id
+				break
+			}
+		}
+
+	}
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {
@@ -57,6 +77,14 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
+
+	// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
+	if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+		os.Setenv("ARM_USE_MSI", "true")
+		if o.Identity.DisplayName == "UserAssigned" {
+			os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
+		}
+	}
 
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
 	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)

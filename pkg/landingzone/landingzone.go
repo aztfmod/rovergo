@@ -60,11 +60,18 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	tfPath, err := terraform.Setup()
 	cobra.CheckErr(err)
 
-	// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
-	if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
-		os.Setenv("ARM_USE_MSI", "true")
-		if o.Identity.DisplayName == "UserAssigned" {
-			os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
+	if strings.EqualFold(o.Identity.ObjectType, "servicePrincipal") {
+		os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
+
+		// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
+		if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+			os.Setenv("ARM_USE_MSI", "true")
+		} else {
+			// Otherwise were using a old fashioned SP and we need the secret to be set outside of rover
+			if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_CERTIFICATE_PATH") == "" {
+				console.Error("When signed in as service principal, you must set ARM_CLIENT_SECRET or ARM_CLIENT_CERTIFICATE_PATH")
+				cobra.CheckErr("Rover can not continue")
+			}
 		}
 	}
 

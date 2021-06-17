@@ -14,7 +14,7 @@
       "args": [
         "destroy",
         "-c",
-        "pkg/testdata/symphony.yaml",
+        "test/testdata/symphony.yaml",
         "--debug",
       ]
     },
@@ -28,7 +28,7 @@
         "apply",
         "--launchpad",
         "-v",
-        "pkg/testdata/configs/level0/launchpad",
+        "test/testdata/configs/level0/launchpad",
         "-l",
         "level0",
         "-s",
@@ -48,7 +48,7 @@
         "destroy",
         "--launchpad",
         "-v",
-        "pkg/testdata/configs/level0/launchpad",
+        "test/testdata/configs/level0/launchpad",
         "-l",
         "level0",
         "-s",
@@ -65,7 +65,7 @@
       "args": [
         "apply",
         "-c",
-        "pkg/testdata/symphony.yaml",
+        "test/testdata/symphony.yaml",
         "-l",
         "level0",
         "--debug",
@@ -80,7 +80,7 @@
       "args": [
         "destroy",
         "-c",
-        "pkg/testdata/symphony.yaml",
+        "test/testdata/symphony.yaml",
         "-l",
         "level0",
         "--debug",
@@ -95,7 +95,7 @@
       "args": [
         "apply",
         "-c",
-        "pkg/testdata/symphony.yaml",
+        "test/testdata/symphony.yaml",
         "-l",
         "level1",
         "--debug",
@@ -110,7 +110,7 @@
       "args": [
         "destroy",
         "-c",
-        "pkg/testdata/symphony.yaml",
+        "test/testdata/symphony.yaml",
         "-l",
         "level1",
         "--debug",

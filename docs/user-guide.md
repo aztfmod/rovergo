@@ -109,7 +109,7 @@ rover apply --config-dir ./caf-config/level1/myapp --source ./landingzones --lev
 ## Running in "Config file mode" (multi level)
 This mode is intended for use in CI/CD pipelines when multiple levels are being managed at once, and each of those levels contains multiple "stacks". All settings are held within a YAML configuration file (which is [part of project symphony](https://github.com/aztfmod/symphony)). Rover requires either a single level to be specified, or by default all levels are run, all other settings are obtained from the YAML file.
 
-For an example and reference symphony config file see [samples/ref-app-symphony.yaml](./../samples/ref-app-symphony.yaml)
+For an example and reference symphony config file see [examples/ref-app-symphony.yaml](./../examples/ref-app-symphony.yaml)
 
 **💬 NOTE. This mode is engaged by the use of the `--config-file` switch**
 

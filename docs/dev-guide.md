@@ -33,7 +33,7 @@ You can debug with VS Code, and a [launch.json](./../.vscode/launch.json) config
 │   ├── terraform     - Some terraform helper and handle to tfexec
 │   ├── utils         - General stuff ¯\_(ツ)_/¯
 │   └── version       - Version number, common in Go projects to be a package
-└── samples           - Reference app configuration
+└── examples           - Reference app configuration
 ```
 
 # Main concepts, structs types and interfaces

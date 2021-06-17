@@ -42,33 +42,15 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	}
 	o.Subscription = acct
 
-	if strings.ToLower(acct.User.Usertype) == "user" {
-
-		o.Identity = azure.GetSignedInIdentity()
-
-	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
-
-		metadata := azure.VMInstanceMetadataService()
-		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
-
-		for _, id := range vmIdentities.IDList {
-
-			isOwner, err := azure.CheckIsOwner(id.ObjectID, o.TargetSubscription)
-			cobra.CheckErr(err)
-
-			if isOwner {
-				o.Identity = id
-				break
-			}
-		}
-
-	}
-
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {
 			cobra.CheckErr("In launchpad mode, state-sub and target-sub must be the same Azure subscription")
 		}
 	}
+
+	// Get the currently signed in indentity regardless of type
+	o.Identity = getIndentity(acct, o.TargetSubscription)
+	console.Successf("Obtained identity successfully.\nWe are signed in as: %s '%s' (%s)\n", o.Identity.ObjectType, o.Identity.DisplayName, o.Identity.ObjectID)
 
 	// Slight hack for now, we set debug on when in dry-run mode
 	if o.DryRun {
@@ -152,6 +134,43 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		console.Infof("Located state storage account %s\n", c.launchPadStorageID)
 	}
 	return tf
+}
+
+// Try to get our identity which might be user, managed-identity or service principal
+func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
+	if strings.EqualFold(acct.User.Usertype, "user") {
+		console.Debug("Detected we are signed in as a user. Attempting to get identity from CLI")
+		return azure.GetSignedInIdentity()
+
+	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+		console.Debug("Detected we are signed in as MSI. Attempting to get VM assigned identity")
+		metadata := azure.VMInstanceMetadataService()
+		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+
+		for _, identity := range vmIdentities.IDList {
+
+			isOwner, err := azure.CheckIsOwner(identity.ObjectID, targetSubID)
+			cobra.CheckErr(err)
+
+			if isOwner {
+				return identity
+			}
+		}
+
+	} else if strings.EqualFold(acct.User.Usertype, "serviceprincipal") {
+		console.Debug("Detected we are signed in as a service principal. Attempting to get identity from the Graph API")
+		// The Azure CLI puts the SP clientid in the name field, which is weird but useful for us
+		identity, err := azure.GetServicePrincipalIdentity(acct.User.Name)
+		cobra.CheckErr(err)
+		return *identity
+	} else {
+		console.Error("Signed in identity is of unknown type")
+		console.Errorf("%+v", acct)
+		cobra.CheckErr("Rover cannot continue")
+	}
+
+	// We never get here, but go compiler doesn't understand that
+	return azure.Identity{}
 }
 
 // Runs init in the correct mode

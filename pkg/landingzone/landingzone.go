@@ -139,11 +139,11 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 // Try to get our identity which might be user, managed-identity or service principal
 func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 	if strings.EqualFold(acct.User.Usertype, "user") {
-
+		console.Debug("Detected we are signed in as a user. Attempting to get identity from CLI")
 		return azure.GetSignedInIdentity()
 
 	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
-
+		console.Debug("Detected we are signed in as MSI. Attempting to get VM assigned identity")
 		metadata := azure.VMInstanceMetadataService()
 		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
 
@@ -158,6 +158,7 @@ func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 		}
 
 	} else if strings.EqualFold(acct.User.Usertype, "serviceprincipal") {
+		console.Debug("Detected we are signed in as a service principal. Attempting to get identity from the Graph API")
 		// The Azure CLI puts the SP clientid in the name field, which is weird but useful for us
 		identity, err := azure.GetServicePrincipalIdentity(acct.User.Name)
 		cobra.CheckErr(err)

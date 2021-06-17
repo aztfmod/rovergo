@@ -178,6 +178,8 @@ func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 			}
 		}
 
+		return azure.Identity{}
+
 	} else if strings.EqualFold(acct.User.Usertype, "serviceprincipal") {
 		console.Debug("Detected we are signed in as a service principal. Attempting to get identity from the Graph API")
 		// The Azure CLI puts the SP clientid in the name field, which is weird but useful for us

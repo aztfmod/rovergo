@@ -9,6 +9,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
@@ -53,6 +54,8 @@ func GetVersion() string {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
+
+	command.ValidateDependencies()
 
 	// Find and load in custom actions
 	custActions, err := custom.FetchActions()

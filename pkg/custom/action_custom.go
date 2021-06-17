@@ -1,6 +1,7 @@
 package custom
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,11 +9,13 @@ import (
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-const customActionPath = "./custom_actions"
+//go:embed source/*.yaml
+var customActionsContent embed.FS
 
 // Action is an custom action implementation which runs external executables
 type Action struct {
@@ -93,11 +96,32 @@ func (c Action) Execute(o *landingzone.Options) error {
 func FetchActions() ([]landingzone.Action, error) {
 	actions := []landingzone.Action{}
 
-	// Finds all .tfvars in directory, note. we no longer use walk as it was recursive
+	roverHomeDir, _ := utils.GetRoverDirectory()
+	roverHomeCustomActionsDir := filepath.Join(roverHomeDir, "custom_actions")
+
+	UnpackCustomActions(roverHomeCustomActionsDir)
+
+	actionsHome := ProcessActionFiles(roverHomeCustomActionsDir)
+
+	if actionsHome != nil {
+		actions = append(actions, actionsHome...)
+	}
+
+	if len(actions) == 0 {
+		console.Debug("Warning: No rover custom_actions found")
+		return nil, nil
+	}
+
+	console.Debugf("Number of custom actions found: %d\n", len(actions))
+
+	return actions, nil
+}
+
+func ProcessActionFiles(customActionPath string) []landingzone.Action {
+	actions := []landingzone.Action{}
 	actionFiles, err := os.ReadDir(customActionPath)
 	if err != nil {
-		console.Warning("Warning: No rover custom_actions directory found")
-		return nil, nil
+		return nil
 	}
 
 	for _, file := range actionFiles {
@@ -107,14 +131,16 @@ func FetchActions() ([]landingzone.Action, error) {
 
 		buf, err := os.ReadFile(filepath.Join(customActionPath, file.Name()))
 		if err != nil {
-			return nil, err
+			console.Error(err.Error())
+			continue
 		}
 
 		definition := actionDefinition{}
 
 		err = yaml.Unmarshal(buf, &definition)
 		if err != nil {
-			return nil, err
+			console.Error(err.Error())
+			continue
 		}
 
 		if definition.Name == "" {
@@ -131,6 +157,32 @@ func FetchActions() ([]landingzone.Action, error) {
 
 		actions = append(actions, newCustomAction(definition))
 	}
+	return actions
+}
 
-	return actions, nil
+func UnpackCustomActions(targetDir string) {
+	_, err := os.Stat(targetDir)
+
+	if os.IsNotExist(err) {
+		command.EnsureDirectory(targetDir)
+		customActionFiles, err := customActionsContent.ReadDir("source")
+		if err != nil {
+			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
+		} else {
+			for _, file := range customActionFiles {
+				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS separator
+				fileBytes, fErr := customActionsContent.ReadFile("source/" + file.Name())
+				if fErr != nil {
+					console.Errorf("Embedded file %s Error: %s", file.Name(), fErr.Error())
+				}
+				fileErr := os.WriteFile(filepath.Join(targetDir, file.Name()), fileBytes, 0777)
+				if fileErr != nil {
+					console.Error(fileErr.Error())
+				}
+			}
+		}
+	} else {
+		console.Info("$HOME/custom_actions directory exists - will not extract example files")
+	}
+
 }

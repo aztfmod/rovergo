@@ -12,10 +12,11 @@ bin/
 test.go
 
 # personal symphony.yaml file
-symphony.yaml
+#symphony.yaml
 
 # Goreleaser
 dist/
 
 # Local dev, configs etc
 local/
+.github/.secrets

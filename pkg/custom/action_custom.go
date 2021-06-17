@@ -181,8 +181,5 @@ func UnpackCustomActions(targetDir string) {
 				}
 			}
 		}
-	} else {
-		console.Info("$HOME/custom_actions directory exists - will not extract example files")
 	}
-
 }

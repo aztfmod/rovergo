@@ -43,7 +43,7 @@ type signedInUserIdentity struct {
 	DisplayName       string
 }
 
-type UserAssignedIdentityIDs struct {
+type userAssignedIdentityIDs struct {
 	ClientID    string `json:"clientID,omitempty"`
 	PrincipalID string `json:"principalID,omitempty"`
 }
@@ -103,7 +103,6 @@ func GetSignedInIdentity() Identity {
 		ObjectID:    ident.ObjectID,
 		ObjectType:  ident.ObjectType,
 	}
-	console.Successf("Signed in indentity is '%s' (%s)\n", ident.UserPrincipalName, ident.ObjectType)
 	return basicIdent
 }
 
@@ -139,7 +138,7 @@ func GetVMIdentities(resourceGroupName string, vmName string) VMIdentities {
 
 		for _, uai := range vmident.UserAssignedIdentities {
 
-			ids := &UserAssignedIdentityIDs{}
+			ids := &userAssignedIdentityIDs{}
 			err = json.Unmarshal([]byte(uai), ids)
 			cobra.CheckErr(err)
 

@@ -10,7 +10,7 @@ import (
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
-	"gopkg.in/yaml.v2"
+	"github.com/joho/godotenv"
 )
 
 const OwnerBuiltInRole string = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
@@ -66,30 +66,34 @@ type TestConfig struct {
 
 var Config TestConfig
 
-func NewTestConfiguration() (TestConfig, error) {
+func NewTestConfiguration() (*TestConfig, error) {
 
-	console.Debugf("Loading test config from: testConfig.yaml\n")
 	tc := new(TestConfig)
 
-	buf, err := os.ReadFile("testConfig.yaml")
+	err := godotenv.Load("testConfig.env")
 	if err != nil {
-		console.Error("could not read testConfig.yaml")
-	}
-	err = yaml.Unmarshal(buf, &tc)
-	if err != nil {
-		console.Error("could not unmarshal testConfig.yaml")
+		console.Error("could not load testConfig.env")
+		return nil, err
 	}
 
-	return *tc, err
+	tc.Location = os.Getenv("ROVER_LOCATION")
+	tc.SPNPassword = os.Getenv("ROVER_SPNPASSWORD")
+	tc.SPNUsername = os.Getenv("ROVER_SPNUSERNAME")
+	tc.SubscriptionID = os.Getenv("ROVER_SUBSCRIPTIONID")
+	tc.TenantID = os.Getenv("ROVER_TENANTID")
+	tc.VMName = os.Getenv("ROVER_VMNAME")
+	tc.VMResourceGroupName = os.Getenv("ROVER_VMRESOURCEGROUPNAME")
+
+	return tc, nil
 }
 
 func init() {
 
 	tmpConfig, err := NewTestConfiguration()
 	if err != nil {
-		console.Error("could not load testConfig.yaml")
+		console.Error("could not load testConfig.env")
 	}
-	Config = tmpConfig
+	Config = *tmpConfig
 }
 
 func AzVMIdentityAssign(t *testing.T, identity string, role string) (*IdentityAssignment, error) {

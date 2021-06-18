@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const OwnerBuildInRole string = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+const OwnerBuiltInRole string = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
 
 type VMIdentityShow struct {
 	PrincipalId            string                     `json:"principalId,omitempty"`
@@ -131,7 +131,7 @@ func AzRoleAssignmentCreate(t *testing.T, assigneeObjectID string) (*RoleAssignm
 	}
 
 	args := []string{"az", "role", "assignment", "create"}
-	args = append(args, []string{"--role", OwnerBuildInRole}...)
+	args = append(args, []string{"--role", OwnerBuiltInRole}...)
 	args = append(args, []string{"--assignee-object-id", assigneeObjectID}...)
 	args = append(args, []string{"--scope", fmt.Sprintf("/subscriptions/%s", Config.SubscriptionID)}...)
 

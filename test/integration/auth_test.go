@@ -86,17 +86,19 @@ func Test_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// get the object id of the system assigned MI
 	vmIdentityShow, err := rovertesting.AzVMIdentityShow(t)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// set up a terraform fmt command for the actual test
 	testCmd := &cobra.Command{
 		Use: "fmt",
 	}
 	testCmd.Flags().Bool("dry-run", true, "")
-	testCmd.Flags().String("config-dir", "testdata/configs/level0/launchpad", "")
-	testCmd.Flags().String("source", "testdata", "")
+	testCmd.Flags().String("config-dir", "../testdata/configs/level0/launchpad", "")
+	testCmd.Flags().String("source", "../testdata/caf-terraform-landingzones", "")
 	testCmd.Flags().String("level", "level0", "")
 	testCmd.Flags().Bool("launchpad", true, "")
 

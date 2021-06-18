@@ -35,7 +35,8 @@ func GetAuthorizer() autorest.Authorizer {
 func CheckIsOwner(objectID string, subID string) (bool, error) {
 	client := authorization.NewRoleAssignmentsClient(subID)
 	client.Authorizer = GetAuthorizer()
-	resultPages, err := client.ListForScope(context.Background(), fmt.Sprintf("/subscriptions/%s", subID), fmt.Sprintf("assignedTo('%s')", objectID))
+	targetSubscriptionResourceID := fmt.Sprintf("/subscriptions/%s", subID)
+	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID))
 	if err != nil {
 		return false, err
 	}
@@ -45,8 +46,11 @@ func CheckIsOwner(objectID string, subID string) (bool, error) {
 			return false, err
 		}
 		for _, roleAssignment := range resultPages.Values() {
-			if strings.Contains(*roleAssignment.RoleDefinitionID, OwnerRoleDefintionID) {
-				return true, nil
+			candidateResourceID := *roleAssignment.RoleAssignmentPropertiesWithScope.Scope
+			if candidateResourceID == targetSubscriptionResourceID {
+				if strings.Contains(*roleAssignment.RoleDefinitionID, OwnerRoleDefintionID) {
+					return true, nil
+				}
 			}
 		}
 	}

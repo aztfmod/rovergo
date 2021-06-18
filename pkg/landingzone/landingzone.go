@@ -151,18 +151,34 @@ func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 
 	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 		console.Debug("Detected we are signed in as MSI. Attempting to get VM assigned identity")
+
+		userAssignedByObjectID := strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSIObject")
+		userAssignedByClientID := strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSIClient")
+		systemAssigned := (acct.User.AssignedIdentityInfo == "MSI")
+
+		var vmIdentityID string
+		if userAssignedByObjectID || userAssignedByClientID {
+			vmIdentityID = strings.SplitAfterN(acct.User.AssignedIdentityInfo, "-", 2)[1]
+		}
+
 		metadata := azure.VMInstanceMetadataService()
 		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
 
-		for _, identity := range vmIdentities.IDList {
+		// look for the vm identity that matches the az login id
+		// it could be a system assigned (AssignedIdentityInfo="MSI")
+		// it could be a user assigned (AssignedIdentityInfo="MSIObject" or "MSIClient")
+		for _, id := range vmIdentities.IDList {
 
-			isOwner, err := azure.CheckIsOwner(identity.ObjectID, targetSubID)
-			cobra.CheckErr(err)
-
-			if isOwner {
-				return identity
+			if systemAssigned {
+				if id.DisplayName == "SystemAssigned" {
+					return id
+				}
+			} else if (userAssignedByObjectID && id.ObjectID == vmIdentityID) || (userAssignedByClientID && id.ClientID == vmIdentityID) {
+				return id
 			}
 		}
+
+		return azure.Identity{}
 
 	} else if strings.EqualFold(acct.User.Usertype, "serviceprincipal") {
 		console.Debug("Detected we are signed in as a service principal. Attempting to get identity from the Graph API")

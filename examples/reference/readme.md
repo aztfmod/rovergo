@@ -14,24 +14,24 @@ cd symphony/caf
 ```
 
 ```bash
-rover apply -c $roverRepo/samples/reference/symphony.yaml -l level0
+rover apply -c $roverRepo/examples/reference/symphony.yaml -l level0
 ```
 
 Then deploy the other levels as you require
 
 ```bash
-rover apply -c $roverRepo/samples/reference/symphony.yaml -l level1
+rover apply -c $roverRepo/examples/reference/symphony.yaml -l level1
 ```
 
 You can also run init, plan or validate to check things first
 ```bash
-rover init -c $roverRepo/samples/reference/symphony.yaml -l level1
-rover plan -c $roverRepo/samples/reference/symphony.yaml -l level1
-rover validate -c $roverRepo/samples/reference/symphony.yaml -l level1
+rover init -c $roverRepo/examples/reference/symphony.yaml -l level1
+rover plan -c $roverRepo/examples/reference/symphony.yaml -l level1
+rover validate -c $roverRepo/examples/reference/symphony.yaml -l level1
 ```
 
 or if you are feeling bold, deploy ALL levels
 
 ```bash
-rover apply -c $roverRepo/samples/reference/symphony.yaml
+rover apply -c $roverRepo/examples/reference/symphony.yaml
 ```

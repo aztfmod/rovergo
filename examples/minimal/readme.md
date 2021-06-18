@@ -14,19 +14,19 @@ rover landingzone fetch
 Deploy the launchpad but check everything is OK first with a dry run
 
 ```bash
-rover apply -c samples/minimal/symphony.yaml -l level0 --dry-run
+rover apply -c examples/minimal/symphony.yaml -l level0 --dry-run
 ```
 
 Now deploy the launchpad for real (no dry run)
 
 ```bash
-rover apply -c samples/minimal/symphony.yaml -l level0
+rover apply -c examples/minimal/symphony.yaml -l level0
 ```
 
 Deploy level 1
 
 ```
-rover apply -c samples/minimal/symphony.yaml -l level1
+rover apply -c examples/minimal/symphony.yaml -l level1
 ```
 
 ### Level 0 - configs/level0/launchpad

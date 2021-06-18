@@ -13,26 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_RoverCLI_Apply_Launchpad(t *testing.T) {
+func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 
 	console.DebugEnabled = true
 
 	testCmd := &cobra.Command{
 		Use: "apply",
 	}
-	testCmd.Flags().String("config-dir", "testdata/configs/level0/launchpad", "")
-	testCmd.Flags().String("source", "testdata", "")
+	testCmd.Flags().String("config-dir", "../testdata/configs/level0/launchpad", "")
+	testCmd.Flags().String("source", "../testdata/caf-terraform-landingzones", "")
 	testCmd.Flags().String("level", "level0", "")
 	testCmd.Flags().Bool("launchpad", true, "")
 
 	optionsList := landingzone.BuildOptions(testCmd)
 
-	configPath, err := filepath.Abs("testdata/configs/level0/launchpad")
+	configPath, err := filepath.Abs("../testdata/configs/level0/launchpad")
 	if err != nil {
 		t.Fail()
 	}
 
-	sourcePath, err := filepath.Abs("testdata/caf_launchpad")
+	sourcePath, err := filepath.Abs("../testdata/caf-terraform-landingzones/caf_launchpad")
 	if err != nil {
 		t.Fail()
 	}

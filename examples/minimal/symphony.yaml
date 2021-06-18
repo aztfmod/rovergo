@@ -1,0 +1,26 @@
+symphonyVersion: 2
+
+# The CAF environment name
+environment: minimal
+
+# The path to the CAF landingzones repo
+aliases: &lzPath ./landingzones
+
+# It is critical that this matches the container names in launchpad storage_accounts.tfvars
+workspace: tfstate
+
+levels:
+  - level: level0
+    launchpad: true
+    stacks:
+      - stack: launchpad
+        configurationPath: ./examples/minimal/configs/level0/launchpad
+        landingZonePath: *lzPath
+  - level: level1
+    stacks:
+      - stack: web
+        configurationPath: ./examples/minimal/configs/level1/web
+        landingZonePath: *lzPath
+      - stack: test
+        configurationPath: ./examples/minimal/configs/level1/test
+        landingZonePath: *lzPath

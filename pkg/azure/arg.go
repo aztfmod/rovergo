@@ -10,11 +10,10 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/resourcegraph/mgmt/2019-04-01/resourcegraph"
-	"github.com/spf13/cobra"
 )
 
 // RunQuery against the Azure resource graph
-func RunQuery(query string, subID string) interface{} {
+func RunQuery(query string, subID string) (interface{}, error) {
 	argClient := resourcegraph.New()
 	argClient.Authorizer = GetAuthorizer()
 
@@ -30,7 +29,9 @@ func RunQuery(query string, subID string) interface{} {
 
 	// Run the query and get the results
 	var results, err = argClient.Resources(context.Background(), request)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	return results.Data
+	return results.Data, nil
 }

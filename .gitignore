@@ -7,6 +7,7 @@ bin/
 
 # Config file might have secrets
 .rover.yaml
+testConfig.yaml
 
 # a cobra command for testing
 test.go

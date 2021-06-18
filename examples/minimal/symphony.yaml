@@ -14,13 +14,13 @@ levels:
     launchpad: true
     stacks:
       - stack: launchpad
-        configurationPath: ./samples/minimal/configs/level0/launchpad
+        configurationPath: ./examples/minimal/configs/level0/launchpad
         landingZonePath: *lzPath
   - level: level1
     stacks:
       - stack: web
-        configurationPath: ./samples/minimal/configs/level1/web
+        configurationPath: ./examples/minimal/configs/level1/web
         landingZonePath: *lzPath
       - stack: test
-        configurationPath: ./samples/minimal/configs/level1/test
+        configurationPath: ./examples/minimal/configs/level1/test
         landingZonePath: *lzPath

@@ -1,0 +1,26 @@
+symphonyVersion: 2
+
+# The CAF environment name
+environment: sandpit
+
+# The path to the CAF landingzones repo
+aliases: &lzPath ./test/testdata/caf-terraform-landingzones
+
+# It is critical that this matches the container names in launchpad storage_accounts.tfvars
+workspace: tfstate
+
+levels:
+  - level: level0
+    launchpad: true
+    stacks:
+      - stack: launchpad
+        configurationPath: ./test/testdata/configs/level0/launchpad
+        landingZonePath: *lzPath
+  - level: level1
+    stacks:
+      - stack: web
+        configurationPath: ./test/testdata/configs/level1/web
+        landingZonePath: *lzPath
+      - stack: test
+        configurationPath: ./test/testdata/configs/level1/test
+        landingZonePath: *lzPath

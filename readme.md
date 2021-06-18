@@ -59,9 +59,9 @@ Firstly Rover v2 relies on some external tools and dependencies:
  - Azure CLI for authentication and sign-in to Azure - [Install here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
  - Terraform v0.15+ for deployment of landing zones - [Install here](https://www.terraform.io/downloads.html)
 
-If you want to get up and running and try Rover out, please [check out the minimal sample config](./samples/minimal/readme.md) which has a very simple sample CAF configuration to use, consisting of a level 0 launchpad and a level 1 with some simple resource groups for testing. 
+If you want to get up and running and try Rover out, please [check out the minimal sample config](./examples/minimal/readme.md) which has a very simple sample CAF configuration to use, consisting of a level 0 launchpad and a level 1 with some simple resource groups for testing. 
 
-A more complex sample is found in the [reference sample app](./samples/reference/readme.md)
+A more complex sample is found in the [reference sample app](./examples/reference/readme.md)
 
 Otherwise:
 - You will also require a [set of CAF Landingzones](https://github.com/Azure/caf-terraform-landingzones) on your system

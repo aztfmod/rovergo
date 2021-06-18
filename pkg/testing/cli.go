@@ -16,8 +16,8 @@ import (
 const OwnerBuiltInRole string = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
 
 type VMIdentityShow struct {
-	PrincipalId            string                     `json:"principalId,omitempty"`
-	TenantId               string                     `json:"tenantId,omitempty"`
+	PrincipalID            string                     `json:"principalId,omitempty"`
+	TenantID               string                     `json:"tenantId,omitempty"`
 	ResourceType           string                     `json:"type,omitempty"`
 	UserAssignedIdentities map[string]json.RawMessage `json:"userAssignedIdentities,omitempty"`
 }

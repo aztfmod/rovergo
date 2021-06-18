@@ -109,5 +109,5 @@ func Test_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
 	assert.Equal(t, "SystemAssigned", optionsList[0].Identity.DisplayName)
-	assert.Equal(t, vmIdentityShow.PrincipalId, optionsList[0].Identity.ObjectID)
+	assert.Equal(t, vmIdentityShow.PrincipalID, optionsList[0].Identity.ObjectID)
 }

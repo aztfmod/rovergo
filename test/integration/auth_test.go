@@ -2,15 +2,17 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/aztfmod/rover/cmd"
+	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	rovertesting "github.com/aztfmod/rover/pkg/testing"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_VM_No_ID(t *testing.T) {
+func TestIntegration_VM_No_ID(t *testing.T) {
 	//
 	// this one doesn't test anything for rover. It's here as a trivial template.
 	//
@@ -20,7 +22,7 @@ func Test_VM_No_ID(t *testing.T) {
 
 }
 
-func Test_VM_SystemAssigned_No_Role(t *testing.T) {
+func TestIntegration_VM_SystemAssigned_No_Role(t *testing.T) {
 	//
 	// this one doesn't test anything for rover. It's here as a trivial template.
 	//
@@ -54,7 +56,7 @@ func Test_VM_SystemAssigned_No_Role(t *testing.T) {
 
 }
 
-func Test_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
+func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 
 	defer func() {
 		_, err := rovertesting.AzLoginBootstrap(t)
@@ -81,9 +83,16 @@ func Test_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 	}
 
 	// log in as the system assigned MI
-	_, err = rovertesting.AzLogin(t, "-i")
-	if err != nil {
-		t.Fatal(err)
+	countIntervals := 4
+	for interval := 0; interval < countIntervals; interval++ {
+
+		_, err = rovertesting.AzLogin(t, "-i")
+		if err == nil {
+			break
+		}
+
+		console.Warning("Login as MI failed, trying again in 5 seconds.")
+		time.Sleep(time.Second * 5)
 	}
 
 	// get the object id of the system assigned MI

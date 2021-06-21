@@ -41,11 +41,6 @@ type signedInUserIdentity struct {
 	DisplayName       string
 }
 
-type userAssignedIdentityIDs struct {
-	ClientID    string `json:"clientID,omitempty"`
-	PrincipalID string `json:"principalID,omitempty"`
-}
-
 // VMIdentity is the output of 'az vm identity show'
 type VMIdentity struct {
 	PrincipalID            string                     `json:"principalID,omitempty"`

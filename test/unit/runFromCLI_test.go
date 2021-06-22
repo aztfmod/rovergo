@@ -15,6 +15,8 @@ import (
 
 func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 
+	console.DebugEnabled = true
+
 	testCmd := &cobra.Command{
 		Use: "apply",
 	}
@@ -47,7 +49,6 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 
 	getActionMap()
 	action := cmd.ActionMap["mock"]
-	console.DebugEnabled = true
 	_ = action.Execute(&optionsList[0])
 
 }

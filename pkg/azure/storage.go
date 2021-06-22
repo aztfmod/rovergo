@@ -28,10 +28,14 @@ func FindStorageAccount(level string, environment string, subID string) (string,
 		| limit 1
 		| project id`, level, environment)
 
-	queryResults := RunQuery(query, subID)
+	queryResults, err := RunQuery(query, subID)
+	if err != nil {
+		return "", err
+	}
+
 	resSlice, ok := queryResults.([]interface{})
 	if !ok {
-		cobra.CheckErr("FindStorageAccount: Failed to parse query results")
+		return "", errors.New("FindStorageAccount: Failed to parse query results")
 	}
 
 	if len(resSlice) <= 0 {
@@ -40,7 +44,7 @@ func FindStorageAccount(level string, environment string, subID string) (string,
 
 	resMap, ok := resSlice[0].(map[string]interface{})
 	if !ok {
-		cobra.CheckErr("FindStorageAccount: Failed to parse query results")
+		return "", errors.New("FindStorageAccount: Failed to parse query results")
 	}
 
 	return resMap["id"].(string), nil

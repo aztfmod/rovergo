@@ -67,7 +67,11 @@ func FindKeyVault(level string, environment string, subID string) (string, error
 		| limit 1
 		| project id`, level, environment)
 
-	queryResults := RunQuery(query, subID)
+	queryResults, err := RunQuery(query, subID)
+	if err != nil {
+		return "", err
+	}
+
 	resSlice, ok := queryResults.([]interface{})
 	if !ok {
 		cobra.CheckErr("FindKeyVault: Failed to parse query results")

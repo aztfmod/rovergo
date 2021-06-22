@@ -31,6 +31,7 @@ run: ## 🏃‍ Run locally, with hot reload, it's not very useful
 	go run main.go $(ARGS)
 
 test: ## 🤡 Run unit tests
+	go test ./cmd/... -count 1 -v
 	go test ./pkg/... -count 1 -v
 
 clean: ## 🧹 Cleanup project

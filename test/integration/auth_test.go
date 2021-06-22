@@ -152,7 +152,7 @@ func clearup(t *testing.T) {
 	}
 }
 
-func getOwnerRoleAssignmentID(t *testing.T, principalId string) (string, error) {
+func getOwnerRoleAssignmentID(t *testing.T, principalID string) (string, error) {
 
 	roleAssignments, err := rovertesting.AzRoleAssignmentList(t)
 	if err != nil {
@@ -161,7 +161,7 @@ func getOwnerRoleAssignmentID(t *testing.T, principalId string) (string, error) 
 
 	for _, roleAssignment := range roleAssignments {
 
-		if roleAssignment.PrincipalID == principalId {
+		if roleAssignment.PrincipalID == principalID {
 			return roleAssignment.ID, nil
 		}
 	}

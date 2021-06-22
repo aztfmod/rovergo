@@ -15,6 +15,7 @@ import (
 func TestIntegration_VM_No_ID(t *testing.T) {
 	//
 	// this one doesn't test anything for rover. It's here as a trivial template.
+	// expectation going in is the VM has no identities
 	//
 	_, err := rovertesting.AzLogin(t, "-i")
 
@@ -26,17 +27,7 @@ func TestIntegration_VM_SystemAssigned_No_Role(t *testing.T) {
 	//
 	// this one doesn't test anything for rover. It's here as a trivial template.
 	//
-	defer func() {
-		_, err := rovertesting.AzLoginBootstrap(t)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = rovertesting.AzVMIdentityRemove(t, "[system]")
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
+	defer clearup(t)
 
 	// use bootstrap identity to get the ball rolling
 	_, err := rovertesting.AzLoginBootstrap(t)
@@ -58,17 +49,7 @@ func TestIntegration_VM_SystemAssigned_No_Role(t *testing.T) {
 
 func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 
-	defer func() {
-		_, err := rovertesting.AzLoginBootstrap(t)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = rovertesting.AzVMIdentityRemove(t, "[system]")
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
+	defer clearup(t)
 
 	// use bootstrap identity to get the ball rolling
 	_, err := rovertesting.AzLoginBootstrap(t)
@@ -82,21 +63,32 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// log in as the system assigned MI
-	countIntervals := 4
-	for interval := 0; interval < countIntervals; interval++ {
+	// logout
+	err = rovertesting.AzLogout(t)
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	loginSuccessful := false
+	for i := 0; i < 20; i++ {
+
+		// log in as the system assigned MI
 		_, err = rovertesting.AzLogin(t, "-i")
 		if err == nil {
+			loginSuccessful = true
 			break
 		}
 
-		console.Warning("Login as MI failed, trying again in 5 seconds.")
-		time.Sleep(time.Second * 5)
+		console.Warning("Waiting 15 seconds for next attempt")
+		time.Sleep(time.Second * 15)
+
+	}
+	if loginSuccessful == false {
+		t.Fatal("Failed to login as system assigned ID within 5 minutes")
 	}
 
 	// get the object id of the system assigned MI
-	vmIdentityShow, err := rovertesting.AzVMIdentityShow(t)
+	vmIdentityDetails, err := rovertesting.AzVMIdentityShow(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,5 +110,61 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
 	assert.Equal(t, "SystemAssigned", optionsList[0].Identity.DisplayName)
-	assert.Equal(t, vmIdentityShow.PrincipalID, optionsList[0].Identity.ObjectID)
+	assert.Equal(t, vmIdentityDetails.PrincipalID, optionsList[0].Identity.ObjectID)
+}
+
+func clearup(t *testing.T) {
+	err := rovertesting.AzLogout(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = rovertesting.AzLoginBootstrap(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	vmIdentityDetails, err := rovertesting.AzVMIdentityShow(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ownerRoleAssignmentID, err := getOwnerRoleAssignmentID(t, vmIdentityDetails.PrincipalID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ownerRoleAssignmentID != "" {
+		err = rovertesting.AzRoleAssignmentDelete(t, ownerRoleAssignmentID)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	err = rovertesting.AzVMIdentityRemove(t, "[system]")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = rovertesting.AzLogout(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func getOwnerRoleAssignmentID(t *testing.T, principalId string) (string, error) {
+
+	roleAssignments, err := rovertesting.AzRoleAssignmentList(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, roleAssignment := range roleAssignments {
+
+		if roleAssignment.PrincipalID == principalId {
+			return roleAssignment.ID, nil
+		}
+	}
+
+	return "", nil
 }

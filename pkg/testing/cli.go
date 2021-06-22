@@ -64,6 +64,7 @@ type TestConfig struct {
 	TenantID            string `yaml:"tenantID,omitempty"`
 }
 
+// Config is some global test config
 var Config TestConfig
 
 func NewTestConfiguration() (*TestConfig, error) {

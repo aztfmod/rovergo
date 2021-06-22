@@ -21,7 +21,11 @@ func NewInitAction() *InitAction {
 func (a *InitAction) Execute(o *Options) error {
 	console.Info("Carrying out Terraform init")
 
-	a.tfexec = a.prepareTerraformCAF(o)
+	var err error
+	a.tfexec, err = a.prepareTerraformCAF(o)
+	if err != nil {
+		return err
+	}
 
 	if o.DryRun {
 		return nil

@@ -8,6 +8,7 @@ package landingzone
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +30,7 @@ const SecretLowerSAName = "lower-storage-account-name"
 const SecretLowerRGName = "lower-resource-group-name"
 
 // Called by all CAF actions to set up Terraform and configure it for CAF landingzones
-func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
+func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, error) {
 	// Get current Azure details, subscription etc from CLI
 	acct := azure.GetSubscription()
 
@@ -44,7 +45,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {
-			cobra.CheckErr("In launchpad mode, state-sub and target-sub must be the same Azure subscription")
+			return nil, errors.New("in launchpad mode, state-sub and target-sub must be the same Azure subscription")
 		}
 	}
 
@@ -58,7 +59,9 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	}
 
 	tfPath, err := terraform.Setup()
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	if strings.EqualFold(o.Identity.ObjectType, "servicePrincipal") {
 		os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
@@ -70,7 +73,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 			// Otherwise were using a old fashioned SP and we need the secret to be set outside of rover
 			if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_CERTIFICATE_PATH") == "" {
 				console.Error("When signed in as service principal, you must set ARM_CLIENT_SECRET or ARM_CLIENT_CERTIFICATE_PATH")
-				cobra.CheckErr("Rover can not continue")
+				return nil, errors.New("rover can not continue")
 			}
 		}
 	}
@@ -98,12 +101,16 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
 	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
 	err = os.MkdirAll(localStatePath, os.ModePerm)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 	o.OutPath = localStatePath
 
 	// Create new TF exec with the working dir set to source
 	tf, err := tfexec.NewTerraform(o.SourcePath, tfPath)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	// The debugging done here
 	if console.DebugEnabled {
@@ -135,12 +142,12 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 			console.Warning("No state storage account found, but running in launchpad mode, we can continue")
 		} else {
 			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
-			cobra.CheckErr("Can't deploy a landing zone without a launchpad")
+			return nil, errors.New("can't deploy a landing zone without a launchpad")
 		}
 	} else {
 		console.Infof("Located state storage account %s\n", c.launchPadStorageID)
 	}
-	return tf
+	return tf, nil
 }
 
 // Try to get our identity which might be user, managed-identity or service principal

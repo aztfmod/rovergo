@@ -15,7 +15,11 @@ import (
 // RunQuery against the Azure resource graph
 func RunQuery(query string, subID string) (interface{}, error) {
 	argClient := resourcegraph.New()
-	argClient.Authorizer = GetAuthorizer()
+	authorizer, err := GetAuthorizer()
+	if err != nil {
+		return nil, err
+	}
+	argClient.Authorizer = authorizer
 
 	requestOpts := resourcegraph.QueryRequestOptions{
 		ResultFormat: "objectArray",
@@ -28,7 +32,7 @@ func RunQuery(query string, subID string) (interface{}, error) {
 	}
 
 	// Run the query and get the results
-	var results, err = argClient.Resources(context.Background(), request)
+	results, err := argClient.Resources(context.Background(), request)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/spf13/cobra"
 )
 
 // OwnerRoleDefintionID is fixed GUID for the Owner role in Azure
@@ -23,18 +22,24 @@ const OwnerRoleDefintionID = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
 
 // GetAuthorizer used for Azure SDK access logs into Azure
 // This should always be called before any Azure SDK calls
-func GetAuthorizer() autorest.Authorizer {
+func GetAuthorizer() (autorest.Authorizer, error) {
 	// We defer everything to the Azure CLI
 	azureAuthorizer, err := auth.NewAuthorizerFromCLI()
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	return azureAuthorizer
+	return azureAuthorizer, nil
 }
 
 // CheckIsOwner returns if the given objectId is assigned Owner role on the given subscription
 func CheckIsOwner(objectID string, subID string) (bool, error) {
 	client := authorization.NewRoleAssignmentsClient(subID)
-	client.Authorizer = GetAuthorizer()
+	authorizer, err := GetAuthorizer()
+	if err != nil {
+		return false, err
+	}
+	client.Authorizer = authorizer
 	targetSubscriptionResourceID := fmt.Sprintf("/subscriptions/%s", subID)
 	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID))
 	if err != nil {

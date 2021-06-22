@@ -16,7 +16,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/spf13/cobra"
 )
 
 // FindStorageAccount returns resource id for a CAF tagged storage account
@@ -51,86 +50,138 @@ func FindStorageAccount(level string, environment string, subID string) (string,
 }
 
 // GetAccountKey fetches the access key for a storage account
-func GetAccountKey(subID string, accountName string, resGrp string) string {
+func GetAccountKey(subID string, accountName string, resGrp string) (string, error) {
 	client := storage.NewAccountsClient(subID)
-	client.Authorizer = GetAuthorizer()
+	authorizer, err := GetAuthorizer()
+	if err != nil {
+		return "", err
+	}
+	client.Authorizer = authorizer
 
 	keysRes, err := client.ListKeys(context.Background(), resGrp, accountName, storage.Kerb)
-	cobra.CheckErr(err)
+	if err != nil {
+		return "", err
+	}
 
-	return *(*keysRes.Keys)[0].Value
+	return *(*keysRes.Keys)[0].Value, nil
 }
 
 // UploadFileToBlob does what you might expect it to
-func UploadFileToBlob(storageAcctID string, blobContainer string, blobName string, filePath string) {
-	subID, resGrp, accountName := ParseResourceID(storageAcctID)
+func UploadFileToBlob(storageAcctID string, blobContainer string, blobName string, filePath string) error {
+	subID, resGrp, accountName, err := ParseResourceID(storageAcctID)
+	if err != nil {
+		return err
+	}
 	console.Debugf("Uploading to storage account '%s' in res grp '%s' and subscription '%s'\n", accountName, resGrp, subID)
 	console.Debugf("Will upload file '%s' to container '%s' to blob '%s'\n", filePath, blobContainer, blobName)
 
-	accountKey := GetAccountKey(subID, accountName, resGrp)
+	accountKey, err := GetAccountKey(subID, accountName, resGrp)
+	if err != nil {
+		return err
+	}
 
 	// Create a default request pipeline using your storage account name and account key.
 	credential, err := azblob.NewSharedKeyCredential(accountName, accountKey)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
+	endpoint, err := StorageEndpointForSubscription()
+	if err != nil {
+		return err
+	}
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, endpoint, blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 	blobURL := blobContainerURL.NewBlockBlobURL(blobName)
 	file, err := os.Open(filePath)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	uploadResp, err := azblob.UploadFileToBlockBlob(context.Background(), file, blobURL, azblob.UploadToBlockBlobOptions{})
 	if uploadResp.Response().StatusCode > 201 {
-		cobra.CheckErr(fmt.Sprintf("UploadFileToBlob failed with status %d to upload file '%s' to %s/%s", uploadResp.Response().StatusCode, filePath, blobContainer, blobName))
+		return fmt.Errorf("UploadFileToBlob failed with status %d to upload file '%s' to %s/%s", uploadResp.Response().StatusCode, filePath, blobContainer, blobName)
 	}
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // DownloadFileFromBlob does what you might expect it to
-func DownloadFileFromBlob(storageAcctID string, blobContainer string, blobName string, filePath string) {
-	subID, resGrp, accountName := ParseResourceID(storageAcctID)
+func DownloadFileFromBlob(storageAcctID string, blobContainer string, blobName string, filePath string) error {
+	subID, resGrp, accountName, err := ParseResourceID(storageAcctID)
+	if err != nil {
+		return err
+	}
 	console.Debugf("Downloading from storage account '%s' in res grp '%s' and subscription '%s'\n", accountName, resGrp, subID)
 	console.Debugf("Will download blob '%s' from container '%s' to file '%s'\n", blobName, blobContainer, filePath)
 
-	accountKey := GetAccountKey(subID, accountName, resGrp)
+	accountKey, err := GetAccountKey(subID, accountName, resGrp)
+	if err != nil {
+		return err
+	}
 
 	// Create a default request pipeline using your storage account name and account key.
 	credential, err := azblob.NewSharedKeyCredential(accountName, accountKey)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
+	endpoint, err := StorageEndpointForSubscription()
+	if err != nil {
+		return err
+	}
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, endpoint, blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 	blobURL := blobContainerURL.NewBlockBlobURL(blobName)
 	file, err := os.Create(filePath)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	err = azblob.DownloadBlobToFile(context.Background(), blobURL.BlobURL, 0, 0, file, azblob.DownloadFromBlobOptions{})
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListBlobs does what you might expect it to
-func ListBlobs(storageAcctID string, blobContainer string) ([]azblob.BlobItemInternal, error) {
-	subID, resGrp, accountName := ParseResourceID(storageAcctID)
+func ListBlobs(storageAcctID string, blobContainer string) (blobs []azblob.BlobItemInternal, err error) {
+	subID, resGrp, accountName, err := ParseResourceID(storageAcctID)
+	if err != nil {
+		return nil, err
+	}
 
-	accountKey := GetAccountKey(subID, accountName, resGrp)
+	accountKey, err := GetAccountKey(subID, accountName, resGrp)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create a default request pipeline using your storage account name and account key.
 	credential, err := azblob.NewSharedKeyCredential(accountName, accountKey)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 
+	endpoint, err := StorageEndpointForSubscription()
+	if err != nil {
+		return nil, err
+	}
 	containerURL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.%s/%s", accountName, StorageEndpointForSubscription(), blobContainer))
+		fmt.Sprintf("https://%s.blob.%s/%s", accountName, endpoint, blobContainer))
 
 	blobContainerURL := azblob.NewContainerURL(*containerURL, pipeline)
 
-	blobs := []azblob.BlobItemInternal{}
 	for marker := (azblob.Marker{}); marker.NotDone(); {
 		listBlob, err := blobContainerURL.ListBlobsFlatSegment(context.Background(), marker, azblob.ListBlobsSegmentOptions{})
 		if err != nil {

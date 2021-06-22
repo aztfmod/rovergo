@@ -25,7 +25,8 @@ var lzListCmd = &cobra.Command{
 		stateSub, _ := cmd.Flags().GetString("state-sub")
 
 		if stateSub == "" {
-			sub := azure.GetSubscription()
+			sub, err := azure.GetSubscription()
+			cobra.CheckErr(err)
 			stateSub = sub.ID
 		}
 

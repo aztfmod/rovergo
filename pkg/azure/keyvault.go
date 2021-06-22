@@ -13,7 +13,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/spf13/cobra"
 )
 
 type SdkKVClient struct {
@@ -74,7 +73,7 @@ func FindKeyVault(level string, environment string, subID string) (string, error
 
 	resSlice, ok := queryResults.([]interface{})
 	if !ok {
-		cobra.CheckErr("FindKeyVault: Failed to parse query results")
+		return "", errors.New("findKeyVault: error asserting query results")
 	}
 
 	if len(resSlice) <= 0 {
@@ -83,7 +82,7 @@ func FindKeyVault(level string, environment string, subID string) (string, error
 
 	resMap, ok := resSlice[0].(map[string]interface{})
 	if !ok {
-		cobra.CheckErr("FindKeyVault: Failed to parse query results")
+		return "", errors.New("findKeyVault: Failed to parse query results")
 	}
 
 	return resMap["id"].(string), nil

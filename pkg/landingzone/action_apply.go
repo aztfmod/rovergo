@@ -66,7 +66,8 @@ func (a *ApplyAction) Execute(o *Options) error {
 		console.Info("Detected the launchpad infrastructure has been deployed or updated")
 
 		stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
-		azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+		err := azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+		cobra.CheckErr(err)
 		console.Info("Uploading state from launchpad process to Azure storage")
 		os.Remove(stateFileName)
 	}

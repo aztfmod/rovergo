@@ -31,7 +31,8 @@ const SecretLowerRGName = "lower-resource-group-name"
 // Called by all CAF actions to set up Terraform and configure it for CAF landingzones
 func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	// Get current Azure details, subscription etc from CLI
-	acct := azure.GetSubscription()
+	acct, err := azure.GetSubscription()
+	cobra.CheckErr(err)
 
 	// If they weren't set already, fall back to logged in account subscription
 	if o.StateSubscription == "" {
@@ -40,7 +41,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	if o.TargetSubscription == "" {
 		o.TargetSubscription = acct.ID
 	}
-	o.Subscription = acct
+	o.Subscription = *acct
 
 	if o.LaunchPadMode {
 		if o.TargetSubscription != o.StateSubscription {
@@ -49,7 +50,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 	}
 
 	// Get the currently signed in indentity regardless of type
-	o.Identity = getIndentity(acct, o.TargetSubscription)
+	o.Identity = getIndentity(*acct, o.TargetSubscription)
 	console.Successf("Obtained identity successfully.\nWe are signed in as: %s '%s' (%s)\n", o.Identity.ObjectType, o.Identity.DisplayName, o.Identity.ObjectID)
 
 	// Slight hack for now, we set debug on when in dry-run mode
@@ -147,7 +148,9 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 	if strings.EqualFold(acct.User.Usertype, "user") {
 		console.Debug("Detected we are signed in as a user. Attempting to get identity from CLI")
-		return azure.GetSignedInIdentity()
+		ident, err := azure.GetSignedInIdentity()
+		cobra.CheckErr(err)
+		return *ident
 
 	} else if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
 		console.Debug("Detected we are signed in as MSI. Attempting to get VM assigned identity")
@@ -234,8 +237,12 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	// IMPORTANT: This enables remote state in the source terraform dir
 	o.enableAzureBackend()
 
-	subID, resGrp, accountName := azure.ParseResourceID(storageID)
-	accessKey := azure.GetAccountKey(subID, accountName, resGrp)
+	subID, resGrp, accountName, err := azure.ParseResourceID(storageID)
+	if err != nil {
+		return err
+	}
+	accessKey, err := azure.GetAccountKey(subID, accountName, resGrp)
+	cobra.CheckErr(err)
 
 	initOptions := []tfexec.InitOption{
 		tfexec.BackendConfig(fmt.Sprintf("storage_account_name=%s", accountName)),
@@ -249,7 +256,7 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	}
 
 	console.StartSpinner()
-	err := tf.Init(context.Background(), initOptions...)
+	err = tf.Init(context.Background(), initOptions...)
 	cobra.CheckErr(err)
 	console.StopSpinner()
 	return err
@@ -282,9 +289,16 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 		return fmt.Errorf("Unable to locate the launchpad for environment '%s' and level '%s'", o.CafEnvironment, o.Level)
 	}
 
-	_, _, keyVaultName := azure.ParseResourceID(lpKeyVaultID)
+	_, _, keyVaultName, err := azure.ParseResourceID(lpKeyVaultID)
+	if err != nil {
+		return err
+	}
 
-	kvClient, err := azure.NewKVClient(azure.KeyvaultEndpointForSubscription(), keyVaultName)
+	endpoint, err := azure.KeyvaultEndpointForSubscription()
+	if err != nil {
+		return err
+	}
+	kvClient, err := azure.NewKVClient(endpoint, keyVaultName)
 	if err != nil {
 		return err
 	}
@@ -306,7 +320,10 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 		return fmt.Errorf("Required secret(s) not found in launchpad, either you are not authorized or the launchpad was not deployed correctly")
 	}
 
-	_, lpStorageResGrp, lpStorageName := azure.ParseResourceID(lpStorageID)
+	_, lpStorageResGrp, lpStorageName, err := azure.ParseResourceID(lpStorageID)
+	if err != nil {
+		return err
+	}
 
 	console.Success("Connected to launchpad OK")
 	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)

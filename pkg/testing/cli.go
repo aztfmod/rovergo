@@ -153,6 +153,45 @@ func AzRoleAssignmentCreate(t *testing.T, assigneeObjectID string) (*RoleAssignm
 	return roleAssignment, nil
 }
 
+func AzRoleAssignmentDelete(t *testing.T, roleAssignmentID string) error {
+	err := command.CheckCommand("az")
+	if err != nil {
+		return err
+	}
+
+	args := []string{"az", "role", "assignment", "delete"}
+	args = append(args, []string{"--ids", roleAssignmentID}...)
+
+	_, err = command.QuickRun(args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AzRoleAssignmentList(t *testing.T) ([]RoleAssignment, error) {
+	err := command.CheckCommand("az")
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{"az", "role", "assignment", "list", "--role", "owner"}
+
+	cmdRes, err := command.QuickRun(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	roleAssignments := &[]RoleAssignment{}
+	err = json.Unmarshal([]byte(cmdRes), roleAssignments)
+	if err != nil {
+		return nil, err
+	}
+
+	return *roleAssignments, nil
+}
+
 func AzIdentityCreate(t *testing.T, identityName string) (*UserAssignedIdentity, error) {
 	err := command.CheckCommand("az")
 	if err != nil {
@@ -250,6 +289,22 @@ func AzLogin(t *testing.T, parms ...string) (*azure.Subscription, error) {
 	console.Debugf("Azure subscription is: %s (%s)\n", sub.Name, sub.ID)
 	console.Debugf("Logged in security user: %s (%s). Identified by: %s  \n", sub.User.Name, sub.User.Usertype, sub.User.AssignedIdentityInfo)
 	return sub, nil
+}
+
+func AzLogout(t *testing.T) error {
+	err := command.CheckCommand("az")
+	if err != nil {
+		return err
+	}
+
+	args := []string{"az", "logout"}
+
+	_, err = command.QuickRun(args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func AzLoginBootstrap(t *testing.T) (*azure.Subscription, error) {

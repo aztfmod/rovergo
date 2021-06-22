@@ -32,11 +32,11 @@ func GetAuthorizer() autorest.Authorizer {
 }
 
 // CheckIsOwner returns if the given objectId is assigned Owner role on the given subscription
-func CheckIsOwner(objectID string, subID string) (bool, error) {
+func CheckIsOwner(objectID string, subID string, tenantID string) (bool, error) {
 	client := authorization.NewRoleAssignmentsClient(subID)
 	client.Authorizer = GetAuthorizer()
 	targetSubscriptionResourceID := fmt.Sprintf("/subscriptions/%s", subID)
-	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID))
+	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID), tenantID)
 	if err != nil {
 		return false, err
 	}

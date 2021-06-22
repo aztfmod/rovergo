@@ -6,9 +6,12 @@
 package azure
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-03-01/compute"
 )
 
 type Compute struct {
@@ -52,4 +55,40 @@ func VMInstanceMetadataService() *Metadata {
 	}
 
 	return meta
+}
+
+// GetVMIdentities will get the MI details of an Azure VM, both system assigned and user assigned
+func GetVMIdentities(subID string, resourceGroupName string, vmName string) ([]Identity, error) {
+	client := compute.NewVirtualMachinesClient(subID)
+	client.Authorizer = GetAuthorizer()
+
+	vm, err := client.Get(context.Background(), resourceGroupName, vmName, compute.InstanceViewTypesInstanceView)
+	if err != nil {
+		return nil, err
+	}
+	if vm.Identity == nil {
+		return nil, nil
+	}
+
+	identList := []Identity{}
+
+	if vm.Identity.Type == compute.ResourceIdentityTypeSystemAssigned || vm.Identity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
+		identList = append(identList, Identity{
+			DisplayName: "SystemAssigned",
+			ObjectID:    *vm.Identity.PrincipalID,
+			ClientID:    "UNKNOWN",
+			ObjectType:  "servicePrincipal",
+		})
+	}
+
+	for _, userIdent := range vm.Identity.UserAssignedIdentities {
+		identList = append(identList, Identity{
+			DisplayName: "UserAssigned",
+			ObjectID:    *userIdent.PrincipalID,
+			ClientID:    *userIdent.ClientID,
+			ObjectType:  "servicePrincipal",
+		})
+	}
+
+	return identList, nil
 }

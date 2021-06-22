@@ -8,8 +8,6 @@ package azure
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
@@ -43,11 +41,6 @@ type signedInUserIdentity struct {
 	DisplayName       string
 }
 
-type userAssignedIdentityIDs struct {
-	ClientID    string `json:"clientID,omitempty"`
-	PrincipalID string `json:"principalID,omitempty"`
-}
-
 // VMIdentity is the output of 'az vm identity show'
 type VMIdentity struct {
 	PrincipalID            string                     `json:"principalID,omitempty"`
@@ -62,10 +55,6 @@ type Identity struct {
 	ObjectID    string
 	ObjectType  string
 	ClientID    string
-}
-
-type VMIdentities struct {
-	IDList []Identity
 }
 
 // GetSubscription gets the current logged in details from the Azure CLI
@@ -116,53 +105,4 @@ func GetSignedInIdentity() (*Identity, error) {
 		ObjectType:  ident.ObjectType,
 	}
 	return basicIdent, nil
-}
-
-// GetVMIdentities will get the MI details of an Azure VM, both system assigned and user assigned
-func GetVMIdentities(resourceGroupName string, vmName string) VMIdentities {
-	err := command.CheckCommand("az")
-	cobra.CheckErr(err)
-
-	cmdRes, err := command.QuickRun(
-		"az",
-		"vm",
-		"identity",
-		"show",
-		fmt.Sprintf("--resource-group=%s", resourceGroupName),
-		fmt.Sprintf("--name=%s", vmName),
-		"-o=json")
-	cobra.CheckErr(err)
-
-	vmident := &VMIdentity{}
-	err = json.Unmarshal([]byte(cmdRes), vmident)
-	cobra.CheckErr(err)
-
-	var identities VMIdentities
-	if strings.Contains(vmident.IdentityType, "SystemAssigned") {
-		identities.IDList = append(identities.IDList, Identity{
-			DisplayName: "SystemAssigned",
-			ObjectType:  "servicePrincipal",
-			ObjectID:    vmident.PrincipalID,
-		})
-	}
-
-	if vmident.UserAssignedIdentities != nil {
-
-		for _, uai := range vmident.UserAssignedIdentities {
-
-			ids := &userAssignedIdentityIDs{}
-			err = json.Unmarshal([]byte(uai), ids)
-			cobra.CheckErr(err)
-
-			identities.IDList = append(identities.IDList, Identity{
-				DisplayName: "UserAssigned",
-				ObjectType:  "servicePrincipal",
-				ObjectID:    ids.PrincipalID,
-				ClientID:    ids.ClientID,
-			})
-
-		}
-	}
-
-	return identities
 }

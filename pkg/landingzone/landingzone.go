@@ -165,12 +165,13 @@ func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
 		}
 
 		metadata := azure.VMInstanceMetadataService()
-		vmIdentities := azure.GetVMIdentities(metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+		vmIdentities, err := azure.GetVMIdentities(acct.ID, metadata.Compute.ResourceGroupName, metadata.Compute.Name)
+		cobra.CheckErr(err)
 
 		// look for the vm identity that matches the az login id
 		// it could be a system assigned (AssignedIdentityInfo="MSI")
 		// it could be a user assigned (AssignedIdentityInfo="MSIObject" or "MSIClient")
-		for _, id := range vmIdentities.IDList {
+		for _, id := range vmIdentities {
 
 			if systemAssigned {
 				if id.DisplayName == "SystemAssigned" {
@@ -216,7 +217,7 @@ func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error
 
 	console.StartSpinner()
 	// Validate that the indentity we are using is owner on subscription, not sure why but it's in rover v1 code
-	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription)
+	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription, o.Subscription.TenantID)
 	cobra.CheckErr(err)
 	if !isOwner {
 		console.StopSpinner()

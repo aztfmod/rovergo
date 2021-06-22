@@ -11,7 +11,6 @@ import (
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/spf13/cobra"
 )
 
 // AccountUser holds details of the signed in user, might be a managed identity

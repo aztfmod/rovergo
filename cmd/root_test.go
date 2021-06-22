@@ -1,17 +1,23 @@
-package test
+//
+// Rover - Unit tests for root cmd
+// * Greg O, June 2021
+//
+
+package cmd
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/aztfmod/rover/cmd"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
+
+const testDataPath = "../test/testdata"
 
 func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 
@@ -20,19 +26,19 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 	testCmd := &cobra.Command{
 		Use: "apply",
 	}
-	testCmd.Flags().String("config-dir", "../testdata/configs/level0/launchpad", "")
-	testCmd.Flags().String("source", "../testdata/caf-terraform-landingzones", "")
+	testCmd.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
+	testCmd.Flags().String("source", testDataPath+"/caf-terraform-landingzones", "")
 	testCmd.Flags().String("level", "level0", "")
 	testCmd.Flags().Bool("launchpad", true, "")
 
 	optionsList := landingzone.BuildOptions(testCmd)
 
-	configPath, err := filepath.Abs("../testdata/configs/level0/launchpad")
+	configPath, err := filepath.Abs(testDataPath + "/configs/level0/launchpad")
 	if err != nil {
 		t.Fail()
 	}
 
-	sourcePath, err := filepath.Abs("../testdata/caf-terraform-landingzones/caf_launchpad")
+	sourcePath, err := filepath.Abs(testDataPath + "/caf-terraform-landingzones/caf_launchpad")
 	if err != nil {
 		t.Fail()
 	}
@@ -48,7 +54,7 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 	assert.Equal(t, optionsList[0].LaunchPadMode, true)
 
 	getActionMap()
-	action := cmd.ActionMap["mock"]
+	action := ActionMap["mock"]
 	_ = action.Execute(&optionsList[0])
 
 }
@@ -60,9 +66,9 @@ func getActionMap() {
 		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		cmd.ActionMap[ca.GetName()] = ca
+		ActionMap[ca.GetName()] = ca
 	}
-	cmd.ActionMap["mock"] = NewMockAction()
+	ActionMap["mock"] = NewMockAction()
 }
 
 func NewMockAction() *landingzone.MockAction {

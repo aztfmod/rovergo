@@ -13,6 +13,7 @@ import (
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
+	"github.com/aztfmod/rover/pkg/logger"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
@@ -38,6 +39,8 @@ It acts as a toolchain development environment to avoid impacting the local mach
 to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		console.DebugEnabled, _ = cmd.Flags().GetBool("debug")
+		logger.SetLogLevel(cmd.Flags().GetString("log-level"))
+		logger.LogEnvironment, _ = cmd.Flags().GetString("environment")
 	},
 }
 
@@ -54,6 +57,8 @@ func GetVersion() string {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
+	rootCmd.PersistentFlags().String("environment", "development", "set logging environment production|development")
+	rootCmd.PersistentFlags().String("log-level", "info", "set log level trace|debug|info|warn|error|fatal|panic")
 
 	command.ValidateDependencies()
 

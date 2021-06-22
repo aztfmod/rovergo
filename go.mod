@@ -12,6 +12,7 @@ require (
 	github.com/briandowns/spinner v1.13.0
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/terraform-exec v0.13.3
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210525143221-35b2ab0089ea // indirect

@@ -63,11 +63,12 @@ func (a *DestroyAction) Execute(o *Options) error {
 		o.cleanUp()
 
 		// Download the current state
-		azure.DownloadFileFromBlob(a.launchPadStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+		err := azure.DownloadFileFromBlob(a.launchPadStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
+		cobra.CheckErr(err)
 
 		// Reset back to use local state
 		console.Warning("Resetting state to local, have to re-run init")
-		err := o.runLaunchpadInit(a.tfexec, true)
+		err = o.runLaunchpadInit(a.tfexec, true)
 		cobra.CheckErr(err)
 		// This is critical and stops terraform from trying to use remote state
 		_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")

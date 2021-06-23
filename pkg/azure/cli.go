@@ -11,7 +11,6 @@ import (
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/spf13/cobra"
 )
 
 // AccountUser holds details of the signed in user, might be a managed identity
@@ -59,38 +58,50 @@ type Identity struct {
 
 // GetSubscription gets the current logged in details from the Azure CLI
 // Will fail and exit if they aren't found
-func GetSubscription() Subscription {
+func GetSubscription() (*Subscription, error) {
 	err := command.CheckCommand("az")
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	cmdRes, err := command.QuickRun("az", "account", "show", "-o=json")
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	sub := &Subscription{}
 	err = json.Unmarshal([]byte(cmdRes), sub)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	console.Successf("Azure subscription is: %s (%s)\n", sub.Name, sub.ID)
-	return *sub
+	return sub, nil
 }
 
 // GetSignedInIdentity gets the current logged in user from the Azure CLI
 // Will fail and exit if they aren't found
-func GetSignedInIdentity() Identity {
+func GetSignedInIdentity() (*Identity, error) {
 	err := command.CheckCommand("az")
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	cmdRes, err := command.QuickRun("az", "ad", "signed-in-user", "show", "-o=json")
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	ident := &signedInUserIdentity{}
 	err = json.Unmarshal([]byte(cmdRes), ident)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	basicIdent := Identity{
+	basicIdent := &Identity{
 		DisplayName: ident.DisplayName,
 		ObjectID:    ident.ObjectID,
 		ObjectType:  ident.ObjectType,
 	}
-	return basicIdent
+	return basicIdent, nil
 }

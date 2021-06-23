@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/hashicorp/terraform-exec/tfinstall"
-	"github.com/spf13/cobra"
 )
 
 var requiredMinVer, _ = version.NewVersion("0.15.0")
@@ -27,32 +26,40 @@ func Setup() (string, error) {
 
 	// First look in system path & installPath
 	path, err := tfinstall.Find(context.Background(), tfinstall.LookPath())
-
 	if err != nil {
-		console.Error("Failed to find Terraform installation")
-		os.Exit(1)
+		return "", err
 	}
 
-	CheckVersion(path)
+	err = CheckVersion(path)
+	if err != nil {
+		return "", err
+	}
 
 	path, err = filepath.Abs(path)
-	cobra.CheckErr(err)
+	if err != nil {
+		return "", err
+	}
 
 	return path, nil
 }
 
 // CheckVersion ensures that Terraform is at the required version
-func CheckVersion(path string) {
+func CheckVersion(path string) error {
 	// Working dir shouldn't matter for this command
 	tf, err := tfexec.NewTerraform(".", path)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 	tfVer, _, err := tf.Version(context.Background(), false)
-	cobra.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	if !tfVer.GreaterThanOrEqual(requiredMinVer) {
-		cobra.CheckErr(fmt.Sprintf("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer))
+		return fmt.Errorf("Terrform version %v is behind required minimum %v", tfVer, requiredMinVer)
 	}
 	console.Successf("Terraform is at version %v\n", tfVer)
+	return nil
 }
 
 // ExpandVarDirectory returns an array of var file options from a directory of tfvars

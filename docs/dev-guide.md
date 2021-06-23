@@ -110,8 +110,11 @@ The heart of Rover control flow, is in the root cmd and is small enough to be re
 
   for _, options := range optionsList {
     // Now start the action execution...
-    // NOTE: Errors are ignored, they handled internally by the action with cobra.CheckErr
-    _ = action.Execute(&options)
+    // NOTE: If errors occur downstream, depend on logs from there
+    err = action.Execute(&options)
+    if err != nil {
+      os.Exit(1)
+    }
   }
 ```
 

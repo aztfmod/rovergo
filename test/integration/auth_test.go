@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
@@ -178,11 +179,52 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 	optionsList := landingzone.BuildOptions(testCmd)
 
 	action := cmd.ActionMap[testCmd.Name()]
-	_ = action.Execute(&optionsList[0])
+	err = action.Execute(&optionsList[0])
+
+	assert.NoError(t, err)
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
 	assert.Equal(t, "SystemAssigned", optionsList[0].Identity.DisplayName)
 	assert.Equal(t, vmIdentityDetails.PrincipalID, optionsList[0].Identity.ObjectID)
+}
+
+func TestIntegration_VM_SPN_SubOwner_Role(t *testing.T) {
+
+	defer clearup(t)
+
+	// use bootstrap identity to get the ball rolling
+	_, err := rovertesting.AzLoginBootstrap(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	spn, err := rovertesting.AzADSPShow(t, rovertesting.Config.SPNUsername)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// set up a terraform fmt command for the actual test
+	testCmd := &cobra.Command{
+		Use: "fmt",
+	}
+	testCmd.Flags().Bool("dry-run", true, "")
+	testCmd.Flags().String("config-dir", "../testdata/configs/level0/launchpad", "")
+	testCmd.Flags().String("source", "../testdata/caf-terraform-landingzones", "")
+	testCmd.Flags().String("level", "level0", "")
+	testCmd.Flags().Bool("launchpad", true, "")
+
+	optionsList := landingzone.BuildOptions(testCmd)
+
+	os.Setenv("ARM_CLIENT_SECRET", "A")
+	action := cmd.ActionMap[testCmd.Name()]
+	err = action.Execute(&optionsList[0])
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
+	assert.Equal(t, spn.DisplayName, optionsList[0].Identity.DisplayName)
+	assert.Equal(t, spn.ObjectID, optionsList[0].Identity.ObjectID)
+
 }
 
 func clearup(t *testing.T) {

@@ -31,7 +31,11 @@ func NewDestroyAction() *DestroyAction {
 func (a *DestroyAction) Execute(o *Options) error {
 	console.Info("Carrying out Terraform destroy")
 
-	a.tfexec = a.prepareTerraformCAF(o)
+	var err error
+	a.tfexec, err = a.prepareTerraformCAF(o)
+	if err != nil {
+		return err
+	}
 
 	if o.DryRun {
 		return nil

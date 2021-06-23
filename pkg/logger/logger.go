@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aztfmod/rover/pkg/command"
-	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -20,12 +19,8 @@ var currentFile string
 
 type Fields = map[string]interface{}
 
-// Only supporting fields on file logging because can only return one value
-func WithFields(fields Fields) *logrus.Entry {
-	stdOutEntry = stdOutLog.WithFields(fields) // Saves an Entry with fields
-	// Issue: Don't know log level of command (if one is used), so can't log stdout at correct level
-	console.Infof("Level: %d", stdOutEntry.Level) // this is 0, not set (because it hasn't be logged at a level yet?)
-	return fileLog.WithFields(fields)             // This passes the entry for filelog back to the Entry function in the code line
+func WithFields(fields Fields) *Entry {
+	return (*Entry)(&fields)
 }
 
 func Trace(args ...interface{}) {
@@ -44,13 +39,7 @@ func Print(args ...interface{}) {
 }
 
 func Info(args ...interface{}) {
-	if stdOutEntry == nil {
-		console.Info("stdOutEntry is nil")
-		stdOutLog.Info(args...)
-	} else {
-		console.Info("stdOutEntry is not nil")
-		stdOutEntry.Info(args...)
-	}
+	stdOutLog.Info(args...)
 	fileLog.Info(args...)
 }
 

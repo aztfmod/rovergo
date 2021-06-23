@@ -49,8 +49,8 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 		}
 	}
 
-	// Get the currently signed in indentity regardless of type
-	o.Identity = getIndentity(*acct, o.TargetSubscription)
+	// Get the currently signed in identity regardless of type
+	o.Identity = getIdentity(*acct, o.TargetSubscription)
 	console.Successf("Obtained identity successfully.\nWe are signed in as: %s '%s' (%s)\n", o.Identity.ObjectType, o.Identity.DisplayName, o.Identity.ObjectID)
 
 	// Slight hack for now, we set debug on when in dry-run mode
@@ -145,7 +145,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) *tfexec.Terraform {
 }
 
 // Try to get our identity which might be user, managed-identity or service principal
-func getIndentity(acct azure.Subscription, targetSubID string) azure.Identity {
+func getIdentity(acct azure.Subscription, targetSubID string) azure.Identity {
 	if strings.EqualFold(acct.User.Usertype, "user") {
 		console.Debug("Detected we are signed in as a user. Attempting to get identity from CLI")
 		ident, err := azure.GetSignedInIdentity()
@@ -216,7 +216,7 @@ func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error
 	console.Info("Running init for launchpad")
 
 	console.StartSpinner()
-	// Validate that the indentity we are using is owner on subscription, not sure why but it's in rover v1 code
+	// Validate that the identity we are using is owner on subscription, not sure why but it's in rover v1 code
 	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription, o.Subscription.TenantID)
 	cobra.CheckErr(err)
 	if !isOwner {

@@ -77,7 +77,9 @@ func TestIntegration_VM_SPN_SubOwner_Role(t *testing.T) {
 
 	os.Setenv("ARM_CLIENT_SECRET", "A")
 	action := cmd.ActionMap[testCmd.Name()]
-	_ = action.Execute(&optionsList[0])
+	err = action.Execute(&optionsList[0])
+
+	assert.NoError(t, err)
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
 	assert.Equal(t, spn.DisplayName, optionsList[0].Identity.DisplayName)
@@ -144,7 +146,9 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 	optionsList := landingzone.BuildOptions(testCmd)
 
 	action := cmd.ActionMap[testCmd.Name()]
-	_ = action.Execute(&optionsList[0])
+	err = action.Execute(&optionsList[0])
+
+	assert.NoError(t, err)
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
 	assert.Equal(t, "SystemAssigned", optionsList[0].Identity.DisplayName)

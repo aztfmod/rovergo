@@ -105,8 +105,11 @@ func init() {
 
 				for _, options := range optionsList {
 					// Now start the action execution...
-					// NOTE: Errors are ignored, they handled internally by the action with cobra.CheckErr
-					_ = action.Execute(&options)
+					// If an error occurs, depend on downstream code to log messages
+					err = action.Execute(&options)
+					if err != nil {
+						os.Exit(1)
+					}
 				}
 
 				console.Success("Rover has finished")

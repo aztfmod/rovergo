@@ -92,7 +92,7 @@ func init() {
 
 	fileLog.SetLevel(logLevel)
 	fileLog.SetFormatter(&logrus.JSONFormatter{})
-	SetCommand("rover")
+	setCommand("rover")
 }
 
 func SetLogLevel(level string, err error) {

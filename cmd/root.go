@@ -39,8 +39,7 @@ It acts as a toolchain development environment to avoid impacting the local mach
 to make sure that all contributors in the GitOps teams are using a consistent set of tools and version.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		console.DebugEnabled, _ = cmd.Flags().GetBool("debug")
-		logger.SetLogLevel(cmd.Flags().GetString("log-level"))
-		logger.LogEnvironment, _ = cmd.Flags().GetString("environment")
+		logger.SetLogLevel(cmd.Flags().GetString("log-severity"))
 	},
 }
 
@@ -57,8 +56,7 @@ func GetVersion() string {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
-	rootCmd.PersistentFlags().String("environment", "development", "set logging environment production|development")
-	rootCmd.PersistentFlags().String("log-level", "info", "set log level trace|debug|info|warn|error|fatal|panic")
+	rootCmd.PersistentFlags().String("log-severity", "info", "set log level trace|debug|info|warn|error|fatal|panic")
 
 	command.ValidateDependencies()
 
@@ -134,5 +132,17 @@ func init() {
 
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
+		logger.SetCommand("Init")
+		logger.WithFields(logger.Fields{"t": "1"}).Error("111")
+		logger.WithFields(logger.Fields{"t": "2"}).Info("111")
+		logger.SetCommand("Plan")
+		logger.Trace("Trace 1")
+		logger.Debug("Debug 1")
+		logger.SetCommand("Apply")
+		logger.Info("Info 1")
+		logger.Warn("Warn 1")
+		logger.SetCommand("TFLint")
+		logger.Warning("Warning 1")
+		logger.Error("Error 1")
 	}
 }

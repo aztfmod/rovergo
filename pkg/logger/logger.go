@@ -22,9 +22,10 @@ type Fields = map[string]interface{}
 
 // Only supporting fields on file logging
 func WithFields(fields Fields) *logrus.Entry {
-	stdOutEntry = stdOutLog.WithFields(fields)
-	console.Infof("Level: %d", stdOutEntry.Level)
-	return fileLog.WithFields(fields)
+	stdOutEntry = stdOutLog.WithFields(fields) // Saves an Entry with fields
+	// Issue: Don't know log level of command (if one is used), so can't log stdout at correct level
+	console.Infof("Level: %d", stdOutEntry.Level) // this is 0, not set
+	return fileLog.WithFields(fields)             // This passes the entry for filelog back to the Entry function in the code line
 }
 
 func Trace(args ...interface{}) {

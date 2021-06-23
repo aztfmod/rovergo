@@ -64,7 +64,12 @@ type TestConfig struct {
 	TenantID            string `yaml:"tenantID,omitempty"`
 }
 
-// Config is some global test config
+type SPNDetails struct {
+	DisplayName           string
+	ObjectID              string
+	ServicePrincipalNames []string
+}
+
 var Config TestConfig
 
 func NewTestConfiguration() (*TestConfig, error) {
@@ -257,9 +262,12 @@ func AzVMIdentityShow(t *testing.T) (*VMIdentityShow, error) {
 	}
 
 	vmIdentityShow := &VMIdentityShow{}
-	err = json.Unmarshal([]byte(cmdRes), vmIdentityShow)
-	if err != nil {
-		return nil, err
+
+	if cmdRes != "" {
+		err = json.Unmarshal([]byte(cmdRes), vmIdentityShow)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return vmIdentityShow, nil
@@ -325,4 +333,28 @@ func AzLoginBootstrap(t *testing.T) (*azure.Subscription, error) {
 	}
 
 	return &azure.Subscription{}, nil
+}
+
+func AzADSPShow(t *testing.T, appid string) (*SPNDetails, error) {
+
+	err := command.CheckCommand("az")
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{"az", "ad", "sp", "show"}
+	args = append(args, []string{"--id", appid}...)
+
+	cmdRes, err := command.QuickRun(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	spn := &SPNDetails{}
+	err = json.Unmarshal([]byte(cmdRes), spn)
+	if err != nil {
+		return nil, err
+	}
+
+	return spn, nil
 }

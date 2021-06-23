@@ -30,7 +30,11 @@ func NewApplyAction() *ApplyAction {
 
 func (a *ApplyAction) Execute(o *Options) error {
 	planAction := NewPlanAction()
-	_ = planAction.Execute(o)
+	// depend on logs from downstream code if error occurs
+	err := planAction.Execute(o)
+	if err != nil {
+		return err
+	}
 
 	if !planAction.hasChanges {
 		console.Success("Plan resulted in no changes, apply will be skipped")
@@ -55,7 +59,7 @@ func (a *ApplyAction) Execute(o *Options) error {
 	}
 
 	console.StartSpinner()
-	err := a.tfexec.Apply(context.Background(), applyOptions...)
+	err = a.tfexec.Apply(context.Background(), applyOptions...)
 	console.StopSpinner()
 	cobra.CheckErr(err)
 

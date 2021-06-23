@@ -1,5 +1,0 @@
-name: linter
-executable: "tflint"
-description: "A linter for terraform"
-arguments: ["{{SOURCE_DIR}}", "--enable-rule=terraform_comment_syntax"]
-continueOnError: true

@@ -2,7 +2,6 @@ package custom
 
 import (
 	"bytes"
-	_ "embed"
 	"fmt"
 	"html/template"
 	"os"

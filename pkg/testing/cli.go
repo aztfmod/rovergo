@@ -70,6 +70,7 @@ type SPNDetails struct {
 	ServicePrincipalNames []string
 }
 
+// Config is exported for some reason?
 var Config TestConfig
 
 func NewTestConfiguration() (*TestConfig, error) {

@@ -20,11 +20,11 @@ var currentFile string
 
 type Fields = map[string]interface{}
 
-// Only supporting fields on file logging
+// Only supporting fields on file logging because can only return one value
 func WithFields(fields Fields) *logrus.Entry {
 	stdOutEntry = stdOutLog.WithFields(fields) // Saves an Entry with fields
 	// Issue: Don't know log level of command (if one is used), so can't log stdout at correct level
-	console.Infof("Level: %d", stdOutEntry.Level) // this is 0, not set
+	console.Infof("Level: %d", stdOutEntry.Level) // this is 0, not set (because it hasn't be logged at a level yet?)
 	return fileLog.WithFields(fields)             // This passes the entry for filelog back to the Entry function in the code line
 }
 
@@ -118,7 +118,15 @@ func SetLogLevel(level string, err error) {
 	fileLog.SetLevel(logLevel)
 }
 
-func SetCommand(rovercommand string) {
+func OpenCommandLog(rovercommand string) {
+	setCommand(rovercommand)
+}
+
+func CloseCommandLog() {
+	setCommand("")
+}
+
+func setCommand(rovercommand string) {
 
 	rovercommand = strings.ReplaceAll(rovercommand, " ", "")
 	if rovercommand == "" {

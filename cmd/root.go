@@ -132,17 +132,18 @@ func init() {
 
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
-		logger.SetCommand("Init")
+		logger.OpenCommandLog("Init")
 		logger.WithFields(logger.Fields{"t": "1"}).Error("111")
 		logger.WithFields(logger.Fields{"t": "2"}).Info("111")
-		logger.SetCommand("Plan")
+		logger.OpenCommandLog("Plan")
 		logger.Trace("Trace 1")
 		logger.Debug("Debug 1")
-		logger.SetCommand("Apply")
+		logger.OpenCommandLog("Apply")
 		logger.Info("Info 1")
 		logger.Warn("Warn 1")
-		logger.SetCommand("TFLint")
+		logger.OpenCommandLog("TFLint")
 		logger.Warning("Warning 1")
 		logger.Error("Error 1")
+		logger.CloseCommandLog()
 	}
 }

@@ -1,0 +1,15 @@
+#
+# Rover custom actions definitions for running external tools
+#
+
+# This is provided as an example
+finder:
+  executable: "find"
+  description: "List all terraform (example custom action)"
+  arguments: ["{{SOURCE_DIR}}", "-name", "*.tf"]
+
+# This runs tflint
+lint:
+  executable: "tflint"
+  description: "A linter for terraform"
+  arguments: ["{{SOURCE_DIR}}", "--enable-rule=terraform_comment_syntax"]

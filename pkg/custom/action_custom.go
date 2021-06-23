@@ -1,10 +1,10 @@
 package custom
 
 import (
-	"embed"
+	_ "embed"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
@@ -14,8 +14,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-//go:embed source/*.yaml
-var customActionsContent embed.FS
+//go:embed default_actions.yaml
+var defaultFileContent string
+
+const actionsFilename = "actions.yaml"
 
 // Action is an custom action implementation which runs external executables
 type Action struct {
@@ -23,21 +25,19 @@ type Action struct {
 	command actionDefinition
 }
 
-// customActionDefinition is used to parse the YAML config files
+// actionDefinition is used to parse the YAML config files
 type actionDefinition struct {
-	Name            string
-	Executable      string
-	Description     string
-	ContinueOnError bool
-	Arguments       []string
+	Executable  string
+	Description string
+	Arguments   []string
 }
 
 // This is never called externally, only by calling FetchCustomActions
-func newCustomAction(cad actionDefinition) Action {
+func newCustomAction(name string, cad actionDefinition) Action {
 	return Action{
 		command: cad,
 		ActionBase: landingzone.ActionBase{
-			Name:        cad.Name,
+			Name:        name,
 			Description: cad.Description,
 		},
 	}
@@ -93,93 +93,36 @@ func (c Action) Execute(o *landingzone.Options) error {
 
 // FetchActions is called by root cmd during init
 // It finds all the custom action defintions and returns them to be plugged into the CLI
-func FetchActions() ([]landingzone.Action, error) {
-	actions := []landingzone.Action{}
-
+func FetchActions() (actions []landingzone.Action, err error) {
 	roverHomeDir, _ := utils.GetRoverDirectory()
-	roverHomeCustomActionsDir := filepath.Join(roverHomeDir, "custom_actions")
-
-	UnpackCustomActions(roverHomeCustomActionsDir)
-
-	actionsHome := ProcessActionFiles(roverHomeCustomActionsDir)
-
-	if actionsHome != nil {
-		actions = append(actions, actionsHome...)
-	}
-
-	if len(actions) == 0 {
-		console.Debug("Warning: No rover custom_actions found")
-		return nil, nil
-	}
-
-	console.Debugf("Number of custom actions found: %d\n", len(actions))
-
-	return actions, nil
-}
-
-func ProcessActionFiles(customActionPath string) []landingzone.Action {
-	actions := []landingzone.Action{}
-	actionFiles, err := os.ReadDir(customActionPath)
+	custActionsPath := filepath.Join(roverHomeDir, actionsFilename)
+	_, err = os.Stat(custActionsPath)
+	// If doesn't exist then place our default YAML file in .rover
 	if err != nil {
-		return nil
-	}
-
-	for _, file := range actionFiles {
-		if !(strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
-			continue
-		}
-
-		buf, err := os.ReadFile(filepath.Join(customActionPath, file.Name()))
-		if err != nil {
-			console.Error(err.Error())
-			continue
-		}
-
-		definition := actionDefinition{}
-
-		err = yaml.Unmarshal(buf, &definition)
-		if err != nil {
-			console.Error(err.Error())
-			continue
-		}
-
-		if definition.Name == "" {
-			console.Warningf("Warning: custom action %s has no name it will be ignored\n", file.Name())
-			continue
-		}
-		if definition.Executable == "" {
-			console.Warningf("Warning: custom action %s has no executable it will be ignored\n", file.Name())
-			continue
-		}
-		if definition.Description == "" {
-			definition.Description = "No description"
-		}
-
-		actions = append(actions, newCustomAction(definition))
-	}
-	return actions
-}
-
-func UnpackCustomActions(targetDir string) {
-	_, err := os.Stat(targetDir)
-
-	if os.IsNotExist(err) {
-		command.EnsureDirectory(targetDir)
-		customActionFiles, err := customActionsContent.ReadDir("source")
-		if err != nil {
-			console.Errorf("Failed to process embedded custom action files: %s", err.Error())
-		} else {
-			for _, file := range customActionFiles {
-				// embedded FS use / as path seperator so have to hard code as filepath.join uses OS separator
-				fileBytes, fErr := customActionsContent.ReadFile("source/" + file.Name())
-				if fErr != nil {
-					console.Errorf("Embedded file %s Error: %s", file.Name(), fErr.Error())
-				}
-				fileErr := os.WriteFile(filepath.Join(targetDir, file.Name()), fileBytes, 0777)
-				if fileErr != nil {
-					console.Error(fileErr.Error())
-				}
-			}
+		fileErr := ioutil.WriteFile(custActionsPath, []byte(defaultFileContent), 0777)
+		if fileErr != nil {
+			return nil, fileErr
 		}
 	}
+
+	// Read file and unmarshall
+	file, err := os.Open(custActionsPath)
+	if err != nil {
+		return nil, err
+	}
+	// The actions YAML file is a map of strings to definitions, where the key is the name of the action
+	actionsYaml := map[string]actionDefinition{}
+	decoder := yaml.NewDecoder(file)
+	// Enabling strict mode prevents duplicate keys
+	decoder.SetStrict(true)
+	err = decoder.Decode(&actionsYaml)
+	if err != nil {
+		return nil, err
+	}
+
+	for actionName, actionDef := range actionsYaml {
+		actions = append(actions, newCustomAction(actionName, actionDef))
+	}
+
+	return
 }

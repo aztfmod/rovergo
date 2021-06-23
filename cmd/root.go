@@ -60,7 +60,7 @@ func init() {
 	// Find and load in custom actions
 	custActions, err := custom.FetchActions()
 	if err != nil {
-		console.Errorf("Failed %s", err)
+		console.Errorf("Loading custom actions failed: %s\n", err)
 		os.Exit(1)
 	}
 	for _, ca := range custActions {

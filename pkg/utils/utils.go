@@ -7,10 +7,8 @@
 package utils
 
 import (
-	"errors"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/console"
 )
@@ -45,22 +43,4 @@ func CopyFile(src string, dest string) error {
 
 	console.Debugf("Completed copying file '%s' to '%s' (%d bytes)", src, dest, bytesWritten)
 	return nil
-}
-
-func GetRoverDirectory() (string, error) {
-	home, err := os.UserHomeDir()
-
-	if err != nil {
-		return "", errors.New("Unable to access user home directory")
-	}
-
-	roverhome := filepath.Join(home, "/.rover")
-
-	direrr := os.MkdirAll(roverhome, 0777)
-
-	if direrr != nil {
-		return "", errors.New("Failed to create $home/.rover directory")
-	}
-
-	return roverhome, nil
 }

@@ -1,21 +1,20 @@
 package custom
 
 import (
+	"bytes"
 	_ "embed"
-	"io/ioutil"
+	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
-	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
-
-//go:embed default_actions.yaml
-var defaultFileContent string
 
 const actionsFilename = "actions.yaml"
 
@@ -30,6 +29,14 @@ type actionDefinition struct {
 	Executable  string
 	Description string
 	Arguments   []string
+	SetupEnv    bool `yaml:"setupEnv"`
+}
+
+// This is used to provide the main things you'd want to refer to in a template expression
+type argTemplateContext struct {
+	Options landingzone.Options
+	Action  Action
+	Meta    map[string]string
 }
 
 // This is never called externally, only by calling FetchCustomActions
@@ -44,40 +51,42 @@ func newCustomAction(name string, cad actionDefinition) Action {
 }
 
 // Execute runs this custom action by running the external executable
-func (c Action) Execute(o *landingzone.Options) error {
-	console.Successf("Running custom action: %s %s\n", c.Name, o.SourcePath)
+func (a Action) Execute(o *landingzone.Options) error {
+	console.Successf("Running custom action: %s %s\n", a.Name, o.SourcePath)
 	args := []string{}
 
-	// This implements a simple variable subsistution syntax
-	for _, argDefined := range c.command.Arguments {
-		if argDefined == "{{SOURCE_DIR}}" {
-			args = append(args, o.SourcePath)
-			continue
-		}
-		if argDefined == "{{CONFIG_DIR}}" {
-			args = append(args, o.ConfigPath)
-			continue
-		}
-		if argDefined == "{{LEVEL}}" {
-			args = append(args, o.Level)
-			continue
-		}
-		if argDefined == "{{STATE_NAME}}" {
-			args = append(args, o.StateName)
-			continue
-		}
-		if argDefined == "{{CAF_ENV}}" {
-			args = append(args, o.CafEnvironment)
-			continue
-		}
-		if argDefined == "{{WORKSPACE}}" {
-			args = append(args, o.Workspace)
-			continue
-		}
-		args = append(args, argDefined)
+	if a.command.SetupEnv {
+		err := o.SetupEnvironment()
+		cobra.CheckErr(err)
 	}
 
-	cmd := command.NewCommand(c.command.Executable, args)
+	// This allows for golang templated expressions in command arguments
+	// e.g. "--foo={{ .Options.SourcePath }}" see https://golang.org/pkg/text/template/
+	for _, argDefined := range a.command.Arguments {
+		templateName := fmt.Sprintf("arguments for action %s", a.Name)
+		argTemplate, err := template.New(templateName).Parse(argDefined)
+		cobra.CheckErr(err)
+
+		roverDir, err := rover.HomeDirectory()
+		cobra.CheckErr(err)
+
+		// Build conext to execute the template with
+		templateContext := argTemplateContext{
+			Options: *o,
+			Action:  a,
+			Meta: map[string]string{
+				"RoverHome": roverDir,
+			},
+		}
+
+		var templateResult bytes.Buffer
+		err = argTemplate.Execute(&templateResult, templateContext)
+		cobra.CheckErr(err)
+		args = append(args, templateResult.String())
+	}
+
+	// Now ready to actually run it
+	cmd := command.NewCommand(a.command.Executable, args)
 	cmd.Silent = false
 	err := cmd.Execute()
 
@@ -94,16 +103,19 @@ func (c Action) Execute(o *landingzone.Options) error {
 // FetchActions is called by root cmd during init
 // It finds all the custom action defintions and returns them to be plugged into the CLI
 func FetchActions() (actions []landingzone.Action, err error) {
-	roverHomeDir, _ := utils.GetRoverDirectory()
-	custActionsPath := filepath.Join(roverHomeDir, actionsFilename)
-	_, err = os.Stat(custActionsPath)
-	// If doesn't exist then place our default YAML file in .rover
+	roverHomeDir, err := rover.HomeDirectory()
 	if err != nil {
-		fileErr := ioutil.WriteFile(custActionsPath, []byte(defaultFileContent), 0777)
-		if fileErr != nil {
-			return nil, fileErr
-		}
+		return nil, err
 	}
+	custActionsPath := filepath.Join(roverHomeDir, actionsFilename)
+	// _, err = os.Stat(custActionsPath)
+	// // If doesn't exist then place our default YAML file in .rover
+	// if err != nil {
+	// 	fileErr := ioutil.WriteFile(custActionsPath, []byte(defaultFileContent), 0777)
+	// 	if fileErr != nil {
+	// 		return nil, fileErr
+	// 	}
+	// }
 
 	// Read file and unmarshall
 	file, err := os.Open(custActionsPath)

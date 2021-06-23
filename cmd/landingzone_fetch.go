@@ -14,7 +14,7 @@ import (
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ func init() {
 
 func runFetch(repo string, branch string, strip int, dest string, subFolder string) {
 
-	homeDir, homeErr := utils.GetRoverDirectory()
+	homeDir, homeErr := rover.HomeDirectory()
 	cobra.CheckErr(homeErr)
 	tempDir, dirErr := ioutil.TempDir(homeDir, "fetchops*")
 	cobra.CheckErr(dirErr)

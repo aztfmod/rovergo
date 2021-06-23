@@ -9,7 +9,7 @@ package landingzone
 import (
 	"path/filepath"
 
-	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ func BuildOptions(cmd *cobra.Command) []Options {
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
 	// This is a 'just in case' default, it will be changed later, when initializeCAF is called
-	outPath, err := utils.GetRoverDirectory()
+	outPath, err := rover.HomeDirectory()
 	cobra.CheckErr(err)
 
 	// Normally cobra would provide automatic defaults but we are using it in a weird way

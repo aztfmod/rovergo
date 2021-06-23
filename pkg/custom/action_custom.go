@@ -38,7 +38,7 @@ func newCustomAction(name string, cad actionDefinition) Action {
 		command: cad,
 		ActionBase: landingzone.ActionBase{
 			Name:        name,
-			Description: cad.Description,
+			Description: cad.Description + " [Custom]",
 		},
 	}
 }

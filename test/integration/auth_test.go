@@ -9,6 +9,7 @@ import (
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	rovertesting "github.com/aztfmod/rover/pkg/testing"
+	"github.com/dchest/uniuri"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,7 +59,7 @@ func TestIntegration_VM_UserAssigned_SubOwner_Role(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	id, err := rovertesting.AzIdentityCreate(t, "mi-user-assigned")
+	id, err := rovertesting.AzIdentityCreate(t, "mi-"+uniuri.New())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +69,7 @@ func TestIntegration_VM_UserAssigned_SubOwner_Role(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = rovertesting.AzVMIdentityAssign(t, id.PrincipalID, "")
+	_, err = rovertesting.AzVMIdentityAssign(t, id.ID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,16 +186,22 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 }
 
 func clearup(t *testing.T) {
+
+	console.DebugEnabled = true
+
+	console.Debug("Logging out")
 	err := rovertesting.AzLogout(t)
 	if err != nil {
-		t.Fatal(err)
+		t.Log("not logged in")
 	}
 
+	console.Debug("Logging in bootstrap")
 	_, err = rovertesting.AzLoginBootstrap(t)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	console.Debug("Getting vm identity details with az vm identity show")
 	vmIdentityDetails, err := rovertesting.AzVMIdentityShow(t)
 	if err != nil {
 		t.Fatal(err)
@@ -202,14 +209,21 @@ func clearup(t *testing.T) {
 
 	var assignmentIDs []string
 	if vmIdentityDetails.PrincipalID != "" {
+
+		console.Debug("Getting role assignment id for system assigned id")
 		roleAssignmentID, err := getOwnerRoleAssignmentID(t, vmIdentityDetails.PrincipalID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assignmentIDs = append(assignmentIDs, roleAssignmentID)
+
+		if roleAssignmentID != "" {
+			assignmentIDs = append(assignmentIDs, roleAssignmentID)
+		}
 	}
 
 	for _, rawUserAssignedID := range vmIdentityDetails.UserAssignedIdentities {
+
+		console.Debug("Getting role assignment id for user assigned id")
 
 		userAssignedID := &rovertesting.UserAssignedIdentity{}
 		err = json.Unmarshal([]byte(rawUserAssignedID), userAssignedID)
@@ -222,10 +236,15 @@ func clearup(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assignmentIDs = append(assignmentIDs, roleAssignmentID)
+		if roleAssignmentID != "" {
+			assignmentIDs = append(assignmentIDs, roleAssignmentID)
+		}
 	}
 
 	for _, assignmentID := range assignmentIDs {
+
+		console.Debug("Deleting role assignment")
+
 		err = rovertesting.AzRoleAssignmentDelete(t, assignmentID)
 		if err != nil {
 			t.Fatal(err)
@@ -233,25 +252,28 @@ func clearup(t *testing.T) {
 	}
 
 	if vmIdentityDetails.PrincipalID != "" {
+
+		console.Debug("Removing the system assigned id from the vm")
+
 		err = rovertesting.AzVMIdentityRemove(t, "[system]")
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	for _, rawUserAssignedID := range vmIdentityDetails.UserAssignedIdentities {
+	for index := range vmIdentityDetails.UserAssignedIdentities {
 
-		userAssignedID := &rovertesting.UserAssignedIdentity{}
-		err = json.Unmarshal([]byte(rawUserAssignedID), userAssignedID)
+		console.Debug("Removing the user assigned id from the vm")
+		err = rovertesting.AzVMIdentityRemove(t, index)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = rovertesting.AzVMIdentityRemove(t, userAssignedID.ID)
+		console.Debug("Deleting the user assigned id")
+		err = rovertesting.AzIdentityDelete(t, index)
 		if err != nil {
 			t.Fatal(err)
 		}
-
 	}
 
 	err = rovertesting.AzLogout(t)

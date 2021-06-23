@@ -41,6 +41,7 @@ type RoleAssignment struct {
 	ResourceType     string `json:"type,omitempty"`
 }
 
+// UserAssignedIdentity is the output of az identity create, i.e. the details of a newly created user assigned identity
 type UserAssignedIdentity struct {
 	ClientID        string                     `json:"clientID,omitempty"`
 	ClientSecretURL string                     `json:"clientSecretUrl,omitempty"`
@@ -137,6 +138,7 @@ func AzRoleAssignmentCreate(t *testing.T, assigneeObjectID string) (*RoleAssignm
 	args := []string{"az", "role", "assignment", "create"}
 	args = append(args, []string{"--role", OwnerBuiltInRole}...)
 	args = append(args, []string{"--assignee-object-id", assigneeObjectID}...)
+	args = append(args, []string{"--assignee-principal-type", "ServicePrincipal"}...)
 	args = append(args, []string{"--scope", fmt.Sprintf("/subscriptions/%s", Config.SubscriptionID)}...)
 
 	cmdRes, err := command.QuickRun(args...)
@@ -190,6 +192,23 @@ func AzRoleAssignmentList(t *testing.T) ([]RoleAssignment, error) {
 	}
 
 	return *roleAssignments, nil
+}
+
+func AzIdentityDelete(t *testing.T, identityID string) error {
+	err := command.CheckCommand("az")
+	if err != nil {
+		return err
+	}
+
+	args := []string{"az", "identity", "delete"}
+	args = append(args, []string{"--ids", identityID}...)
+
+	_, err = command.QuickRun(args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func AzIdentityCreate(t *testing.T, identityName string) (*UserAssignedIdentity, error) {
@@ -256,9 +275,11 @@ func AzVMIdentityShow(t *testing.T) (*VMIdentityShow, error) {
 	}
 
 	vmIdentityShow := &VMIdentityShow{}
-	err = json.Unmarshal([]byte(cmdRes), vmIdentityShow)
-	if err != nil {
-		return nil, err
+	if cmdRes != "" {
+		err = json.Unmarshal([]byte(cmdRes), vmIdentityShow)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return vmIdentityShow, nil

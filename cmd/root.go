@@ -108,7 +108,7 @@ func init() {
 					// If an error occurs, depend on downstream code to log messages
 					err = action.Execute(&options)
 					if err != nil {
-						os.Exit(1)
+						cobra.CheckErr(err)
 					}
 				}
 

@@ -79,7 +79,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, er
 		if o.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, we can continue")
 		} else {
-			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
+			console.Errorf("No state storage account found for environment '%s' and level %s, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
 			return nil, errors.New("can't deploy a landing zone without a launchpad")
 		}
 	} else {

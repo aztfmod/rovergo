@@ -36,7 +36,7 @@ func CheckIsOwner(objectID string, subID string, tenantID string) (bool, error) 
 	client := authorization.NewRoleAssignmentsClient(subID)
 	client.Authorizer = GetAuthorizer()
 	targetSubscriptionResourceID := fmt.Sprintf("/subscriptions/%s", subID)
-	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID), tenantID)
+	resultPages, err := client.ListForScope(context.Background(), targetSubscriptionResourceID, fmt.Sprintf("assignedTo('%s')", objectID), "")
 	if err != nil {
 		return false, err
 	}

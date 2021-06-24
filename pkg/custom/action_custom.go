@@ -51,7 +51,7 @@ func newCustomAction(name string, cad actionDefinition) Action {
 
 // Execute runs this custom action by running the external executable
 func (a Action) Execute(o *landingzone.Options) error {
-	console.Successf("Running custom action: %s %s\n", a.Name, o.SourcePath)
+	console.Successf("Running custom action: %s %s\n", a.GetName(), o.SourcePath)
 	args := []string{}
 
 	if a.command.SetupEnv {
@@ -62,7 +62,7 @@ func (a Action) Execute(o *landingzone.Options) error {
 	// This allows for golang templated expressions in command arguments
 	// e.g. "--foo={{ .Options.SourcePath }}" see https://golang.org/pkg/text/template/
 	for _, argDefined := range a.command.Arguments {
-		templateName := fmt.Sprintf("arguments for action %s", a.Name)
+		templateName := fmt.Sprintf("arguments for action %s", a.GetName())
 		argTemplate, err := template.New(templateName).Parse(argDefined)
 		cobra.CheckErr(err)
 

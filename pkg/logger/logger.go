@@ -12,7 +12,6 @@ import (
 )
 
 var stdOutLog = logrus.New()
-var stdOutEntry *logrus.Entry
 var fileLog = logrus.New()
 var logLevel = logrus.InfoLevel
 var currentFile string

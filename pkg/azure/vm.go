@@ -60,7 +60,11 @@ func VMInstanceMetadataService() *Metadata {
 // GetVMIdentities will get the MI details of an Azure VM, both system assigned and user assigned
 func GetVMIdentities(subID string, resourceGroupName string, vmName string) ([]Identity, error) {
 	client := compute.NewVirtualMachinesClient(subID)
-	client.Authorizer = GetAuthorizer()
+	authorizer, err := GetAuthorizer()
+	if err != nil {
+		return nil, err
+	}
+	client.Authorizer = authorizer
 
 	vm, err := client.Get(context.Background(), resourceGroupName, vmName, compute.InstanceViewTypesInstanceView)
 	if err != nil {

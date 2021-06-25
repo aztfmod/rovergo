@@ -6,9 +6,8 @@
 package azure
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 type wellKnownCloud struct {
@@ -43,9 +42,12 @@ func CloudNameToTerraform(name string) string {
 	return "public"
 }
 
-func KeyvaultEndpointForSubscription() string {
-	sub := GetSubscription()
-	return KeyvaultEndpointForCloud(sub.EnvironmentName)
+func KeyvaultEndpointForSubscription() (string, error) {
+	sub, err := GetSubscription()
+	if err != nil {
+		return "", err
+	}
+	return KeyvaultEndpointForCloud(sub.EnvironmentName), nil
 }
 
 func KeyvaultEndpointForCloud(name string) string {
@@ -61,9 +63,12 @@ func KeyvaultEndpointForCloud(name string) string {
 	return ""
 }
 
-func StorageEndpointForSubscription() string {
-	sub := GetSubscription()
-	return StorageEndpointForCloud(sub.EnvironmentName)
+func StorageEndpointForSubscription() (string, error) {
+	sub, err := GetSubscription()
+	if err != nil {
+		return "", err
+	}
+	return StorageEndpointForCloud(sub.EnvironmentName), nil
 }
 
 func StorageEndpointForCloud(name string) string {
@@ -80,11 +85,12 @@ func StorageEndpointForCloud(name string) string {
 }
 
 // ParseResourceID into subscription, resource group and name
-func ParseResourceID(resourceID string) (subID string, resGrp string, resName string) {
+// TODO: There's a function the Azure SDK cli package that we can replace this with I think
+func ParseResourceID(resourceID string) (subID string, resGrp string, resName string, err error) {
 	parts := strings.Split(resourceID, "/")
 	if len(parts) < 9 {
-		cobra.CheckErr("Supplied resource ID has insufficient segments")
+		return "", "", "", fmt.Errorf("Supplied resource ID has insufficient segments")
 	}
 
-	return parts[2], parts[4], parts[8]
+	return parts[2], parts[4], parts[8], err
 }

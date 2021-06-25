@@ -28,7 +28,7 @@ Rover v2 provides a way to manage entire environments consisting of any number o
 ![](https://img.shields.io/github/license/aztfmod/rovergo)
 
 ### Board: [aztfmod/projects](https://github.com/orgs/aztfmod/projects/28?card_filter_query=label%3Arover-go)
-### Estimated stability level: ⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜ 80%
+### Estimated stability level: ⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜ 85%
 
 ---
 

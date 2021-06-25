@@ -16,7 +16,6 @@ func NewFormatAction() *FormatAction {
 	return &FormatAction{
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "fmt",
 				Description: "Perform a terraform format",
@@ -28,8 +27,7 @@ func NewFormatAction() *FormatAction {
 func (a *FormatAction) Execute(o *Options) error {
 	console.Info("Carrying out Terraform format")
 
-	var err error
-	a.tfexec, err = a.prepareTerraformCAF(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
@@ -43,7 +41,7 @@ func (a *FormatAction) Execute(o *Options) error {
 		tfexec.Recursive(true),
 	}
 
-	outcome, filesToFix, err := a.tfexec.FormatCheck(context.Background(), fo...)
+	outcome, filesToFix, err := tf.FormatCheck(context.Background(), fo...)
 	cobra.CheckErr(err)
 
 	// TODO: return something (exit code?) so that pipeline can react appropriately

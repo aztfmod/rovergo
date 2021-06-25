@@ -19,7 +19,6 @@ func NewDestroyAction() *DestroyAction {
 	return &DestroyAction{
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "destroy",
 				Description: "Perform a terraform destroy",
@@ -31,8 +30,7 @@ func NewDestroyAction() *DestroyAction {
 func (a *DestroyAction) Execute(o *Options) error {
 	console.Info("Carrying out Terraform destroy")
 
-	var err error
-	a.tfexec, err = a.prepareTerraformCAF(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
@@ -59,6 +57,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 		// It's critical to remove/cleanup local storage
 		o.cleanUp()
+		o.removeStateConfig()
 
 		// Download the current state
 		err := azure.DownloadFileFromBlob(a.launchPadStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
@@ -66,7 +65,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 		// Reset back to use local state
 		console.Warning("Resetting state to local, have to re-run init without a backend/remote state")
-		err = o.runLaunchpadInit(a.tfexec, true)
+		err = o.runLaunchpadInit(tf, true)
 		cobra.CheckErr(err)
 		// This is critical and stops terraform from trying to use remote state
 		_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
@@ -92,12 +91,13 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 	console.Warning("Destroy is now running ...")
 	console.StartSpinner()
-	err = a.tfexec.Destroy(context.Background(), destroyOptions...)
+	err = tf.Destroy(context.Background(), destroyOptions...)
 	console.StopSpinner()
 	cobra.CheckErr(err)
 
 	// Remove files
 	o.cleanUp()
+	o.removeStateConfig()
 	_ = os.RemoveAll(o.OutPath)
 
 	console.Success("Destroy was successful")

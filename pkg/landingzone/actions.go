@@ -1,9 +1,5 @@
 package landingzone
 
-import (
-	"github.com/hashicorp/terraform-exec/tfexec"
-)
-
 type Action interface {
 	Execute(o *Options) error
 	GetName() string
@@ -18,7 +14,6 @@ type ActionBase struct {
 type TerraformAction struct {
 	ActionBase
 	launchPadStorageID string
-	tfexec             *tfexec.Terraform
 }
 
 func (ab ActionBase) GetName() string {

@@ -210,6 +210,8 @@ func getIdentity(acct azure.Subscription, targetSubID string) azure.Identity {
 // Runs init in the correct mode
 func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform, forceLocal bool) {
 	var err error
+	o.removeStateConfig()
+
 	if (o.LaunchPadMode && c.launchPadStorageID == "") || forceLocal {
 		err = o.runLaunchpadInit(tf, false)
 	} else {
@@ -220,11 +222,11 @@ func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform, forc
 
 // Carry out Terraform init operation in launchpad mode has no backend state
 func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error {
-	console.Info("Running init for launchpad")
+	console.Info("Running init for launchpad (local state)")
 
 	console.StartSpinner()
 	// Validate that the identity we are using is owner on subscription, not sure why but it's in rover v1 code
-	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription, o.Subscription.TenantID)
+	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription)
 	cobra.CheckErr(err)
 	if !isOwner {
 		console.StopSpinner()
@@ -270,11 +272,15 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	return err
 }
 
-// Remove files to ensure a clean run, state and plan files are recreated
+// Remove files to ensure a clean run
 func (o *Options) cleanUp() {
-	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
+	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
-	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfplan")
+	//_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
+}
+
+func (o *Options) removeStateConfig() {
+	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
 }
 

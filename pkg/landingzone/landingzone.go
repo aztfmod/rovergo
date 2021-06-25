@@ -153,7 +153,7 @@ func (o *Options) SetupEnvironment() error {
 
 	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
 	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
-	err := os.MkdirAll(localStatePath, os.ModePerm)
+	err = os.MkdirAll(localStatePath, os.ModePerm)
 	if err != nil {
 		return err
 	}

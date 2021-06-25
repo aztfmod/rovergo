@@ -17,8 +17,8 @@ import (
 
 const actionsFilename = "actions.yaml"
 
-// Action is an custom action implementation which runs external executables
-type Action struct {
+// CAction is an custom action implementation which runs external executables
+type CAction struct {
 	landingzone.ActionBase
 	command actionDefinition
 }
@@ -34,13 +34,13 @@ type actionDefinition struct {
 // This is used to provide the main things you'd want to refer to in a template expression
 type argTemplateContext struct {
 	Options landingzone.Options
-	Action  Action
+	Action  CAction
 	Meta    map[string]string
 }
 
 // This is never called externally, only by calling FetchCustomActions
-func newCustomAction(name string, cad actionDefinition) Action {
-	return Action{
+func newCustomAction(name string, cad actionDefinition) CAction {
+	return CAction{
 		command: cad,
 		ActionBase: landingzone.ActionBase{
 			Name:        name,
@@ -50,7 +50,7 @@ func newCustomAction(name string, cad actionDefinition) Action {
 }
 
 // Execute runs this custom action by running the external executable
-func (a Action) Execute(o *landingzone.Options) error {
+func (a CAction) Execute(o *landingzone.Options) error {
 	console.Successf("Running custom action: %s %s\n", a.GetName(), o.SourcePath)
 	args := []string{}
 

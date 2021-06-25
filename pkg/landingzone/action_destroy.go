@@ -41,8 +41,6 @@ func (a *DestroyAction) Execute(o *Options) error {
 		return nil
 	}
 
-	a.runTerraformInit(o, a.tfexec)
-
 	stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
 
 	// Build apply options, with plan file and state out
@@ -67,7 +65,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 		cobra.CheckErr(err)
 
 		// Reset back to use local state
-		console.Warning("Resetting state to local, have to re-run init")
+		console.Warning("Resetting state to local, have to re-run init without a backend/remote state")
 		err = o.runLaunchpadInit(a.tfexec, true)
 		cobra.CheckErr(err)
 		// This is critical and stops terraform from trying to use remote state

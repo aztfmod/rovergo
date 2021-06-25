@@ -208,9 +208,9 @@ func getIdentity(acct azure.Subscription, targetSubID string) azure.Identity {
 }
 
 // Runs init in the correct mode
-func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
+func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform, forceLocal bool) {
 	var err error
-	if o.LaunchPadMode && c.launchPadStorageID == "" {
+	if (o.LaunchPadMode && c.launchPadStorageID == "") || forceLocal {
 		err = o.runLaunchpadInit(tf, false)
 	} else {
 		err = o.runRemoteInit(tf, c.launchPadStorageID)

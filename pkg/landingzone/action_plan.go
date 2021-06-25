@@ -30,7 +30,6 @@ func NewPlanAction() *PlanAction {
 }
 
 func (a *PlanAction) Execute(o *Options) error {
-
 	var err error
 	a.tfexec, err = a.prepareTerraformCAF(o)
 	if err != nil {
@@ -40,8 +39,6 @@ func (a *PlanAction) Execute(o *Options) error {
 	if o.DryRun {
 		return nil
 	}
-
-	a.runTerraformInit(o, a.tfexec)
 
 	console.Info("Carrying out Terraform plan")
 

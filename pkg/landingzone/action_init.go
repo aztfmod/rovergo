@@ -31,6 +31,6 @@ func (a *InitAction) Execute(o *Options) error {
 		return nil
 	}
 
-	a.runTerraformInit(o, a.tfexec)
+	a.runTerraformInit(o, a.tfexec, false)
 	return nil
 }

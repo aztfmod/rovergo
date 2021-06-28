@@ -7,7 +7,7 @@ finder:
   executable: "find"
   setupEnv: false
   description: "List all terraform"
-  arguments: ["{{SOURCE_DIR}}", "-name", "*.tf"]
+  arguments: ["{{ .Options.SourcePath }}", "-name", "*.tf"]
 
 # This runs tflint
 lint:

@@ -35,13 +35,13 @@ Flags:
   -v, --config-dir string    Configuration directory, you must supply this or config-file
   -c, --config-file string   Configuration file, you must supply this or config-dir
   -d, --dry-run              Execute a dry run where no actions will be executed
-  -e, --environment string   Name of CAF environment
+  -e, --environment string   Name of CAF environment, default "sandpit"
   -h, --help                 help for init
       --launchpad            Run in launchpad mode, i.e. level0
   -l, --level string         CAF landingzone level name, default is all levels
   -s, --source string        Path to source of landingzone
       --state-sub string     Azure subscription ID where state is held
-  -n, --statename string     Name for state and plan files
+  -n, --statename string     Name for state and plan files, default is picked based on source dir name
       --target-sub string    Azure subscription ID to operate on
   -w, --workspace string     Name of workspace
 
@@ -106,6 +106,8 @@ rover destroy --config-dir ./caf-config/level1/myapp --source ./landingzones --l
 rover apply --config-dir ./caf-config/level1/myapp --source ./landingzones --level level1 --environment prod
 ```
 
+**👁‍🗨 Warning.** Despite being optional. It is **STRONGLY** recommended to supply both the `--environment` and `--statename` options when running Rover in ad-hoc mode, this will prevent anything unexpected from happening by Rover picking defaults for these values.
+
 ## Running in "Config file mode" (multi level)
 This mode is intended for use in CI/CD pipelines when multiple levels are being managed at once, and each of those levels contains multiple "stacks". All settings are held within a YAML configuration file (which is [part of project symphony](https://github.com/aztfmod/symphony)). Rover requires either a single level to be specified, or by default all levels are run, all other settings are obtained from the YAML file.
 
@@ -148,28 +150,58 @@ rover destroy --config-file ./symphony.yaml
 
 # Custom Actions
 
-Rover v2 has an extensible CLI and command set. A directory called `./custom_actions/` is located at start up, which is scanned for action definitions in YAML format, these are parsed and loaded.
+Rover v2 has an extensible CLI and command set. A file called `actions.yaml` is located in the rover home directory (see below). This file is scanned for action definitions as rover starts, and can be edited & amended as required.
 
 ## Custom Actions Reference
 
+Each key in the file is used as the name of a new custom action, e.g.
+
 ```yaml
-# Command display name
-name: <command-name>
-# Command executable
-executable: <command>
-# Help text
-description: "Some words here"
-# Args passed to command, supports substitution
-arguments: [ "--foo", "bar" ]
+# This is provided as an example
+finder:
+  executable: "find"
+  setupEnv: false
+  description: "List all terraform"
+  arguments: ["{{ .Options.SourcePath }}", "-name", "*.tf"]
 ```
 
-The `arguments:` section, supports a basic form of dynamic variable substitution with the following strings being replaced at runtime: `{{SOURCE_DIR}}`, `{{CONFIG_DIR}}`, `{{LEVEL}}`, `{{STATE_NAME}}`, `{{CAF_ENV}}`, `{{WORKSPACE}}`
+- `executable` - Is the name of executable or command to run, must be on the system path or fully qualified
+- `setupEnv` - When set to **true** Terraform setup step is done prior to running the command. This configures env vars such as ARM_* and TF_VAR_*, including TF_DATA_DIR to point to the correct location for terraform execution.
+- `description` - Description which will appear in the rover CLI help text
+- `arguments` - An array of strings to pass as arguments to the command, this supports templating
 
-See the [custom_actions directory](../custom_actions/) in the repo.
+The arguments field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
+
+`{{ .Options.SourcePath }}` - is the source terraform path  
+`{{ .Options.ConfigPath }}` - is the path to the config tfvars folder  
+`{{ .Options.StateName }}` - is the name of the state key, plan & state file names and part of DataDir  
+`{{ .Options.CafEnvironment }}` - is the source path value  
+`{{ .Options.Level }}` - is the value of the level being operated on  
+`{{ .Options.Workspace }}` - is the workspace name  
+`{{ .Options.DataDir }}` - is path to the data dir (see below)  
+`{{ .Options.TargetSubscription }}` - is the Azure subscription ID being deployed into  
+`{{ .Options.StateSubscription }}` - is the Azure subscription ID holding state  
+`{{ .Options.Subscription.TenantID }}` - Azure tenant ID being used  
+`{{ .Options.Identity.ObjectID }}` - is object ID of the signed in identity  
+`{{ .Options.Identity.ClientID }}` - is client ID of the signed in identity  
+`{{ .Meta.RoverHome }}` - is the path to the rover home directory  
+
+
+See the [default custom actions file](../pkg/rover/home/actions.yaml/) in the repo.
 
 ## Rover Home Dir
 
-Rover uses `$HOME/.rover` to store data during execution of actions, e.g. as the Terraform data directory, this is created if it doesn't exist at startup.
+Rover uses `$HOME/.rover` to store data during execution of actions, this is created if it doesn't exist at startup. The default files such as actions.yaml and other configs will be placed there upon creation of the directory
+
+The Rover home directory is also used by Terraform when init is run to hold all of the modules, plugins etc and also the state configuration. This is the **TF_DATA_DIR** and it is set as follows:
+
+`<rover-home>/<workspace>/<level>/<statename>`
+
+Example: If a user dbowie was running Rover using a workspace called "live" and level "level2" and a statename of "web" the **TF_DATA_DIR** would be  
+
+`/home/dbowie/.rover/live/level2/web/` 
+
+Within this directory you would expect to see the Terraform modules and providers directories, and also `terraform.tfstate`, and after running a plan the `web.tfplan` file would be here
 
 ---
 

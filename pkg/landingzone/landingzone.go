@@ -79,6 +79,8 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, er
 		}
 	}
 
+	os.Setenv("TF_DATA_DIR", o.DataDir)
+	os.Setenv("TF_VAR_tfstate_key", "")
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
 	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
@@ -91,21 +93,6 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, er
 	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
 	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
-
-	// Default the TF_DATA_DIR to special rover dir
-	dataDir := os.Getenv("TF_DATA_DIR")
-	if dataDir == "" {
-		home, _ := utils.GetRoverDirectory()
-		os.Setenv("TF_DATA_DIR", home)
-	}
-
-	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
-	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
-	err = os.MkdirAll(localStatePath, os.ModePerm)
-	if err != nil {
-		return nil, err
-	}
-	o.OutPath = localStatePath
 
 	// Create new TF exec with the working dir set to source
 	tf, err := tfexec.NewTerraform(o.SourcePath, tfPath)
@@ -275,13 +262,13 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 // Remove files to ensure a clean run
 func (o *Options) cleanUp() {
 	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
-	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
+	_ = os.Remove(o.DataDir + "/" + o.StateName + ".tfstate")
 	//_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
 }
 
 func (o *Options) removeStateConfig() {
-	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
-	_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
+	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
+	_ = os.Remove(o.DataDir + "/terraform.tfstate")
 }
 
 // By copying this file we enable teh azurerm backend and therefore remote state
@@ -340,12 +327,6 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 	}
 
 	console.Success("Connected to launchpad OK")
-	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)
-	console.Debugf(" - TF_VAR_tfstate_storage_account_name=%s\n", lpStorageName)
-	console.Debugf(" - TF_VAR_tfstate_resource_group_name=%s\n", lpStorageResGrp)
-	console.Debugf(" - TF_VAR_lower_storage_account_name=%s\n", lpLowerSAName)
-	console.Debugf(" - TF_VAR_lower_resource_group_name=%s\n", lpLowerResGrp)
-
 	_ = os.Setenv("TF_VAR_tenant_id", lpTenantID)
 	_ = os.Setenv("TF_VAR_tfstate_storage_account_name", lpStorageName)
 	_ = os.Setenv("TF_VAR_tfstate_resource_group_name", lpStorageResGrp)
@@ -355,7 +336,15 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 	_ = os.Setenv("TF_VAR_tfstate_container_name", o.Workspace)
 	_ = os.Setenv("TF_VAR_lower_container_name", o.Workspace)
 	// NOTE: This will have been set by initializeCAF()
-	_ = os.Setenv("TF_VAR_tfstate_key", os.Getenv("TF_VAR_tf_name"))
+	//_ = os.Setenv("TF_VAR_tfstate_key", os.Getenv("TF_VAR_tf_name"))
+	_ = os.Setenv("TF_VAR_tfstate_key", fmt.Sprintf("%s.tfstate", o.StateName))
+
+	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)
+	console.Debugf(" - TF_VAR_tfstate_storage_account_name=%s\n", lpStorageName)
+	console.Debugf(" - TF_VAR_tfstate_resource_group_name=%s\n", lpStorageResGrp)
+	console.Debugf(" - TF_VAR_lower_storage_account_name=%s\n", lpLowerSAName)
+	console.Debugf(" - TF_VAR_lower_resource_group_name=%s\n", lpLowerResGrp)
+	console.Debugf(" - TF_VAR_tfstate_key=%s\n", os.Getenv("TF_VAR_tfstate_key"))
 
 	return nil
 }

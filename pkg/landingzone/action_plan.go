@@ -29,8 +29,6 @@ func NewPlanAction() *PlanAction {
 }
 
 func (a *PlanAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform plan")
-
 	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
@@ -47,7 +45,7 @@ func (a *PlanAction) Execute(o *Options) error {
 	}
 
 	// Build plan options starting with tfplan output
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
+	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
 	planOptions := []tfexec.PlanOption{
 		tfexec.Out(planFile),
 		tfexec.Refresh(true),
@@ -69,7 +67,7 @@ func (a *PlanAction) Execute(o *Options) error {
 	if a.hasChanges {
 		console.Successf("Plan %s contains infrastructure updates\n", planFile)
 	} else {
-		console.Successf("Plan %s detected no changes", planFile)
+		console.Successf("Plan %s detected no changes\n", planFile)
 	}
 	return nil
 }

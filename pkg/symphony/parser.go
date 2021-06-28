@@ -78,6 +78,8 @@ func (c Config) parseStack(level Level, stack *Stack) landingzone.Options {
 	// Safely set the paths up
 	opt.SetSourcePath(sourcePath)
 	opt.SetConfigPath(configPath)
+	err := opt.SetDataDir()
+	cobra.CheckErr(err)
 
 	return opt
 }

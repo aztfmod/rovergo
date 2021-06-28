@@ -28,8 +28,6 @@ func NewDestroyAction() *DestroyAction {
 }
 
 func (a *DestroyAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform destroy")
-
 	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
@@ -39,7 +37,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 		return nil
 	}
 
-	stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+	stateFileName := o.DataDir + "/" + o.StateName + ".tfstate"
 
 	// Build apply options, with plan file and state out
 	destroyOptions := []tfexec.DestroyOption{
@@ -97,8 +95,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 	// Remove files
 	o.cleanUp()
-	o.removeStateConfig()
-	_ = os.RemoveAll(o.OutPath)
+	_ = os.RemoveAll(o.DataDir)
 
 	console.Success("Destroy was successful")
 

@@ -28,15 +28,13 @@ func NewApplyAction() *ApplyAction {
 }
 
 func (a *ApplyAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform apply")
-
 	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
 
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
-	stateFile := fmt.Sprintf("%s/%s.tfstate", o.OutPath, o.StateName)
+	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
+	stateFile := fmt.Sprintf("%s/%s.tfstate", o.DataDir, o.StateName)
 	console.Infof("Apply will use plan file %s\n", planFile)
 
 	// Build apply options, with plan file and state out
@@ -57,7 +55,7 @@ func (a *ApplyAction) Execute(o *Options) error {
 	if o.LaunchPadMode && a.launchPadStorageID != newStorageID {
 		console.Info("Detected the launchpad infrastructure has been deployed or updated")
 
-		stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+		stateFileName := o.DataDir + "/" + o.StateName + ".tfstate"
 		err := azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
 		cobra.CheckErr(err)
 		console.Info("Uploading state from launchpad process to Azure storage")
@@ -66,11 +64,12 @@ func (a *ApplyAction) Execute(o *Options) error {
 		// Why re-init with remote this straight after?
 		// Otherwise we aren't tracking state at all, state will be uploaded to Azure but we won't use it
 		err = o.runRemoteInit(tf, newStorageID)
-		_ = os.Remove(planFile)
 		cobra.CheckErr(err)
 	}
 
 	console.Success("Apply was successful")
+	console.Infof("Removing plan file: %s\n", planFile)
+	_ = os.Remove(planFile)
 
 	return nil
 }

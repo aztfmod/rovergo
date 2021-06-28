@@ -9,7 +9,6 @@ package landingzone
 import (
 	"path/filepath"
 
-	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +28,6 @@ func BuildOptions(cmd *cobra.Command) []Options {
 	stateSub, _ := cmd.Flags().GetString("state-sub")
 	targetSub, _ := cmd.Flags().GetString("target-sub")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
-
-	// This is a 'just in case' default, it will be changed later, when initializeCAF is called
-	outPath, err := utils.GetRoverDirectory()
-	cobra.CheckErr(err)
 
 	// Normally cobra would provide automatic defaults but we are using it in a weird way
 	if level == "" {
@@ -56,7 +51,6 @@ func BuildOptions(cmd *cobra.Command) []Options {
 		Workspace:          ws,
 		TargetSubscription: targetSub,
 		StateSubscription:  stateSub,
-		OutPath:            outPath,
 		DryRun:             dryRun,
 	}
 
@@ -73,6 +67,9 @@ func BuildOptions(cmd *cobra.Command) []Options {
 		// Update the StateName, we have to do this after SetSourcePath is called
 		opt.StateName = stateName
 	}
+
+	err := opt.SetDataDir()
+	cobra.CheckErr(err)
 
 	return []Options{opt}
 }

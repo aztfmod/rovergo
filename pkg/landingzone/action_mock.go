@@ -13,7 +13,7 @@ func (ma MockAction) Execute(o *Options) error {
 	console.Infof("Dry run flag is: %v\n", o.DryRun)
 	console.Infof("Launchpad mode is: %v\n", o.LaunchPadMode)
 	console.Infof("Level is: %s\n", o.Level)
-	console.Infof("Outpath is: %s\n", o.OutPath)
+	console.Infof("DataDir is: %s\n", o.DataDir)
 	console.Infof("Source path is: %s\n", o.SourcePath)
 	console.Infof("State name is: %s\n", o.StateName)
 	console.Infof("State subscription is: %s\n", o.StateSubscription)

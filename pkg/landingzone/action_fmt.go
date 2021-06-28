@@ -25,8 +25,6 @@ func NewFormatAction() *FormatAction {
 }
 
 func (a *FormatAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform format")
-
 	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err

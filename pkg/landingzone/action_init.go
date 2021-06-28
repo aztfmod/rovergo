@@ -1,7 +1,5 @@
 package landingzone
 
-import "github.com/aztfmod/rover/pkg/console"
-
 type InitAction struct {
 	TerraformAction
 }
@@ -19,8 +17,6 @@ func NewInitAction() *InitAction {
 }
 
 func (a *InitAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform init")
-
 	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err

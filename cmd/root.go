@@ -106,6 +106,7 @@ func init() {
 				for _, options := range optionsList {
 					// Now start the action execution...
 					// If an error occurs, depend on downstream code to log messages
+					console.Infof("Executing action %s for %s\n", action.GetName(), options.StateName)
 					err = action.Execute(&options)
 					if err != nil {
 						cobra.CheckErr(err)

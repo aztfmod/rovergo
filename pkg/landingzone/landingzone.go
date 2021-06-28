@@ -31,68 +31,17 @@ const SecretLowerRGName = "lower-resource-group-name"
 
 // Called by all CAF actions to set up Terraform and configure it for CAF landingzones
 func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, error) {
-	// Get current Azure details, subscription etc from CLI
-	acct, err := azure.GetSubscription()
-	cobra.CheckErr(err)
 
-	// If they weren't set already, fall back to logged in account subscription
-	if o.StateSubscription == "" {
-		o.StateSubscription = acct.ID
-	}
-	if o.TargetSubscription == "" {
-		o.TargetSubscription = acct.ID
-	}
-	o.Subscription = *acct
-
-	if o.LaunchPadMode {
-		if o.TargetSubscription != o.StateSubscription {
-			return nil, errors.New("in launchpad mode, state-sub and target-sub must be the same Azure subscription")
-		}
-	}
-
-	// Get the currently signed in identity regardless of type
-	o.Identity = getIdentity(*acct, o.TargetSubscription)
-	console.Successf("Obtained identity successfully.\nWe are signed in as: %s '%s' (%s)\n", o.Identity.ObjectType, o.Identity.DisplayName, o.Identity.ObjectID)
-
-	// Slight hack for now, we set debug on when in dry-run mode
-	if o.DryRun {
-		console.DebugEnabled = true
-	}
-
-	tfPath, err := terraform.Setup()
+	err := o.SetupEnvironment()
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.EqualFold(o.Identity.ObjectType, "servicePrincipal") {
-		os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
-
-		// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
-		if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
-			os.Setenv("ARM_USE_MSI", "true")
-		} else {
-			// Otherwise were using a old fashioned SP and we need the secret to be set outside of rover
-			if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_CERTIFICATE_PATH") == "" {
-				console.Error("When signed in as service principal, you must set ARM_CLIENT_SECRET or ARM_CLIENT_CERTIFICATE_PATH")
-				return nil, errors.New("rover can not continue")
-			}
-		}
+	// Locate terraform
+	tfPath, err := terraform.Setup()
+	if err != nil {
+		return nil, err
 	}
-
-	os.Setenv("TF_DATA_DIR", o.DataDir)
-	os.Setenv("TF_VAR_tfstate_key", "")
-	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
-	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
-	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
-	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
-	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
-	os.Setenv("TF_VAR_workspace", o.Workspace)
-	os.Setenv("TF_VAR_level", o.Level)
-	os.Setenv("TF_VAR_environment", o.CafEnvironment)
-	os.Setenv("TF_VAR_rover_version", version.Value)
-	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
-	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
-	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
 
 	// Create new TF exec with the working dir set to source
 	tf, err := tfexec.NewTerraform(o.SourcePath, tfPath)
@@ -129,13 +78,76 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, er
 		if o.LaunchPadMode {
 			console.Warning("No state storage account found, but running in launchpad mode, we can continue")
 		} else {
-			console.Errorf("No state storage account found for environment '%s' and level %d, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
+			console.Errorf("No state storage account found for environment '%s' and level %s, please deploy a launchpad first!\n", o.CafEnvironment, o.Level)
 			return nil, errors.New("can't deploy a landing zone without a launchpad")
 		}
 	} else {
 		console.Infof("Located state storage account %s\n", c.launchPadStorageID)
 	}
+
 	return tf, nil
+}
+
+// SetupEnvironment for all the terraform env vars AND values in options stuct
+func (o *Options) SetupEnvironment() error {
+	// Get current Azure details, subscription etc from CLI
+	acct, err := azure.GetSubscription()
+	cobra.CheckErr(err)
+
+	// If they weren't set already, fall back to logged in account subscription
+	if o.StateSubscription == "" {
+		o.StateSubscription = acct.ID
+	}
+	if o.TargetSubscription == "" {
+		o.TargetSubscription = acct.ID
+	}
+	o.Subscription = *acct
+
+	if o.LaunchPadMode {
+		if o.TargetSubscription != o.StateSubscription {
+			return errors.New("in launchpad mode, state-sub and target-sub must be the same Azure subscription")
+		}
+	}
+
+	// Get the currently signed in identity regardless of type
+	o.Identity = getIdentity(*acct, o.TargetSubscription)
+	console.Successf("Obtained identity successfully.\nWe are signed in as: %s '%s' (%s)\n", o.Identity.ObjectType, o.Identity.DisplayName, o.Identity.ObjectID)
+
+	// Slight hack for now, we set debug on when in dry-run mode
+	if o.DryRun {
+		console.DebugEnabled = true
+	}
+
+	if strings.EqualFold(o.Identity.ObjectType, "servicePrincipal") {
+		os.Setenv("ARM_CLIENT_ID", o.Identity.ClientID)
+
+		// the AssignedIdentityInfo starts with "MSI" for both system assigned and user assigned
+		if strings.HasPrefix(acct.User.AssignedIdentityInfo, "MSI") {
+			os.Setenv("ARM_USE_MSI", "true")
+		} else {
+			// Otherwise were using a old fashioned SP and we need the secret to be set outside of rover
+			if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_CERTIFICATE_PATH") == "" {
+				return errors.New("when signed in as service principal, you must set ARM_CLIENT_SECRET or ARM_CLIENT_CERTIFICATE_PATH")
+			}
+		}
+	}
+
+	os.Setenv("TF_DATA_DIR", o.DataDir)
+	os.Setenv("TF_VAR_tfstate_key", "")
+	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
+	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
+	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
+	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
+	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
+	os.Setenv("TF_VAR_workspace", o.Workspace)
+	os.Setenv("TF_VAR_level", o.Level)
+	os.Setenv("TF_VAR_environment", o.CafEnvironment)
+	os.Setenv("TF_VAR_rover_version", version.Value)
+	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
+	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
+	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
+
+	return nil
 }
 
 // Try to get our identity which might be user, managed-identity or service principal

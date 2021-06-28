@@ -13,6 +13,7 @@ import (
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
@@ -56,6 +57,13 @@ func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
 
 	command.ValidateDependencies()
+
+	// Ensure rover home exists and create the default contents
+	_, err := rover.HomeDirectory()
+	if err != nil {
+		console.Errorf("Problem with rover home directory: %s\n", err)
+		os.Exit(1)
+	}
 
 	// Find and load in custom actions
 	custActions, err := custom.FetchActions()

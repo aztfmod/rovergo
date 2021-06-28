@@ -1,0 +1,25 @@
+#
+# Rover custom actions definitions for running external tools
+#
+
+# This is provided as an example
+finder:
+  executable: "find"
+  setupEnv: false
+  description: "List all terraform"
+  arguments: ["{{SOURCE_DIR}}", "-name", "*.tf"]
+
+# This runs tflint
+lint:
+  executable: "tflint"
+  setupEnv: true
+  description: "Run the linter"
+  arguments:
+    ["{{ .Options.SourcePath }}", "--config={{ .Meta.RoverHome }}/tflint.hcl"]
+
+# This initializes tflint
+lint-init:
+  executable: "tflint"
+  setupEnv: true
+  description: "Initalise the linter"
+  arguments: ["--init", "--config={{ .Meta.RoverHome }}/tflint.hcl"]

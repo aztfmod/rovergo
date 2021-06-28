@@ -1,5 +1,4 @@
 landingzones/
-rover
 bin/
 .terraform*
 *.tfstate

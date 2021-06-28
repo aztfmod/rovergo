@@ -16,7 +16,7 @@ import (
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/spf13/cobra"
 )
 
@@ -92,7 +92,7 @@ func (o *Options) SetConfigPath(configPath string) {
 }
 
 func (o *Options) SetDataDir() error {
-	roverHome, err := utils.GetRoverDirectory()
+	roverHome, err := rover.HomeDirectory()
 	if err != nil {
 		return err
 	}

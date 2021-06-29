@@ -282,7 +282,7 @@ func (o *Options) cleanUp() {
 // Remove the remote state configuration
 // TODO: This may require future changes please leave the commented out lines
 func (o *Options) removeStateConfig() {
-	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
+	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.DataDir + "/terraform.tfstate")
 }
 

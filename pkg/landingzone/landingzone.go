@@ -272,12 +272,15 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 }
 
 // Remove files to ensure a clean run
+// TODO: This may require future changes please leave the commented out lines
 func (o *Options) cleanUp() {
 	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.DataDir + "/" + o.StateName + ".tfstate")
-	//_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
+	//_ = os.Remove(o.DataDir + "/terraform.tfstate")
 }
 
+// Remove the remote state configuration
+// TODO: This may require future changes please leave the commented out lines
 func (o *Options) removeStateConfig() {
 	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
 	_ = os.Remove(o.DataDir + "/terraform.tfstate")

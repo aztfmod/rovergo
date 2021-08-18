@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM golang:1.17.0-buster
 
 ARG TERRAFORM_VERSION=1.0.0
 ARG TFLINT_VERSION=0.29.1

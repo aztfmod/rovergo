@@ -7,6 +7,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"fmt"
 	"io"
 	"os"
 
@@ -43,4 +45,15 @@ func CopyFile(src string, dest string) error {
 
 	console.Debugf("Completed copying file '%s' to '%s' (%d bytes)", src, dest, bytesWritten)
 	return nil
+}
+
+func GenerateRandomGUID() string {
+	b := make([]byte, 16)
+
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }

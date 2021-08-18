@@ -4,7 +4,7 @@
   // Intended for Rover maintainers only
   //
   "name": "Rover v2 Dev",
-  "image": "symphonydev.azurecr.io/rover2-dev:latest",
+  "dockerFile": "Dockerfile",
   "remoteUser": "rover",
   "runArgs": ["--init"],
   // TODO: This needs more work, see https://github.com/microsoft/vscode-dev-containers/tree/main/containers/docker-from-docker#enabling-non-root-access-to-docker-in-the-container

@@ -2,8 +2,6 @@
 
 set -e
 
-./scripts/pre_requisites.sh
-
 params=( $@ )
 tag_date_preview=$(date +"%g%m.%d%H%M")
 tag_date_release=$(date +"%g%m.%d%H")

@@ -20,4 +20,3 @@ fi
 
 # Most of the variables are retrieved from VSTS_AGENT_INPUT_*
 ./config.sh --acceptTeeEula --replace --unattended && ./run.sh $VSTS_AGENT_INPUT_RUN_ARGS
-

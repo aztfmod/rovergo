@@ -48,8 +48,6 @@ ENV SSH_PASSWD=${SSH_PASSWD} \
 
 WORKDIR /tf/rover
 COPY ./.pip_to_patch_latest .
-COPY ./scripts/.kubectl_aliases .
-COPY ./scripts/zsh-autosuggestions.zsh .
 
 # installation common tools
 RUN apt-get update && \
@@ -271,21 +269,6 @@ RUN mkdir -p /tf/caf \
     echo "[ -f /tf/rover/.kubectl_aliases ] && source /tf/rover/.kubectl_aliases" >>  "/home/${USERNAME}/.bashrc" && \
     echo "alias watch=\"watch \"" >> "/home/${USERNAME}/.bashrc"
 
-
-
-COPY ./scripts/rover.sh .
-COPY ./scripts/tfstate_azurerm.sh .
-COPY ./scripts/functions.sh .
-COPY ./scripts/banner.sh .
-COPY ./scripts/clone.sh .
-COPY ./scripts/walkthrough.sh .
-COPY ./scripts/sshd.sh .
-COPY ./scripts/backend.hcl.tf .
-COPY ./scripts/ci.sh .
-COPY ./scripts/cd.sh .
-COPY ./scripts/task.sh .
-COPY ./scripts/symphony_yaml.sh .
-COPY ./scripts/test_runner.sh .
 COPY ./scripts/ci_tasks/* ./ci_tasks/
 COPY ./scripts/lib/* ./lib/
 #
@@ -295,7 +278,6 @@ COPY ./scripts/lib/* ./lib/
 USER ${USERNAME}
 
 COPY .devcontainer/.zshrc $HOME
-COPY ./scripts/sshd_config /home/${USERNAME}/.ssh/sshd_config
 
 #
 # ssh server for Azure ACI

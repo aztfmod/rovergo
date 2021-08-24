@@ -31,5 +31,4 @@ LABELS+=$(cat /tf/rover/version.txt)
   --labels ${LABELS} \
   --name ${AGENT_NAME} \
 
-
 ./run.sh

@@ -30,4 +30,4 @@ gitlab-runner register \
   --request-concurrency 1 \
   --tag-list ${LABELS}
 
-  /usr/local/bin/gitlab-runner run
+/usr/local/bin/gitlab-runner run

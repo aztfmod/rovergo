@@ -269,8 +269,6 @@ RUN mkdir -p /tf/caf \
     echo "[ -f /tf/rover/.kubectl_aliases ] && source /tf/rover/.kubectl_aliases" >>  "/home/${USERNAME}/.bashrc" && \
     echo "alias watch=\"watch \"" >> "/home/${USERNAME}/.bashrc"
 
-COPY ./scripts/ci_tasks/* ./ci_tasks/
-COPY ./scripts/lib/* ./lib/
 #
 # Switch to non-root ${USERNAME} context
 #

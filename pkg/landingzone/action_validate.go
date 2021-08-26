@@ -15,7 +15,6 @@ func NewValidateAction() *ValidateAction {
 	return &ValidateAction{
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "validate",
 				Description: "Perform a terraform validate",
@@ -27,8 +26,7 @@ func NewValidateAction() *ValidateAction {
 func (a *ValidateAction) Execute(o *Options) error {
 	console.Info("Carrying out Terraform validate")
 
-	var err error
-	a.tfexec, err = a.prepareTerraformCAF(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
@@ -38,7 +36,7 @@ func (a *ValidateAction) Execute(o *Options) error {
 	}
 
 	console.StartSpinner()
-	out, err := a.tfexec.Validate(context.Background())
+	out, err := tf.Validate(context.Background())
 	cobra.CheckErr(err)
 	console.StopSpinner()
 

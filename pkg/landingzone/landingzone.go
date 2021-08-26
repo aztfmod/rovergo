@@ -16,7 +16,6 @@ import (
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
-	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/terraform"
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
@@ -85,6 +84,7 @@ func (c *TerraformAction) prepareTerraformCAF(o *Options) (*tfexec.Terraform, er
 	} else {
 		console.Infof("Located state storage account %s\n", c.launchPadStorageID)
 	}
+
 	return tf, nil
 }
 
@@ -132,6 +132,8 @@ func (o *Options) SetupEnvironment() error {
 		}
 	}
 
+	os.Setenv("TF_DATA_DIR", o.DataDir)
+	os.Setenv("TF_VAR_tfstate_key", "")
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
 	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
@@ -144,21 +146,6 @@ func (o *Options) SetupEnvironment() error {
 	os.Setenv("TF_VAR_tenant_id", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_user_type", o.Identity.ObjectType)
 	os.Setenv("TF_VAR_logged_user_objectId", o.Identity.ObjectID)
-
-	// Default the TF_DATA_DIR to special rover dir
-	dataDir := os.Getenv("TF_DATA_DIR")
-	if dataDir == "" {
-		home, _ := rover.HomeDirectory()
-		os.Setenv("TF_DATA_DIR", home)
-	}
-
-	// Create local state/plan folder, rover puts this in a opinionated place, for reasons I don't understand
-	localStatePath := fmt.Sprintf("%s/tfstates/%s/%s", os.Getenv("TF_DATA_DIR"), o.Level, o.Workspace)
-	err = os.MkdirAll(localStatePath, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	o.OutPath = localStatePath
 
 	return nil
 }
@@ -220,9 +207,11 @@ func getIdentity(acct azure.Subscription, targetSubID string) azure.Identity {
 }
 
 // Runs init in the correct mode
-func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
+func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform, forceLocal bool) {
 	var err error
-	if o.LaunchPadMode && c.launchPadStorageID == "" {
+	o.removeStateConfig()
+
+	if (o.LaunchPadMode && c.launchPadStorageID == "") || forceLocal {
 		err = o.runLaunchpadInit(tf, false)
 	} else {
 		err = o.runRemoteInit(tf, c.launchPadStorageID)
@@ -232,11 +221,11 @@ func (c TerraformAction) runTerraformInit(o *Options, tf *tfexec.Terraform) {
 
 // Carry out Terraform init operation in launchpad mode has no backend state
 func (o *Options) runLaunchpadInit(tf *tfexec.Terraform, reconfigure bool) error {
-	console.Info("Running init for launchpad")
+	console.Info("Running init for launchpad (local state)")
 
 	console.StartSpinner()
 	// Validate that the identity we are using is owner on subscription, not sure why but it's in rover v1 code
-	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription, o.Subscription.TenantID)
+	isOwner, err := azure.CheckIsOwner(o.Identity.ObjectID, o.StateSubscription)
 	cobra.CheckErr(err)
 	if !isOwner {
 		console.StopSpinner()
@@ -282,12 +271,19 @@ func (o *Options) runRemoteInit(tf *tfexec.Terraform, storageID string) error {
 	return err
 }
 
-// Remove files to ensure a clean run, state and plan files are recreated
+// Remove files to ensure a clean run
+// TODO: This may require future changes please leave the commented out lines
 func (o *Options) cleanUp() {
+	//_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
+	_ = os.Remove(o.DataDir + "/" + o.StateName + ".tfstate")
+	//_ = os.Remove(o.DataDir + "/terraform.tfstate")
+}
+
+// Remove the remote state configuration
+// TODO: This may require future changes please leave the commented out lines
+func (o *Options) removeStateConfig() {
 	_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
-	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfstate")
-	_ = os.Remove(o.OutPath + "/" + o.StateName + ".tfplan")
-	_ = os.Remove(os.Getenv("TF_DATA_DIR") + "/terraform.tfstate")
+	_ = os.Remove(o.DataDir + "/terraform.tfstate")
 }
 
 // By copying this file we enable teh azurerm backend and therefore remote state
@@ -346,12 +342,6 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 	}
 
 	console.Success("Connected to launchpad OK")
-	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)
-	console.Debugf(" - TF_VAR_tfstate_storage_account_name=%s\n", lpStorageName)
-	console.Debugf(" - TF_VAR_tfstate_resource_group_name=%s\n", lpStorageResGrp)
-	console.Debugf(" - TF_VAR_lower_storage_account_name=%s\n", lpLowerSAName)
-	console.Debugf(" - TF_VAR_lower_resource_group_name=%s\n", lpLowerResGrp)
-
 	_ = os.Setenv("TF_VAR_tenant_id", lpTenantID)
 	_ = os.Setenv("TF_VAR_tfstate_storage_account_name", lpStorageName)
 	_ = os.Setenv("TF_VAR_tfstate_resource_group_name", lpStorageResGrp)
@@ -361,7 +351,15 @@ func (o *Options) connectToLaunchPad(lpStorageID string) error {
 	_ = os.Setenv("TF_VAR_tfstate_container_name", o.Workspace)
 	_ = os.Setenv("TF_VAR_lower_container_name", o.Workspace)
 	// NOTE: This will have been set by initializeCAF()
-	_ = os.Setenv("TF_VAR_tfstate_key", os.Getenv("TF_VAR_tf_name"))
+	//_ = os.Setenv("TF_VAR_tfstate_key", os.Getenv("TF_VAR_tf_name"))
+	_ = os.Setenv("TF_VAR_tfstate_key", fmt.Sprintf("%s.tfstate", o.StateName))
+
+	console.Debugf(" - TF_VAR_tenant_id=%s\n", lpTenantID)
+	console.Debugf(" - TF_VAR_tfstate_storage_account_name=%s\n", lpStorageName)
+	console.Debugf(" - TF_VAR_tfstate_resource_group_name=%s\n", lpStorageResGrp)
+	console.Debugf(" - TF_VAR_lower_storage_account_name=%s\n", lpLowerSAName)
+	console.Debugf(" - TF_VAR_lower_resource_group_name=%s\n", lpLowerResGrp)
+	console.Debugf(" - TF_VAR_tfstate_key=%s\n", os.Getenv("TF_VAR_tfstate_key"))
 
 	return nil
 }

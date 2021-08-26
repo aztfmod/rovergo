@@ -20,7 +20,6 @@ func NewPlanAction() *PlanAction {
 		hasChanges: false,
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "plan",
 				Description: "Perform a terraform plan",
@@ -30,9 +29,7 @@ func NewPlanAction() *PlanAction {
 }
 
 func (a *PlanAction) Execute(o *Options) error {
-
-	var err error
-	a.tfexec, err = a.prepareTerraformCAF(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
@@ -41,10 +38,6 @@ func (a *PlanAction) Execute(o *Options) error {
 		return nil
 	}
 
-	a.runTerraformInit(o, a.tfexec)
-
-	console.Info("Carrying out Terraform plan")
-
 	// Connect to launchpad, setting all the vars needed by the landingzone
 	if !o.LaunchPadMode {
 		err := o.connectToLaunchPad(a.launchPadStorageID)
@@ -52,7 +45,7 @@ func (a *PlanAction) Execute(o *Options) error {
 	}
 
 	// Build plan options starting with tfplan output
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
+	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
 	planOptions := []tfexec.PlanOption{
 		tfexec.Out(planFile),
 		tfexec.Refresh(true),
@@ -68,13 +61,13 @@ func (a *PlanAction) Execute(o *Options) error {
 	}
 
 	console.StartSpinner()
-	a.hasChanges, err = a.tfexec.Plan(context.Background(), planOptions...)
+	a.hasChanges, err = tf.Plan(context.Background(), planOptions...)
 	console.StopSpinner()
 	cobra.CheckErr(err)
 	if a.hasChanges {
-		console.Success("Plan contains infrastructure updates")
+		console.Successf("Plan %s contains infrastructure updates\n", planFile)
 	} else {
-		console.Success("Plan detected no changes")
+		console.Successf("Plan %s detected no changes\n", planFile)
 	}
 	return nil
 }

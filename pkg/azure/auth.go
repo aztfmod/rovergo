@@ -33,7 +33,7 @@ func GetAuthorizer() (autorest.Authorizer, error) {
 }
 
 // CheckIsOwner returns if the given objectId is assigned Owner role on the given subscription
-func CheckIsOwner(objectID string, subID string, tenantID string) (bool, error) {
+func CheckIsOwner(objectID string, subID string) (bool, error) {
 	client := authorization.NewRoleAssignmentsClient(subID)
 	authorizer, err := GetAuthorizer()
 	if err != nil {

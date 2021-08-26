@@ -19,7 +19,6 @@ func NewApplyAction() *ApplyAction {
 	return &ApplyAction{
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "apply",
 				Description: "Perform a terraform plan & apply",
@@ -29,27 +28,14 @@ func NewApplyAction() *ApplyAction {
 }
 
 func (a *ApplyAction) Execute(o *Options) error {
-	planAction := NewPlanAction()
-	// depend on logs from downstream code if error occurs
-	err := planAction.Execute(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
 
-	if !planAction.hasChanges {
-		console.Success("Plan resulted in no changes, apply will be skipped")
-		return nil
-	}
-
-	console.Info("Carrying out Terraform apply")
-
-	// We pull these from the previous action, which is a special case
-	// But saves us re-running prepareTerraformCAF, or
-	a.tfexec = planAction.tfexec
-	a.launchPadStorageID = planAction.launchPadStorageID
-
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.OutPath, o.StateName)
-	stateFile := fmt.Sprintf("%s/%s.tfstate", o.OutPath, o.StateName)
+	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
+	stateFile := fmt.Sprintf("%s/%s.tfstate", o.DataDir, o.StateName)
+	console.Infof("Apply will use plan file %s\n", planFile)
 
 	// Build apply options, with plan file and state out
 	applyOptions := []tfexec.ApplyOption{
@@ -59,7 +45,7 @@ func (a *ApplyAction) Execute(o *Options) error {
 	}
 
 	console.StartSpinner()
-	err = a.tfexec.Apply(context.Background(), applyOptions...)
+	err = tf.Apply(context.Background(), applyOptions...)
 	console.StopSpinner()
 	cobra.CheckErr(err)
 
@@ -69,14 +55,21 @@ func (a *ApplyAction) Execute(o *Options) error {
 	if o.LaunchPadMode && a.launchPadStorageID != newStorageID {
 		console.Info("Detected the launchpad infrastructure has been deployed or updated")
 
-		stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+		stateFileName := o.DataDir + "/" + o.StateName + ".tfstate"
 		err := azure.UploadFileToBlob(newStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
 		cobra.CheckErr(err)
 		console.Info("Uploading state from launchpad process to Azure storage")
 		os.Remove(stateFileName)
+
+		// Why re-init with remote this straight after?
+		// Otherwise we aren't tracking state at all, state will be uploaded to Azure but we won't use it
+		err = o.runRemoteInit(tf, newStorageID)
+		cobra.CheckErr(err)
 	}
 
 	console.Success("Apply was successful")
+	console.Infof("Removing plan file: %s\n", planFile)
+	_ = os.Remove(planFile)
 
 	return nil
 }

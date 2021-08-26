@@ -16,6 +16,7 @@ import (
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ type Options struct {
 	TargetSubscription string
 	StateSubscription  string
 	Impersonate        bool
-	OutPath            string
+	DataDir            string
 	DryRun             bool
 	Subscription       azure.Subscription
 	Identity           azure.Identity
@@ -88,6 +89,22 @@ func (o *Options) SetConfigPath(configPath string) {
 		console.Errorf("Unable to open config directory: %s\n", o.ConfigPath)
 		cobra.CheckErr("Config directory must exist for rover to run")
 	}
+}
+
+func (o *Options) SetDataDir() error {
+	roverHome, err := rover.HomeDirectory()
+	if err != nil {
+		return err
+	}
+	// Build the data directory under the rover home
+	// The hierarchy is: ~/.rover/workspace/level/statename
+	o.DataDir = filepath.Join(roverHome, o.Workspace, o.Level, o.StateName)
+	err = os.MkdirAll(o.DataDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	console.Infof("Terraform data directory is set to: %s\n", o.DataDir)
+	return nil
 }
 
 func (o *Options) Debug() {

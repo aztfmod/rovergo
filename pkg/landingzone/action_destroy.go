@@ -19,7 +19,6 @@ func NewDestroyAction() *DestroyAction {
 	return &DestroyAction{
 		TerraformAction: TerraformAction{
 			launchPadStorageID: "",
-			tfexec:             nil,
 			ActionBase: ActionBase{
 				Name:        "destroy",
 				Description: "Perform a terraform destroy",
@@ -29,10 +28,7 @@ func NewDestroyAction() *DestroyAction {
 }
 
 func (a *DestroyAction) Execute(o *Options) error {
-	console.Info("Carrying out Terraform destroy")
-
-	var err error
-	a.tfexec, err = a.prepareTerraformCAF(o)
+	tf, err := a.prepareTerraformCAF(o)
 	if err != nil {
 		return err
 	}
@@ -41,9 +37,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 		return nil
 	}
 
-	a.runTerraformInit(o, a.tfexec)
-
-	stateFileName := o.OutPath + "/" + o.StateName + ".tfstate"
+	stateFileName := o.DataDir + "/" + o.StateName + ".tfstate"
 
 	// Build apply options, with plan file and state out
 	destroyOptions := []tfexec.DestroyOption{
@@ -61,14 +55,15 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 		// It's critical to remove/cleanup local storage
 		o.cleanUp()
+		o.removeStateConfig()
 
 		// Download the current state
 		err := azure.DownloadFileFromBlob(a.launchPadStorageID, o.Workspace, o.StateName+".tfstate", stateFileName)
 		cobra.CheckErr(err)
 
 		// Reset back to use local state
-		console.Warning("Resetting state to local, have to re-run init")
-		err = o.runLaunchpadInit(a.tfexec, true)
+		console.Warning("Resetting state to local, have to re-run init without a backend/remote state")
+		err = o.runLaunchpadInit(tf, true)
 		cobra.CheckErr(err)
 		// This is critical and stops terraform from trying to use remote state
 		_ = os.Remove(o.SourcePath + "/backend.azurerm.tf")
@@ -94,13 +89,13 @@ func (a *DestroyAction) Execute(o *Options) error {
 
 	console.Warning("Destroy is now running ...")
 	console.StartSpinner()
-	err = a.tfexec.Destroy(context.Background(), destroyOptions...)
+	err = tf.Destroy(context.Background(), destroyOptions...)
 	console.StopSpinner()
 	cobra.CheckErr(err)
 
 	// Remove files
 	o.cleanUp()
-	_ = os.RemoveAll(o.OutPath)
+	_ = os.RemoveAll(o.DataDir)
 
 	console.Success("Destroy was successful")
 

@@ -13,6 +13,8 @@ IMAGE_TAG ?= latest
 REPO_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 GOLINT_PATH := $(REPO_DIR)/bin/golangci-lint # golangci-lint is a nightmare to run in a pipeline
 
+default: ci
+
 help: ## 💬 This help message :)
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
@@ -40,20 +42,17 @@ clean: ## 🧹 Cleanup project
 	rm -rf landingzones
 	go mod tidy
 
-image-dev: ## 📦 Build the devcontainer image for Rover dev work
-	docker build .devcontainer --file .devcontainer/Dockerfile \
-	--tag $(IMAGE_REG)/$(IMAGE_REPO)-dev:$(IMAGE_TAG) \
-	--build-arg INSTALL_GO=true \
-	--build-arg INSTALL_DOCKER=false \
-	--build-arg ROVER_VERSION=
+github:
+	@bash "$(CURDIR)/scripts/build_image.sh" "github"
 
-image: ## 📦 Build the devcontainer image for Rover end users
-	docker build .devcontainer --file .devcontainer/Dockerfile \
-	--tag $(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG) \
-	--build-arg INSTALL_GO=false \
-	--build-arg INSTALL_DOCKER=false \
-	--build-arg ROVER_VERSION=latest
+local:
+	@bash "$(CURDIR)/scripts/build_image.sh" "local"
 
-push: ## 🔼 Push the devcontainer images
-	docker push $(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
-	docker push $(IMAGE_REG)/$(IMAGE_REPO)-dev:$(IMAGE_TAG)
+dev:
+	@bash "$(CURDIR)/scripts/build_image.sh" "dev"
+
+ci:
+	@bash "$(CURDIR)/scripts/build_image.sh" "ci"
+
+alpha:
+	@bash "$(CURDIR)/scripts/build_image.sh" "alpha"

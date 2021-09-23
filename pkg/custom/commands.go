@@ -98,7 +98,7 @@ func validateCustomCommands(customCommands map[string]Command) error {
 		exists := contains(actions.ActionMap, commandName)
 
 		if exists {
-			return errors.New("custom command name cannot be the same as a builtin command")
+			return fmt.Errorf("custom command name (%s) cannot be the same as a builtin command", commandName)
 		}
 	}
 
@@ -110,14 +110,14 @@ func validateGroups(groups map[string][]string) error {
 		exists := contains(actions.ActionMap, groupName)
 
 		if exists {
-			return errors.New("group name cannot be the same as a builtin command")
+			return fmt.Errorf("group name (%s) cannot be the same as a builtin command", groupName)
 		}
 
 		for _, commandName := range group {
 			exists := contains(actions.ActionMap, commandName)
 
 			if !exists {
-				return errors.New("group command name must be exist in builtin commands")
+				return fmt.Errorf("group command name (%s) must be exist in builtin commands", commandName)
 			}
 		}
 	}

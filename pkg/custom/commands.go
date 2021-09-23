@@ -64,6 +64,10 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		}
 	}
 
+	// if the file exists, but empty, return an empty list of commands
+	if fileInfo.Size() == 0 {
+		return nil, nil
+	}
 
 	return
 }

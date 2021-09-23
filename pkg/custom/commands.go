@@ -14,3 +14,16 @@ import (
 
 const commandsFileName = "commands.yml"
 
+
+type Command struct {
+	ExecutableName string `yaml:"executableName"`
+	SubCommand     string `yaml:"subCommand"`
+	Flags          string `yaml:"flags"`
+	Debug          bool   `yaml:"debug"`
+	RequiresInit   bool   `yaml:"requiresInit"`
+	Parameters     []struct {
+		Name   string `yaml:"name"`
+		Value  bool   `yaml:"value"`
+		Prefix string `yaml:"prefix"`
+	} `yaml:"parameters"`
+}

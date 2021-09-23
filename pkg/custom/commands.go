@@ -48,6 +48,14 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	// Checks if the commands file exists in the current working directory
 	if fileInfo, err = os.Stat(commandsFilePath); os.IsNotExist(err) {
 
+		// If the file does not exist, get the rover home directory
+		roverHomeDir, err := rover.HomeDirectory()
+		if err != nil {
+			return nil, err
+		}
+		// e.g. ~/.rover/commands.yml
+		commandsFilePath = filepath.Join(roverHomeDir, commandsFileName)
+
 	}
 
 

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aztfmod/rover/pkg/builtin_actions"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
@@ -54,7 +55,7 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 	assert.Equal(t, optionsList[0].LaunchPadMode, true)
 
 	getActionMap()
-	action := ActionMap["mock"]
+	action := builtin_actions.ActionMap["mock"]
 	_ = action.Execute(&optionsList[0])
 
 }
@@ -66,9 +67,9 @@ func getActionMap() {
 		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		ActionMap[ca.GetName()] = ca
+		builtin_actions.ActionMap[ca.GetName()] = ca
 	}
-	ActionMap["mock"] = NewMockAction()
+	builtin_actions.ActionMap["mock"] = NewMockAction()
 }
 
 func NewMockAction() *landingzone.MockAction {

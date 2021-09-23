@@ -67,7 +67,7 @@ func init() {
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range ActionMap {
+	for name, action := range builtin_actions.ActionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
 			Short: action.GetDescription(),
@@ -76,7 +76,7 @@ func init() {
 			Run: func(cmd *cobra.Command, args []string) {
 				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
 				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = ActionMap[cmd.Name()]
+				action = builtin_actions.ActionMap[cmd.Name()]
 
 				configFile, _ := cmd.Flags().GetString("config-file")
 				configPath, _ := cmd.Flags().GetString("config-dir")

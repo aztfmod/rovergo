@@ -31,3 +31,11 @@ type Command struct {
 		Prefix string `yaml:"prefix"`
 	} `yaml:"parameters"`
 }
+
+// LoadCustomCommandsAndGroups is called by root cmd during init
+// It finds all the custom action definitions and returns them to be plugged into the CLI
+func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
+
+	return
+}
+

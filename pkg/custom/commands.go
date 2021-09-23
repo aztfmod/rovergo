@@ -11,3 +11,6 @@ import (
 	"github.com/aztfmod/rover/pkg/rover"
 	"gopkg.in/yaml.v2"
 )
+
+const commandsFileName = "commands.yml"
+

@@ -10,7 +10,7 @@ The high level goals & objectives of this project:
 - Remove dependency on hardcoded paths and other limitations that Rover v1 had.
 - Provide standalone binaries (Linux, Windows, MacOS) as well as devcontainer support
 
-Note. This version is not backwards compatible with the previous rover v1 tool
+Note. This version is not backwards compatible with the previous Rover v1 tool
 
 ## 🥇 Intro To Rover
 

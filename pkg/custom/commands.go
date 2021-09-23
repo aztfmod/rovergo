@@ -109,3 +109,11 @@ func validateGroups(groups map[string][]string) error {
 	return nil
 }
 
+func contains(arr map[string]landingzone.Action, str string) bool {
+	for _, a := range arr {
+		if a.GetName() == str {
+			return true
+		}
+	}
+	return false
+}

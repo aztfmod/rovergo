@@ -1,4 +1,4 @@
-package builtin_actions
+package actions
 
 import "github.com/aztfmod/rover/pkg/landingzone"
 

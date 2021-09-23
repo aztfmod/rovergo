@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aztfmod/rover/pkg/builtin_actions"
+	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	rovertesting "github.com/aztfmod/rover/pkg/testing"
@@ -111,7 +111,7 @@ func TestIntegration_VM_UserAssigned_SubOwner_Role(t *testing.T) {
 
 	optionsList := landingzone.BuildOptions(testCmd)
 
-	action := builtin_actions.ActionMap[testCmd.Name()]
+	action := actions.ActionMap[testCmd.Name()]
 	_ = action.Execute(&optionsList[0])
 
 	assert.Equal(t, "servicePrincipal", optionsList[0].Identity.ObjectType)
@@ -178,7 +178,7 @@ func TestIntegration_VM_SystemAssigned_SubOwner_Role(t *testing.T) {
 
 	optionsList := landingzone.BuildOptions(testCmd)
 
-	action := builtin_actions.ActionMap[testCmd.Name()]
+	action := actions.ActionMap[testCmd.Name()]
 	err = action.Execute(&optionsList[0])
 
 	assert.NoError(t, err)
@@ -216,7 +216,7 @@ func TestIntegration_VM_SPN_SubOwner_Role(t *testing.T) {
 	optionsList := landingzone.BuildOptions(testCmd)
 
 	os.Setenv("ARM_CLIENT_SECRET", "A")
-	action := builtin_actions.ActionMap[testCmd.Name()]
+	action := actions.ActionMap[testCmd.Name()]
 	err = action.Execute(&optionsList[0])
 
 	assert.NoError(t, err)

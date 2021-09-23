@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/aztfmod/rover/pkg/builtin_actions"
+	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
 	"gopkg.in/yaml.v2"
@@ -89,7 +89,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 
 func validateCustomCommands(customCommands map[string]Command) error {
 	for commandName := range customCommands {
-		exists := contains(builtin_actions.ActionMap, commandName)
+		exists := contains(actions.ActionMap, commandName)
 
 		if exists {
 			return errors.New("custom command name cannot be the same as a builtin command")
@@ -101,14 +101,14 @@ func validateCustomCommands(customCommands map[string]Command) error {
 
 func validateGroups(groups map[string][]string) error {
 	for groupName, group := range groups {
-		exists := contains(builtin_actions.ActionMap, groupName)
+		exists := contains(actions.ActionMap, groupName)
 
 		if exists {
 			return errors.New("group name cannot be the same as a builtin command")
 		}
 
 		for _, commandName := range group {
-			exists := contains(builtin_actions.ActionMap, commandName)
+			exists := contains(actions.ActionMap, commandName)
 
 			if !exists {
 				return errors.New("group command name must be exist in builtin commands")

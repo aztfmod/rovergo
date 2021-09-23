@@ -9,7 +9,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/aztfmod/rover/pkg/builtin_actions"
+	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
@@ -63,11 +63,11 @@ func init() {
 		os.Exit(1)
 	}
 	for _, ca := range commands {
-		builtin_actions.ActionMap[ca.GetName()] = ca
+		actions.ActionMap[ca.GetName()] = ca
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range builtin_actions.ActionMap {
+	for name, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
 			Short: action.GetDescription(),
@@ -76,7 +76,7 @@ func init() {
 			Run: func(cmd *cobra.Command, args []string) {
 				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
 				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = builtin_actions.ActionMap[cmd.Name()]
+				action = actions.ActionMap[cmd.Name()]
 
 				configFile, _ := cmd.Flags().GetString("config-file")
 				configPath, _ := cmd.Flags().GetString("config-dir")

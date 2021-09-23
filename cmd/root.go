@@ -9,6 +9,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/aztfmod/rover/pkg/builtin_actions"
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
@@ -18,16 +19,6 @@ import (
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 )
-
-// ActionMap is exported so tests can use
-var ActionMap = map[string]landingzone.Action{
-	"init":     landingzone.NewInitAction(),
-	"plan":     landingzone.NewPlanAction(),
-	"apply":    landingzone.NewApplyAction(),
-	"destroy":  landingzone.NewDestroyAction(),
-	"validate": landingzone.NewValidateAction(),
-	"fmt":      landingzone.NewFormatAction(),
-}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

@@ -14,6 +14,10 @@ import (
 
 const commandsFileName = "commands.yml"
 
+type yamlDefinition struct {
+	Commands map[string]Command  `yaml:"commands"`
+	Groups   map[string][]string `yaml:"groups"`
+}
 
 type Command struct {
 	ExecutableName string `yaml:"executableName"`

@@ -82,6 +82,8 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	}
 
 	validateCustomCommands(ymlDefinition.Commands)
+	validateGroups(ymlDefinition.Groups)
+
 	return
 }
 

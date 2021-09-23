@@ -74,6 +74,12 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		return nil, err
 	}
 
+	var ymlDefinition yamlDefinition
+
+	err = yaml.UnmarshalStrict(commandsFileContent, &ymlDefinition)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 

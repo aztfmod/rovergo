@@ -69,6 +69,11 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		return nil, nil
 	}
 
+	commandsFileContent, err := ioutil.ReadFile(commandsFilePath)
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 

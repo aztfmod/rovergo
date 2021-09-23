@@ -97,6 +97,13 @@ func validateGroups(groups map[string][]string) error {
 			return errors.New("group name cannot be the same as a builtin command")
 		}
 
+		for _, commandName := range group {
+			exists := contains(builtin_actions.ActionMap, commandName)
+
+			if !exists {
+				return errors.New("group command name must be exist in builtin commands")
+			}
+		}
 	}
 
 	return nil

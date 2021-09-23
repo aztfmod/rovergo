@@ -56,8 +56,8 @@ func init() {
 		os.Exit(1)
 	}
 
-	// Find and load in custom actions
-	custActions, err := custom.FetchActions()
+	// Find and load in custom commands
+	commands, err := custom.LoadCustomCommandsAndGroups()
 	if err != nil {
 		console.Errorf("Loading custom commands failed: %s\n", err)
 		os.Exit(1)

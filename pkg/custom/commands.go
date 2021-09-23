@@ -77,3 +77,14 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	return
 }
 
+func validateCustomCommands(customCommands map[string]Command) error {
+	for commandName := range customCommands {
+		exists := contains(builtin_actions.ActionMap, commandName)
+
+		if exists {
+			return errors.New("custom command name cannot be the same as a builtin command")
+		}
+	}
+
+	return nil
+}

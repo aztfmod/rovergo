@@ -40,6 +40,16 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	if err != nil {
 		return nil, err
 	}
+	// e.g. /github/example_project/commands.yml
+	commandsFilePath := filepath.Join(currentWorkingDirectory, commandsFileName)
+
+	var fileInfo os.FileInfo
+
+	// Checks if the commands file exists in the current working directory
+	if fileInfo, err = os.Stat(commandsFilePath); os.IsNotExist(err) {
+
+	}
+
 
 	return
 }

@@ -166,8 +166,14 @@ rover destroy --config-file ./symphony.yaml
 
 ## Custom Actions
 
-Rover v2 has an extensible CLI and command set. A file called `commands.yaml` is searched in the current working directory, if it's not exists, then searched in the rover home directory (see below). This file is scanned for custom command definitions and groups of commands definitions as rover starts, and can be edited & amended as required.
+RoverGo has an extensible CLI and command set. A file named `commands.yaml` can be used to extend the available commands in RoverGo with custom commands. This file is can contain custom command definitions and groups of commands definitions. It is loaded as RoverGo starts, and can be edited & amended as required.
 
+Rover will search for commands.yaml in either of the following locations:
+
+- The current directory where RoverGo is invoked.
+- The [Rover Home Directory](#rover-home-dir) (~/$HOME/.rover).
+
+An [example commands.yml file](../examples/custom_commands/commands.yml) is provided in this repo.
 ### Root structure of commands.yaml
 
 ```yaml
@@ -179,7 +185,7 @@ groups:
 
 ### Custom Commands Reference
 
-Each key in the file is used as the name of a new custom command, e.g.
+Each top level key in the file is used as the name of a new custom command. In the following example a new command called `finder` is introduced.
 
 ```yaml
 # This is provided as an example
@@ -198,17 +204,19 @@ finder:
       prefix: "-"
 ```
 
-- `executableName` - Is the name of executable or command to run, must be on the system path or fully qualified
-- `subCommand` - Is the sub command to run, e.g. `apply`, `test` or `plan`
-- `flags` - Is the flags to pass to the executable, e.g. `-no-color -recursive -check -diff`
-- `debug` - Is a boolean flag to enable debug output, defaults to false
-- `requiresInit` - Is a boolean flag to indicate if Rover needs to be initialised before running the command, defaults to false
-- `parameters` - Is a list of parameters to pass to the executable, e.g. `-list -write`
+Each custom command definition supports the following options:
+
+- `executableName` - The name of executable or command to run, must be on the system path or fully qualified
+- `subCommand` - The sub command to run, e.g. `apply`, `test` or `plan`
+- `flags` - The flags to pass to the executable, e.g. `-no-color -recursive -check -diff`
+- `debug` - A boolean flag to enable debug output, defaults to false
+- `requiresInit` - A boolean flag to indicate if Rover needs to be initialised before running the command, defaults to false
+- `parameters` - A list of parameters to pass to the executable, e.g. `-list -write`
 
 The parameters field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
 
-`{{ .Options.SourcePath }}` - is the source terraform path  
-`{{ .Options.ConfigPath }}` - is the path to the config tfvars folder  
+`{{ .Options.SourcePath }}` - is the landing zone path  
+`{{ .Options.ConfigPath }}` - is the path to the CAF configurations folder
 `{{ .Options.StateName }}` - is the name of the state key, plan & state file names and part of DataDir  
 `{{ .Options.CafEnvironment }}` - is the source path value  
 `{{ .Options.Level }}` - is the value of the level being operated on  
@@ -221,11 +229,21 @@ The parameters field can be static strings but also supports [Go templating to a
 `{{ .Options.Identity.ClientID }}` - is client ID of the signed in identity  
 `{{ .Meta.RoverHome }}` - is the path to the rover home directory  
 
-See the [example commands file](../examples/minimal/commands.yml/) in the repo.
-
 ### Grouping commands
 
-Each key in the file is used as the name of a new group actions, e.g.
+RoverGo supports command grouping. This allows you to build a command that is the aggregation of other commands (either builtin or custom commands.)
+
+For example, RoverGo supports plan and apply commands. You create a custom command called deploy to execute both plan and apply.
+
+```yaml
+deploy:
+  - plan
+  - apply
+```
+
+This can be invoked via `rover deploy <options>`
+
+If we wanted to add more commands as part of the deploy group command we can add new commands to the list. 
 
 ```yaml
 deploy:
@@ -234,6 +252,8 @@ deploy:
   - lint
   - apply
 ```
+
+Group commands is a powerful construct that allows commands to be composed into workflows.
 
 ## Rover Home Dir
 

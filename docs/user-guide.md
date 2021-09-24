@@ -166,27 +166,46 @@ rover destroy --config-file ./symphony.yaml
 
 ## Custom Actions
 
-Rover v2 has an extensible CLI and command set. A file called `actions.yaml` is located in the rover home directory (see below). This file is scanned for action definitions as rover starts, and can be edited & amended as required.
+Rover v2 has an extensible CLI and command set. A file called `commands.yaml` is searched in the current working directory, if it's not exists, then searched in the rover home directory (see below). This file is scanned for custom command definitions and groups of commands definitions as rover starts, and can be edited & amended as required.
 
-## Custom Actions Reference
+### Root structure of commands.yaml
 
-Each key in the file is used as the name of a new custom action, e.g.
+```yaml
+commands:
+# list of commands
+groups:
+# list of groups of commands
+```
+
+### Custom Commands Reference
+
+Each key in the file is used as the name of a new custom command, e.g.
 
 ```yaml
 # This is provided as an example
 finder:
-  executable: "find"
-  setupEnv: false
-  description: "List all terraform"
-  arguments: ["{{ .Options.SourcePath }}", "-name", "*.tf"]
+  executableName: "find"
+  subCommand: "fmt"
+  flags: "-no-color -recursive -check -diff"
+  debug: false
+  requiresInit: false
+  parameters:
+    - name: list
+      value: true
+      prefix: "-"
+    - name: write
+      value: false
+      prefix: "-"
 ```
 
-- `executable` - Is the name of executable or command to run, must be on the system path or fully qualified
-- `setupEnv` - When set to **true** Terraform setup step is done prior to running the command. This configures env vars such as ARM_* and TF_VAR_*, including TF_DATA_DIR to point to the correct location for terraform execution.
-- `description` - Description which will appear in the rover CLI help text
-- `arguments` - An array of strings to pass as arguments to the command, this supports templating
+- `executableName` - Is the name of executable or command to run, must be on the system path or fully qualified
+- `subCommand` - Is the sub command to run, e.g. `apply`, `test` or `plan`
+- `flags` - Is the flags to pass to the executable, e.g. `-no-color -recursive -check -diff`
+- `debug` - Is a boolean flag to enable debug output, defaults to false
+- `requiresInit` - Is a boolean flag to indicate if Rover needs to be initialised before running the command, defaults to false
+- `parameters` - Is a list of parameters to pass to the executable, e.g. `-list -write`
 
-The arguments field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
+The parameters field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
 
 `{{ .Options.SourcePath }}` - is the source terraform path  
 `{{ .Options.ConfigPath }}` - is the path to the config tfvars folder  
@@ -202,7 +221,19 @@ The arguments field can be static strings but also supports [Go templating to al
 `{{ .Options.Identity.ClientID }}` - is client ID of the signed in identity  
 `{{ .Meta.RoverHome }}` - is the path to the rover home directory  
 
-See the [default custom actions file](../pkg/rover/home/actions.yaml/) in the repo.
+See the [example commands file](../examples/minimal/commands.yml/) in the repo.
+
+### Grouping commands
+
+Each key in the file is used as the name of a new group actions, e.g.
+
+```yaml
+deploy:
+  - plan
+  - build
+  - lint
+  - apply
+```
 
 ## Rover Home Dir
 

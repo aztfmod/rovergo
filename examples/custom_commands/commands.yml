@@ -29,9 +29,10 @@ commands:
 groups:
   deploy:
     - plan
-    - build
-    - lint
+    - fmt
     - apply
+    - validate
+    - destroy
   validater:
     - plan
     - apply

@@ -96,7 +96,12 @@ Available Commands:
 
 ### 🔌 Extending Rover
 
-Rover v2 is extensible with custom actions which extend it beyond running Terraform, see the [user guide for details](docs/user-guide.md)
+Rover v2 is extensible with;
+
+- custom actions which extend it beyond running Terraform
+- groups of actions which can be run in sequence
+
+see the [user guide for details](docs/user-guide.md) for more details
 
 ### 👩‍💻 Developing and Contributing
 

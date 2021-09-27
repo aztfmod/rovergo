@@ -1,6 +1,5 @@
 //
 // Rover - Unit tests for custom commands and group commands
-// * Engin Polat, September 2021
 //
 
 package custom

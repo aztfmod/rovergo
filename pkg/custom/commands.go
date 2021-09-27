@@ -9,6 +9,7 @@ import (
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
+	"github.com/aztfmod/rover/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -69,7 +70,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		return nil, nil
 	}
 
-	commandsFileContent, err := ioutil.ReadFile(commandsFilePath)
+	commandsFileContent, err := utils.ReadYamlFile(commandsFilePath)
 	if err != nil {
 		return nil, err
 	}

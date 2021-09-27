@@ -61,7 +61,7 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 }
 
 func getActionMap() {
-	custActions, err := custom.FetchActions()
+	custActions, err := custom.LoadCustomCommandsAndGroups()
 	if err != nil {
 		console.Errorf("Failed %s", err)
 		os.Exit(1)

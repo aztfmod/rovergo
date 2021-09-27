@@ -66,4 +66,16 @@ func ReadYamlFile(filePath string) ([]byte, error) {
 
 	var filePathWithoutExtension string = strings.Replace(filePath, extension, "", -1)
 
+	var err error
+	var fileContent []byte
+
+	fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yaml")
+	if err != nil {
+		fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yml")
+		if err != nil {
+			return nil, fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
+		}
+	}
+
+	return fileContent, nil
 }

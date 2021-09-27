@@ -60,4 +60,7 @@ func GenerateRandomGUID() string {
 func ReadYamlFile(filePath string) ([]byte, error) {
 	var extension string = filepath.Ext(filePath)
 
+	if extension != "" && extension != ".yaml" && extension != ".yml" {
+		return nil, fmt.Errorf("file extension must be .yaml or .yml")
+	}
 }

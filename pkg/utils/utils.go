@@ -56,3 +56,8 @@ func GenerateRandomGUID() string {
 
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
+
+func ReadYamlFile(filePath string) ([]byte, error) {
+	var extension string = filepath.Ext(filePath)
+
+}

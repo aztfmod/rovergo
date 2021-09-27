@@ -9,7 +9,10 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
 )

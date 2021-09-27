@@ -61,13 +61,13 @@ func GenerateRandomGUID() string {
 }
 
 func ReadYamlFile(filePath string) ([]byte, error) {
-	var extension string = filepath.Ext(filePath)
+	extension := filepath.Ext(filePath)
 
 	if extension != "" && extension != ".yaml" && extension != ".yml" {
 		return nil, fmt.Errorf("file extension must be .yaml or .yml")
 	}
 
-	var filePathWithoutExtension string = strings.Replace(filePath, extension, "", -1)
+	filePathWithoutExtension := strings.Replace(filePath, extension, "", -1)
 
 	var err error
 	var fileContent []byte

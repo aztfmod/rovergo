@@ -1,7 +1,6 @@
 //
 // Rover - utils and shared functions
 // * Common functions and stuff that doesn't have a better home
-// * Ben C, May 2021
 //
 
 package utils

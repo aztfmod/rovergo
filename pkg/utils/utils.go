@@ -63,4 +63,7 @@ func ReadYamlFile(filePath string) ([]byte, error) {
 	if extension != "" && extension != ".yaml" && extension != ".yml" {
 		return nil, fmt.Errorf("file extension must be .yaml or .yml")
 	}
+
+	var filePathWithoutExtension string = strings.Replace(filePath, extension, "", -1)
+
 }

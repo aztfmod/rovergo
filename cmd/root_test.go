@@ -1,9 +1,9 @@
+//go:build unit
 // +build unit
 
 package cmd
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -18,7 +18,6 @@ import (
 const testDataPath = "../test/testdata"
 
 func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
-
 	console.DebugEnabled = true
 
 	testCmd := &cobra.Command{
@@ -54,14 +53,12 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 	getActionMap()
 	action := actions.ActionMap["mock"]
 	_ = action.Execute(&optionsList[0])
-
 }
 
 func getActionMap() {
 	custActions, err := custom.LoadCustomCommandsAndGroups()
 	if err != nil {
 		console.Errorf("Failed %s", err)
-		os.Exit(1)
 	}
 	for _, ca := range custActions {
 		actions.ActionMap[ca.GetName()] = ca

@@ -296,9 +296,12 @@ func removeCommandYamlFromCWD() {
 }
 
 func removeCommandYamlFromHomeDir(homeDir string) {
-	filePath := filepath.Join(homeDir, "commands.yml")
-	e := os.Remove(filePath)
-	if e != nil {
-		_ = fmt.Errorf("Error removing test harness command.yml - %s", e)
+	fileNames := [2]string{"commands.yml", "commands.yaml"}
+	for _, fileName := range fileNames {
+		filePath := filepath.Join(homeDir, fileName)
+		e := os.Remove(filePath)
+		if e != nil {
+			_ = fmt.Errorf("Error removing test harness %s - %s", fileName, e)
+		}
 	}
 }

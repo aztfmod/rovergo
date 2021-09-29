@@ -59,7 +59,7 @@ func init() {
 	// Find and load in custom commands
 	err = custom.InitializeCustomCommands()
 	if err != nil {
-		os.Exit(1)
+		console.Errorf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group")
 	}
 
 	// Dynamically build sub-commands from list of actions

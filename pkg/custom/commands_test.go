@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package custom
@@ -24,7 +25,9 @@ func Test_Valid_Commands_File_Exists(t *testing.T) {
 
 	assert.NotEmpty(t, actions)
 
-	removeCommandYamlFromCWD()
+	t.Cleanup(func() {
+		removeCommandYamlFromCWD()
+	})
 }
 
 func Test_CommandsFile_Not_In_CWD_And_Not_In_Rover_Home(t *testing.T) {
@@ -36,7 +39,7 @@ func Test_CommandsFile_Not_In_CWD_And_Not_In_Rover_Home(t *testing.T) {
 
 	actions, err := LoadCustomCommandsAndGroups()
 
-	assert.EqualError(t, err, "file does not exist")
+	assert.Error(t, err)
 	assert.Empty(t, actions)
 }
 
@@ -47,7 +50,6 @@ func Test_CommandsFile_FullExtension_Not_In_CWD_And_In_Rover_Home(t *testing.T) 
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "_default.yml", "commands.yaml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -55,6 +57,10 @@ func Test_CommandsFile_FullExtension_Not_In_CWD_And_In_Rover_Home(t *testing.T) 
 	//assert
 	assert.Nil(t, err)
 	assert.NotEmpty(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_CommandsFile_Not_In_CWD_And_In_Rover_Home(t *testing.T) {
@@ -64,7 +70,6 @@ func Test_CommandsFile_Not_In_CWD_And_In_Rover_Home(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "_default.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -72,6 +77,10 @@ func Test_CommandsFile_Not_In_CWD_And_In_Rover_Home(t *testing.T) {
 	//assert
 	assert.Nil(t, err)
 	assert.NotEmpty(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Empty_CommandsFile_In_Rover_Home(t *testing.T) {
@@ -81,14 +90,17 @@ func Test_Empty_CommandsFile_In_Rover_Home(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "empty.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
 
 	//assert
-	assert.Nil(t, err)
-	assert.Nil(t, actions)
+	assert.NotNil(t, err)
+	assert.Empty(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_InvalidYaml_In_CommandsFile_In_Rover_Home(t *testing.T) {
@@ -98,7 +110,6 @@ func Test_InvalidYaml_In_CommandsFile_In_Rover_Home(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "invalid_yaml.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -106,6 +117,10 @@ func Test_InvalidYaml_In_CommandsFile_In_Rover_Home(t *testing.T) {
 	//assert
 	assert.EqualError(t, err, "invalid yaml in /tmp/commands.yml. Internal Error:yaml: unmarshal errors:\n  line 3: field not valid --- \" not found in type custom.Command")
 	assert.Nil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Custom_Command_Name_Collision_With_Built_In_Command(t *testing.T) {
@@ -115,7 +130,6 @@ func Test_Custom_Command_Name_Collision_With_Built_In_Command(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "builtin_command_collision.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -123,6 +137,10 @@ func Test_Custom_Command_Name_Collision_With_Built_In_Command(t *testing.T) {
 	//assert
 	assert.EqualError(t, err, "invalid custom command (plan). Custom command (plan) cannot be used as it is a builtin command")
 	assert.Nil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Group_Name_Collision_With_Built_In_Command(t *testing.T) {
@@ -132,7 +150,6 @@ func Test_Group_Name_Collision_With_Built_In_Command(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "group_name_collision.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -140,6 +157,10 @@ func Test_Group_Name_Collision_With_Built_In_Command(t *testing.T) {
 	//assert
 	assert.EqualError(t, err, "invalid group name (plan). (plan) cannot be used as it is a builtin command")
 	assert.Nil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Group_With_Invalid_Command(t *testing.T) {
@@ -149,14 +170,17 @@ func Test_Group_With_Invalid_Command(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "group_invalid_command.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
 
 	//assert
-	assert.EqualError(t, err, "invalid group name (foo). (foo) must be a valid built in command or a custom command.")
+	assert.EqualError(t, err, "invalid group name (foo). (foo) must be a valid built in command or a custom command")
 	assert.Nil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Groups_With_Custom_Commands_Are_Allowed(t *testing.T) {
@@ -166,7 +190,6 @@ func Test_Groups_With_Custom_Commands_Are_Allowed(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -174,6 +197,10 @@ func Test_Groups_With_Custom_Commands_Are_Allowed(t *testing.T) {
 	//assert
 	assert.Nil(t, err)
 	assert.NotEmpty(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_Groups_With_EmptyCommands_Are_NotAllowed(t *testing.T) {
@@ -183,14 +210,17 @@ func Test_Groups_With_EmptyCommands_Are_NotAllowed(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "group_empty_commands.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
 
 	//assert
-	assert.EqualError(t, err, "invalid group (deploy). A group must have at least one command.")
+	assert.EqualError(t, err, "invalid group (deploy). A group must have at least one command")
 	assert.Nil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_CommandsYaml_WithGroupsSection_NoCustomCommandSection_Is_Allowed(t *testing.T) {
@@ -200,7 +230,6 @@ func Test_CommandsYaml_WithGroupsSection_NoCustomCommandSection_Is_Allowed(t *te
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "group_no_commands.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	actions, err := LoadCustomCommandsAndGroups()
@@ -208,6 +237,10 @@ func Test_CommandsYaml_WithGroupsSection_NoCustomCommandSection_Is_Allowed(t *te
 	//assert
 	assert.Nil(t, err)
 	assert.NotNil(t, actions)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_InitilizeCustomCommands_ActionMap_Contains_CustomCommand(t *testing.T) {
@@ -217,7 +250,6 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_CustomCommand(t *testing.T)
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	InitializeCustomCommands()
@@ -225,6 +257,10 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_CustomCommand(t *testing.T)
 
 	exists := contains(actions.ActionMap, "format")
 	assert.True(t, exists)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_InitilizeCustomCommands_ActionMap_Contains_Group(t *testing.T) {
@@ -234,7 +270,6 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_Group(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	InitializeCustomCommands()
@@ -242,6 +277,10 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_Group(t *testing.T) {
 
 	exists := contains(actions.ActionMap, "deploy")
 	assert.True(t, exists)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T) {
@@ -251,7 +290,6 @@ func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T)
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
 	console.DebugEnabled = true
-	defer removeCommandYamlFromHomeDir(roverHome)
 
 	//act
 	InitializeCustomCommands()
@@ -259,6 +297,10 @@ func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T)
 
 	deploy := actions.ActionMap["deploy"].(Action)
 	assert.Equal(t, 3, len(deploy.Commands)) // 3 commands are in the test harness file valid_groups.yml
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
 }
 
 func getTestHarnessPath(rootPath string) string {

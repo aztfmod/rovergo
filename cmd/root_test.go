@@ -1,7 +1,4 @@
-//
-// Rover - Unit tests for root cmd
-// * Greg O, June 2021
-//
+// +build unit
 
 package cmd
 

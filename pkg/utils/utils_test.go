@@ -1,6 +1,4 @@
-//
-// Rover - Unit tests for utility methods
-//
+// +build unit
 
 package utils
 

@@ -1,0 +1,37 @@
+commands:
+  format:
+    executableName: "terraform"
+    subCommand: "fmt"
+    flags: "-no-color -recursive -check -diff"
+    debug: false
+    requiresInit: false
+    parameters:
+      - name: list
+        value: true
+        prefix: "-"
+      - name: write
+        value: false
+        prefix: "-"
+  check:
+    executableName: "terraform"
+    subCommand: "fmt"
+    flags: "-no-color -recursive -check -diff"
+    debug: false
+    requiresInit: false
+    parameters:
+      - name: list
+        value: true
+        prefix: "-"
+      - name: write
+        value: false
+        prefix: "-"
+
+groups:
+  deploy:
+    - foo # This command is not a built in command nor a custom command and show throw an error
+    - apply
+    - validate
+    - destroy
+  validater:
+    - plan
+    - apply

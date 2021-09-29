@@ -57,13 +57,9 @@ func init() {
 	}
 
 	// Find and load in custom commands
-	commands, err := custom.LoadCustomCommandsAndGroups()
+	err = custom.InitializeCustomCommands()
 	if err != nil {
-		console.Errorf("Loading custom commands failed: %s\n", err)
 		os.Exit(1)
-	}
-	for _, ca := range commands {
-		actions.ActionMap[ca.GetName()] = ca
 	}
 
 	// Dynamically build sub-commands from list of actions

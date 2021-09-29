@@ -44,6 +44,18 @@ type Command struct {
 	} `yaml:"parameters"`
 }
 
+func InitializeCustomCommands() error {
+	commands, err := LoadCustomCommandsAndGroups()
+	if err != nil {
+		console.Errorf("Loading custom commands failed: %s\n", err)
+		return err
+	}
+	for _, ca := range commands {
+		actions.ActionMap[ca.GetName()] = ca
+	}
+	return nil
+}
+
 // LoadCustomCommandsAndGroups is called by root cmd during init
 // It finds all the custom action definitions and returns them to be plugged into the CLI
 func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
@@ -81,14 +93,10 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 
 	err = yaml.UnmarshalStrict(commandsFileContent, &ymlDefinition)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid yaml in %s. Internal Error:%s", commandsFilePath, err.Error())
 	}
 
 	err = validateCustomCommands(ymlDefinition.Commands)
-	if err != nil {
-		return nil, err
-	}
-	err = validateGroups(ymlDefinition.Groups)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +132,10 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 				Name:        groupName,
 				Description: fmt.Sprintf("Custom group: %s", groupName),
 			},
+		}
+		err = validateGroups(ymlDefinition.Groups, commands)
+		if err != nil {
+			return nil, err
 		}
 
 		commands = append(commands, group)
@@ -192,31 +204,43 @@ func validateCustomCommands(customCommands map[string]Command) error {
 		exists := contains(actions.ActionMap, commandName)
 
 		if exists {
-			return fmt.Errorf("custom command name (%s) cannot be the same as a builtin command", commandName)
+			return fmt.Errorf("invalid custom command (%s). Custom command (%s) cannot be used as it is a builtin command", commandName, commandName)
 		}
 	}
 
 	return nil
 }
 
-func validateGroups(groups map[string][]string) error {
+func validateGroups(groups map[string][]string, commands []landingzone.Action) error {
 	for groupName, group := range groups {
 		exists := contains(actions.ActionMap, groupName)
-
 		if exists {
-			return fmt.Errorf("group name (%s) cannot be the same as a builtin command", groupName)
+			return fmt.Errorf("invalid group name (%s). (%s) cannot be used as it is a builtin command", groupName, groupName)
+		}
+
+		if len(group) == 0 {
+			return fmt.Errorf("invalid group (%s). A group must have at least one command.", groupName)
 		}
 
 		for _, commandName := range group {
-			exists := contains(actions.ActionMap, commandName)
-
-			if !exists {
-				return fmt.Errorf("group command name (%s) must be exist in builtin commands", commandName)
+			existsBuiltIn := contains(actions.ActionMap, commandName)
+			existsCustom := commandsContain(commands, commandName)
+			if !existsBuiltIn && !existsCustom {
+				return fmt.Errorf("invalid group name (%s). (%s) must be a valid built in command or a custom command.", commandName, commandName)
 			}
 		}
 	}
 
 	return nil
+}
+
+func commandsContain(commands []landingzone.Action, group string) bool {
+	for _, command := range commands {
+		if command.GetName() == group {
+			return true
+		}
+	}
+	return false
 }
 
 func contains(arr map[string]landingzone.Action, str string) bool {

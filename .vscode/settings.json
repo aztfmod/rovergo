@@ -1,4 +1,11 @@
 {
   // There's many TODO: comments scatted in the code, this is useful extension to help manage them
-  "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "IMPORTANT"]
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "IMPORTANT"
+  ],
+  "go.testTags": "unit"
 }

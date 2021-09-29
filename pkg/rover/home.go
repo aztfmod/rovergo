@@ -15,11 +15,13 @@ var homeDefaultDir embed.FS
 
 const roverHomePath = ".rover"
 
-func HomeDirectory() (string, error) {
+var homeDir string
+
+func initializeHomeDir() error {
 	home, err := os.UserHomeDir()
 
 	if err != nil {
-		return "", errors.New("Unable to access user home directory")
+		return errors.New("Unable to access user home directory")
 	}
 
 	roverhome := filepath.Join(home, roverHomePath)
@@ -29,16 +31,30 @@ func HomeDirectory() (string, error) {
 	if os.IsNotExist(err) {
 		direrr := os.MkdirAll(roverhome, 0777)
 		if direrr != nil {
-			return "", fmt.Errorf("Failed to create %s directory", roverhome)
+			return fmt.Errorf("Failed to create %s directory", roverhome)
 		}
 
 		err := createDefaultContents(roverhome)
 		if err != nil {
+			return err
+		}
+	}
+	homeDir = roverhome
+	return nil
+}
+
+func HomeDirectory() (string, error) {
+	if len(strings.TrimSpace(homeDir)) == 0 {
+		err := initializeHomeDir()
+		if err != nil {
 			return "", err
 		}
 	}
+	return homeDir, nil
+}
 
-	return roverhome, nil
+func SetHomeDirectory(dir string) {
+	homeDir = dir
 }
 
 func createDefaultContents(roverHomePath string) error {

@@ -219,14 +219,14 @@ func validateGroups(groups map[string][]string, commands []landingzone.Action) e
 		}
 
 		if len(group) == 0 {
-			return fmt.Errorf("invalid group (%s). A group must have at least one command.", groupName)
+			return fmt.Errorf("invalid group (%s). A group must have at least one command", groupName)
 		}
 
 		for _, commandName := range group {
 			existsBuiltIn := contains(actions.ActionMap, commandName)
 			existsCustom := commandsContain(commands, commandName)
 			if !existsBuiltIn && !existsCustom {
-				return fmt.Errorf("invalid group name (%s). (%s) must be a valid built in command or a custom command.", commandName, commandName)
+				return fmt.Errorf("invalid group name (%s). (%s) must be a valid built in command or a custom command", commandName, commandName)
 			}
 		}
 	}

@@ -49,7 +49,6 @@ func CopyFile(src string, dest string) error {
 	return nil
 }
 
-// GenerateRandomBytes returns securely generated random bytes.
 func GenerateRandomGUID() string {
 	b := make([]byte, 16)
 

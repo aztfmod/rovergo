@@ -47,36 +47,27 @@ type Command struct {
 // LoadCustomCommandsAndGroups is called by root cmd during init
 // It finds all the custom action definitions and returns them to be plugged into the CLI
 func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
-	// Getting the current working directory
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
-	// e.g. /github/example_project/commands.yml
 	commandsFilePath := filepath.Join(currentWorkingDirectory, commandsFileName)
 
 	var fileInfo os.FileInfo
 
-	// Checks if the commands file exists in the current working directory
 	if fileInfo, err = os.Stat(commandsFilePath); os.IsNotExist(err) {
 
-		// If the file does not exist, get the rover home directory
 		roverHomeDir, err := rover.HomeDirectory()
 		if err != nil {
 			return nil, err
 		}
-		// e.g. ~/.rover/commands.yml
 		commandsFilePath = filepath.Join(roverHomeDir, commandsFileName)
 
-		// Checks if the commands file exists in the current working directory
 		if fileInfo, err = os.Stat(commandsFilePath); os.IsNotExist(err) {
-			// If the file does not exist, return an empty list of commands
-			// and Not Exists Error
 			return nil, os.ErrNotExist
 		}
 	}
 
-	// if the file exists, but empty, return an empty list of commands
 	if fileInfo.Size() == 0 {
 		return nil, nil
 	}

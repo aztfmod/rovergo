@@ -1,15 +1,13 @@
-//
-// Rover - Unit tests for root cmd
-// * Greg O, June 2021
-//
+//go:build unit
+// +build unit
 
 package cmd
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
@@ -20,7 +18,6 @@ import (
 const testDataPath = "../test/testdata"
 
 func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
-
 	console.DebugEnabled = true
 
 	testCmd := &cobra.Command{
@@ -54,21 +51,19 @@ func Test_Rover_Standalone_Apply_Launchpad(t *testing.T) {
 	assert.Equal(t, optionsList[0].LaunchPadMode, true)
 
 	getActionMap()
-	action := ActionMap["mock"]
+	action := actions.ActionMap["mock"]
 	_ = action.Execute(&optionsList[0])
-
 }
 
 func getActionMap() {
-	custActions, err := custom.FetchActions()
+	custActions, err := custom.LoadCustomCommandsAndGroups()
 	if err != nil {
 		console.Errorf("Failed %s", err)
-		os.Exit(1)
 	}
 	for _, ca := range custActions {
-		ActionMap[ca.GetName()] = ca
+		actions.ActionMap[ca.GetName()] = ca
 	}
-	ActionMap["mock"] = NewMockAction()
+	actions.ActionMap["mock"] = NewMockAction()
 }
 
 func NewMockAction() *landingzone.MockAction {

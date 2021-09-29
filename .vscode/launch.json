@@ -5,6 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Unit Tests",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "env": {}
+    }, 
+    {
       "name": "Nuke it",
       "type": "go",
       "request": "launch",

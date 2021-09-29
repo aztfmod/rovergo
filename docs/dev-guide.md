@@ -36,11 +36,11 @@ You can debug with VS Code, and a [launch.json](./../.vscode/launch.json) config
 └── examples           - Reference app configuration
 ```
 
-# Main concepts, structs types and interfaces
+## Main concepts, structs types and interfaces
 
 The two principal data types & structs in Rover v2 are `Action` and `Options`
 
-## Action
+### Action
 
 This is an interface defined in `landingzone/actions.go`, as spec it provides no concrete implementation, but is defined as
 
@@ -64,8 +64,9 @@ The `Execute()` function of the Action is called to actually carry it out.
 
 Actions are used to build the Cobra command structure, see `cmd/root.go` which holds a map of all actions, fixed actions such as TerraformActions and those loaded dynamically at runtime (CustomActions)
 
-### Terraform Actions
-All of the interaction with Terraform for managing CAF landing zones is contained in these six actions. The shared code they all use is held in `pkg/landingzone/landingzone.go`. The actions all follow a general flow of calling `prepareTerraformCAF()` several run `connectToLaunchPad()` and of course enact the relevant terraform command, this is done with tfexec. 
+#### Terraform Actions
+
+All of the interaction with Terraform for managing CAF landing zones is contained in these six actions. The shared code they all use is held in `pkg/landingzone/landingzone.go`. The actions all follow a general flow of calling `prepareTerraformCAF()` several run `connectToLaunchPad()` and of course enact the relevant terraform command, this is done with tfexec.
 
 The landingzone.go file holds a lot of the shared functions and Rover/CAF specific logic:
 
@@ -75,7 +76,7 @@ The landingzone.go file holds a lot of the shared functions and Rover/CAF specif
 
 - `runTerraformInit()` - This runs Terraform init in the correct mode, either with remote state and backend configured using the storage account found by `prepareTerraformCAF()` (when NOT running in launchpad mode), or with local state (only used when creating or destroying a launchpad)
 
-## Options
+### Options
 
 The struct `landingzones.Options` (in pkg/landingzone/options.go) holds all the settings, parameters etc for a Rover operation. It's something of a grab bag but it gathers the large number of parameters Rover requires in one place, combined with the `Action` it defines the execution of Rover when running a command.
 
@@ -84,7 +85,7 @@ _Note_. In both cases a slice of `Options` is returned, however `landingzones.Bu
 
 The `SourcePath` and `ConfigPath` fields should never be set directly, instead functions `SetConfigPath()` and `SetSourcePath()` should be used for validation and setting correctly
 
-## Root Cmd
+### Root Cmd
 
 Although the rover executable entrypoint is in main.go, it does almost nothing, the real entry point is `cmd/root.go`. This constructs the main command structure based on Cobra.
 
@@ -122,13 +123,13 @@ _Note_. Due to the hybrid/dual-mode of the Rover CLI dependant on the flags prov
 
 Non-action based commands (e.g. `rover launchpad fetch` are also defined in the cmd package, and using Cobra they also append themselves into the `rootCmd`
 
-## Symphony Code
+### Symphony Code
 
 The file `pkg/symphony/symphony.go` holds the symphony YAML file loader and unmarshaller.
 
 The file `pkg/symphony/parser.go` holds the main parser invoked by `BuildOptions` to parse either all levels or a single level into an slice of `Options`. _Note._ All stacks within a level are always parsed/loaded.
 
-# Dev Tooling
+## Dev Tooling
 
 Makefile supports local dev work and CI pipelines, for building, linting and running tests
 
@@ -145,22 +146,22 @@ test             🤡 Run unit tests
 
 Linting is done with golangci-lint, there is a config file in the project root
 
-## GitHub Actions
+### GitHub Actions
 
 Workflows:
 
 - **CI builds** (`.github/workflows/ci-build.yaml`) - Runs on PRs and pushes into the main branch, it runs linting, tests and checks the binary builds ok
 - **Release Binaries** (`.github/workflows/release.yaml`) - See below
 
-## Releases
+### Releases
 
 [Goreleaser](https://goreleaser.com/) is used for building and releasing to GitHub, see `.goreleaser.yml`, releases are triggered by pushing git tags with sematic versioning, and run automatically through GitHub Actions, see `.github/workflows/release.yaml`
 
 Binaries are built for Linux, Windows and MacOS
 
-Bash script (install.sh) allows for easy install of binaries direct from GitHub, this was created with https://github.com/goreleaser/godownloader, see the main readme for details on using it.
+Bash script (install.sh) allows for easy install of binaries direct from GitHub, this was created with [https://github.com/goreleaser/godownloader](https://github.com/goreleaser/godownloader), see the main readme for details on using it.
 
-### Publish a release
+#### Publish a release
 
 Git tags MUST be in semver for goreleaser, e.g. to publish version `1.2.3`
 
@@ -171,7 +172,7 @@ git push origin 1.2.3
 
 You can append a pre-release string after the semver digits, e.g. `0.0.1-foobar`
 
-### Snapshot release
+#### Snapshot release
 
 To run or test a local snapshot build, run goreleaser, the results will be place into `./dist/`. This is safe to run anytime. as no GitHub release or tag will be created.
 

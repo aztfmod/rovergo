@@ -166,30 +166,57 @@ rover destroy --config-file ./symphony.yaml
 
 ## Custom Actions
 
-Rover v2 has an extensible CLI and command set. A file called `actions.yaml` is located in the rover home directory (see below). This file is scanned for action definitions as rover starts, and can be edited & amended as required.
+RoverGo has an extensible CLI and command set. A file named `commands.yaml` can be used to extend the available commands in RoverGo with custom commands. This file is can contain custom command definitions and groups of commands definitions. It is loaded as RoverGo starts, and can be edited & amended as required.
 
-## Custom Actions Reference
+Rover will search for commands.yaml in either of the following locations:
 
-Each key in the file is used as the name of a new custom action, e.g.
+- The current directory where RoverGo is invoked.
+- The [Rover Home Directory](#rover-home-dir) (~/$HOME/.rover).
+
+An [example commands.yml file](../examples/custom_commands/commands.yml) is provided in this repo.
+### Root structure of commands.yaml
+
+```yaml
+commands:
+# list of commands
+groups:
+# list of groups of commands
+```
+
+### Custom Commands Reference
+
+Each top level key in the file is used as the name of a new custom command. In the following example a new command called `finder` is introduced.
 
 ```yaml
 # This is provided as an example
 finder:
-  executable: "find"
-  setupEnv: false
-  description: "List all terraform"
-  arguments: ["{{ .Options.SourcePath }}", "-name", "*.tf"]
+  executableName: "find"
+  subCommand: "fmt"
+  flags: "-no-color -recursive -check -diff"
+  debug: false
+  requiresInit: false
+  parameters:
+    - name: list
+      value: true
+      prefix: "-"
+    - name: write
+      value: false
+      prefix: "-"
 ```
 
-- `executable` - Is the name of executable or command to run, must be on the system path or fully qualified
-- `setupEnv` - When set to **true** Terraform setup step is done prior to running the command. This configures env vars such as ARM_* and TF_VAR_*, including TF_DATA_DIR to point to the correct location for terraform execution.
-- `description` - Description which will appear in the rover CLI help text
-- `arguments` - An array of strings to pass as arguments to the command, this supports templating
+Each custom command definition supports the following options:
 
-The arguments field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
+- `executableName` - The name of executable or command to run, must be on the system path or fully qualified
+- `subCommand` - The sub command to run, e.g. `apply`, `test` or `plan`
+- `flags` - The flags to pass to the executable, e.g. `-no-color -recursive -check -diff`
+- `debug` - A boolean flag to enable debug output, defaults to false
+- `requiresInit` - A boolean flag to indicate if Rover needs to be initialised before running the command, defaults to false
+- `parameters` - A list of parameters to pass to the executable, e.g. `-list -write`
 
-`{{ .Options.SourcePath }}` - is the source terraform path  
-`{{ .Options.ConfigPath }}` - is the path to the config tfvars folder  
+The parameters field can be static strings but also supports [Go templating to allow dynamic substitution of values](https://golang.org/pkg/text/template/), the syntax is based on double curly braces `{{ expression }}`. The fields supported are `Options`, `Action` and `Meta`, e.g.
+
+`{{ .Options.SourcePath }}` - is the landing zone path  
+`{{ .Options.ConfigPath }}` - is the path to the CAF configurations folder
 `{{ .Options.StateName }}` - is the name of the state key, plan & state file names and part of DataDir  
 `{{ .Options.CafEnvironment }}` - is the source path value  
 `{{ .Options.Level }}` - is the value of the level being operated on  
@@ -202,7 +229,31 @@ The arguments field can be static strings but also supports [Go templating to al
 `{{ .Options.Identity.ClientID }}` - is client ID of the signed in identity  
 `{{ .Meta.RoverHome }}` - is the path to the rover home directory  
 
-See the [default custom actions file](../pkg/rover/home/actions.yaml/) in the repo.
+### Grouping commands
+
+RoverGo supports command grouping. This allows you to build a command that is the aggregation of other commands (either builtin or custom commands.)
+
+For example, RoverGo supports plan and apply commands. You create a custom command called deploy to execute both plan and apply.
+
+```yaml
+deploy:
+  - plan
+  - apply
+```
+
+This can be invoked via `rover deploy <options>`
+
+If we wanted to add more commands as part of the deploy group command we can add new commands to the list. 
+
+```yaml
+deploy:
+  - plan
+  - build
+  - lint
+  - apply
+```
+
+Group commands is a powerful construct that allows commands to be composed into workflows.
 
 ## Rover Home Dir
 

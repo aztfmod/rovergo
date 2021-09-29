@@ -9,6 +9,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/custom"
@@ -18,16 +19,6 @@ import (
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 )
-
-// ActionMap is exported so tests can use
-var ActionMap = map[string]landingzone.Action{
-	"init":     landingzone.NewInitAction(),
-	"plan":     landingzone.NewPlanAction(),
-	"apply":    landingzone.NewApplyAction(),
-	"destroy":  landingzone.NewDestroyAction(),
-	"validate": landingzone.NewValidateAction(),
-	"fmt":      landingzone.NewFormatAction(),
-}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -65,18 +56,14 @@ func init() {
 		os.Exit(1)
 	}
 
-	// Find and load in custom actions
-	custActions, err := custom.FetchActions()
+	// Find and load in custom commands
+	err = custom.InitializeCustomCommands()
 	if err != nil {
-		console.Errorf("Loading custom actions failed: %s\n", err)
-		os.Exit(1)
-	}
-	for _, ca := range custActions {
-		ActionMap[ca.GetName()] = ca
+		console.Errorf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group")
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range ActionMap {
+	for name, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
 			Use:   name,
 			Short: action.GetDescription(),
@@ -85,7 +72,7 @@ func init() {
 			Run: func(cmd *cobra.Command, args []string) {
 				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
 				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = ActionMap[cmd.Name()]
+				action = actions.ActionMap[cmd.Name()]
 
 				configFile, _ := cmd.Flags().GetString("config-file")
 				configPath, _ := cmd.Flags().GetString("config-dir")

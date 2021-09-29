@@ -1,7 +1,6 @@
 //
 // Rover - utils and shared functions
 // * Common functions and stuff that doesn't have a better home
-// * Ben C, May 2021
 //
 
 package utils
@@ -10,7 +9,10 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/console"
 )
@@ -56,4 +58,38 @@ func GenerateRandomGUID() string {
 	}
 
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+}
+
+// ReadYamlFile finds extension of the given fileName
+// Calculates fileName without extension
+// Adds yaml and yml extensions to the fileName
+// Gets the content of fileName.yaml or fileName.yml
+// Returns the content of the file
+func ReadYamlFile(filePath string) ([]byte, error) {
+	extension := filepath.Ext(filePath)
+
+	if extension != "" && extension != ".yaml" && extension != ".yml" {
+		return nil, fmt.Errorf("file extension must be .yaml or .yml")
+	}
+
+	filePathWithoutExtension := strings.Replace(filePath, extension, "", -1)
+
+	var err error
+	var fileContent []byte
+
+	fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yaml")
+	if err != nil {
+		fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yml")
+		if err != nil {
+			return nil, fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
+		}
+	}
+
+	return fileContent, nil
+}
+
+func GetProjectRootDir(currentWorkingDirectory string) string {
+	pgk := filepath.Dir(currentWorkingDirectory)
+	root := filepath.Dir(pgk)
+	return root
 }

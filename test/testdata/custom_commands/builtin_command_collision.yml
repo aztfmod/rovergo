@@ -1,0 +1,14 @@
+commands:
+  plan: # This is an intentional error, the command name collides with a built in command called plan.
+    executableName: "terraform"
+    subCommand: "fmt"
+    flags: "-no-color -recursive -check -diff"
+    debug: false
+    requiresInit: false
+    parameters:
+      - name: list
+        value: true
+        prefix: "-"
+      - name: write
+        value: false
+        prefix: "-"

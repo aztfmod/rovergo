@@ -40,6 +40,23 @@ func Test_CommandsFile_Not_In_CWD_And_Not_In_Rover_Home(t *testing.T) {
 	assert.Empty(t, actions)
 }
 
+func Test_CommandsFile_FullExtension_Not_In_CWD_And_In_Rover_Home(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "_default.yml", "commands.yaml")
+	console.DebugEnabled = true
+	defer removeCommandYamlFromHomeDir(roverHome)
+
+	//act
+	actions, err := LoadCustomCommandsAndGroups()
+
+	//assert
+	assert.Nil(t, err)
+	assert.NotEmpty(t, actions)
+}
+
 func Test_CommandsFile_Not_In_CWD_And_In_Rover_Home(t *testing.T) {
 	//arrange
 	roverHome := "/tmp"

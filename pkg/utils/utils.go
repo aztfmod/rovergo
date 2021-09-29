@@ -61,6 +61,11 @@ func GenerateRandomGUID() string {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
+// ReadYamlFile finds extension of the given fileName
+// Calculates fileName without extension
+// Adds yaml and yml extensions to the fileName
+// Gets the content of fileName.yaml or fileName.yml
+// Returns the content of the file
 func ReadYamlFile(filePath string) ([]byte, error) {
 	extension := filepath.Ext(filePath)
 

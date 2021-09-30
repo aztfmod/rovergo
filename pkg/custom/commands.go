@@ -95,22 +95,31 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		return nil, err
 	}
 
-	for commandName := range ymlDefinition.Commands {
+	for commandName, c := range ymlDefinition.Commands {
 		commandList := make([]Command, 1)
 		commandList[0] = ymlDefinition.Commands[commandName]
+
+		params := ""
+		for i, v := range c.Parameters {
+			if i == 0 {
+				params += v.Name
+			} else {
+				params += fmt.Sprintf(",%s", v.Name)
+			}
+		}
 
 		command := Action{
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        commandName,
-				Description: fmt.Sprintf("Custom command: %s", commandName),
+				Description: fmt.Sprintf("Perform %s with %s parameters", c.ExecutableName, params),
 			},
 		}
 
 		commands = append(commands, command)
 	}
 
-	for groupName := range ymlDefinition.Groups {
+	for groupName, g := range ymlDefinition.Groups {
 		commandList := make([]Command, len(ymlDefinition.Groups[groupName]))
 		for i, commandName := range ymlDefinition.Groups[groupName] {
 			commandList[i] = Command{
@@ -120,11 +129,20 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			}
 		}
 
+		params := ""
+		for i, v := range g {
+			if i == 0 {
+				params += v
+			} else {
+				params += fmt.Sprintf(",%s", v)
+			}
+		}
+
 		group := Action{
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        groupName,
-				Description: fmt.Sprintf("Custom group: %s", groupName),
+				Description: fmt.Sprintf("Perform %s commands sequentially", params),
 			},
 		}
 		err = validateGroups(ymlDefinition.Groups, commands)

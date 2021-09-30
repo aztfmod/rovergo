@@ -1,7 +1,6 @@
 //
 // Rover - Entry point and root command
 // * Handles global flags, initialization, config files and when user runs rover without sub command
-// * Ben C, May 2021
 //
 
 package cmd
@@ -59,7 +58,7 @@ func init() {
 	// Find and load in custom commands
 	err = custom.InitializeCustomCommands()
 	if err != nil {
-		console.Errorf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group")
+		console.Warningf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group\n")
 	}
 
 	// Dynamically build sub-commands from list of actions

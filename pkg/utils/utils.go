@@ -87,9 +87,3 @@ func ReadYamlFile(filePath string) ([]byte, error) {
 
 	return fileContent, nil
 }
-
-func GetProjectRootDir(currentWorkingDirectory string) string {
-	pgk := filepath.Dir(currentWorkingDirectory)
-	root := filepath.Dir(pgk)
-	return root
-}

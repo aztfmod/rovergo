@@ -74,3 +74,7 @@ func NewMockAction() *landingzone.MockAction {
 		},
 	}
 }
+
+func GetProjectRootDir(currentWorkingDirectory string) string {
+	return filepath.Dir(currentWorkingDirectory)
+}

@@ -311,7 +311,7 @@ func getTestHarnessPath(rootPath string) string {
 
 func copyCommandYamlToCWD(fileName string, target string) {
 	currentWorkingDirectory, _ := os.Getwd()
-	rootPath := utils.GetProjectRootDir(currentWorkingDirectory)
+	rootPath := GetProjectRootDir(currentWorkingDirectory)
 	testHarnessPath := getTestHarnessPath(rootPath)
 	sourcePath := filepath.Join(testHarnessPath, fileName)
 	destinationPath := filepath.Join(currentWorkingDirectory, target)
@@ -320,7 +320,7 @@ func copyCommandYamlToCWD(fileName string, target string) {
 
 func copyCommandYamlToRoverHome(roverHome, fileName string, target string) {
 	currentWorkingDirectory, _ := os.Getwd()
-	rootPath := utils.GetProjectRootDir(currentWorkingDirectory)
+	rootPath := GetProjectRootDir(currentWorkingDirectory)
 	testHarnessPath := getTestHarnessPath(rootPath)
 	sourcePath := filepath.Join(testHarnessPath, fileName)
 	destinationPath := filepath.Join(roverHome, target)
@@ -346,4 +346,10 @@ func removeCommandYamlFromHomeDir(homeDir string) {
 			_ = fmt.Errorf("Error removing test harness %s - %s", fileName, e)
 		}
 	}
+}
+
+func GetProjectRootDir(currentWorkingDirectory string) string {
+	pgk := filepath.Dir(currentWorkingDirectory)
+	root := filepath.Dir(pgk)
+	return root
 }

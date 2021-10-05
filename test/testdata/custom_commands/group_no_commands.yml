@@ -1,5 +1,7 @@
 groups:
   deploy:
+    description: "workflow used for CI/CD"
+    commands:
     - plan
     - apply
 

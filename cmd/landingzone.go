@@ -1,12 +1,14 @@
 //
 // Rover - Top level landing zone command
 // * Doesn't do anything, all work is done by sub-commands
-// * Ben C, May 2021
 //
 
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +16,7 @@ import (
 var landingzoneCmd = &cobra.Command{
 	Use:     "landingzone",
 	Aliases: []string{"lz"},
-	Short:   "Manage and deploy landing zones",
+	Short:   fmt.Sprintf("[%s command]\tManage and deploy landing zones", landingzone.BuiltinCommand),
 	Long:    `This command allows you to fetch landing zones or list what you have deployed`,
 }
 

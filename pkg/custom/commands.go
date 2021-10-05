@@ -71,7 +71,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	}
 	commandsFilePath := filepath.Join(currentWorkingDirectory, commandsFileName)
 
-	commandsFileContent, err := utils.ReadYamlFile(commandsFilePath)
+	commandsFileContent, fileName, err := utils.ReadYamlFile(commandsFilePath)
 	if err != nil {
 		roverHomeDir, err := rover.HomeDirectory()
 		if err != nil {
@@ -79,11 +79,13 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		}
 		commandsFilePath = filepath.Join(roverHomeDir, commandsFileName)
 
-		commandsFileContent, err = utils.ReadYamlFile(commandsFilePath)
+		commandsFileContent, fileName, err = utils.ReadYamlFile(commandsFilePath)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	utils.CurrentCustomCommandsAndGroupsYamlFilePath = fileName
 
 	if len(commandsFileContent) == 0 {
 		return nil, fmt.Errorf("no commands found in current folder or in rover home directory")

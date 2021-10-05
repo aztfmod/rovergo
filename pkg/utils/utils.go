@@ -65,25 +65,37 @@ func GenerateRandomGUID() string {
 // Adds yaml and yml extensions to the fileName
 // Gets the content of fileName.yaml or fileName.yml
 // Returns the content of the file
-func ReadYamlFile(filePath string) ([]byte, error) {
+func ReadYamlFile(filePath string) ([]byte, string, error) {
 	extension := filepath.Ext(filePath)
 
+	fileName := ""
+
 	if extension != "" && extension != ".yaml" && extension != ".yml" {
-		return nil, fmt.Errorf("file extension must be .yaml or .yml")
+		return nil, fileName, fmt.Errorf("file extension must be .yaml or .yml")
 	}
 
-	filePathWithoutExtension := strings.Replace(filePath, extension, "", -1)
+	filePathWithoutExtension := strings.TrimSuffix(filePath, extension)
 
 	var err error
 	var fileContent []byte
 
-	fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yaml")
+	fileName = filePathWithoutExtension + ".yaml"
+
+	fileContent, err = ioutil.ReadFile(fileName)
 	if err != nil {
-		fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yml")
+		fileName = filePathWithoutExtension + ".yml"
+
+		fileContent, err = ioutil.ReadFile(fileName)
 		if err != nil {
-			return nil, fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
+			return nil, "", fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
 		}
 	}
 
-	return fileContent, nil
+	return fileContent, fileName, nil
+}
+
+var CurrentCustomCommandsAndGroupsYamlFilePath = ""
+
+func GetCustomCommandsAndGroupsYamlFilePath() string {
+	return CurrentCustomCommandsAndGroupsYamlFilePath
 }

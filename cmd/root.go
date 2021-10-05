@@ -16,6 +16,7 @@ import (
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/symphony"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 )
@@ -60,6 +61,8 @@ func init() {
 	err = custom.InitializeCustomCommandsAndGroups()
 	if err != nil {
 		console.Warningf("No custom command or group found in the current directory or rover home directory\n")
+	} else {
+		console.Infof("Custom commands and groups loaded from %s\n", utils.GetCustomCommandsAndGroupsYamlFilePath())
 	}
 
 	// Dynamically build sub-commands from list of actions

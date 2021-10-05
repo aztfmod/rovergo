@@ -26,11 +26,17 @@ type Action struct {
 }
 
 type yamlDefinition struct {
-	Commands map[string]Command  `yaml:"commands"`
-	Groups   map[string][]string `yaml:"groups"`
+	Commands map[string]Command `yaml:"commands"`
+	Groups   map[string]Group   `yaml:"groups"`
+}
+
+type Group struct {
+	Description string
+	Commands    []string
 }
 
 type Command struct {
+	Description    string `yaml:"description"`
 	ExecutableName string `yaml:"executableName"`
 	SubCommand     string `yaml:"subCommand"`
 	Flags          string `yaml:"flags"`
@@ -99,21 +105,12 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		commandList := make([]Command, 1)
 		commandList[0] = ymlDefinition.Commands[commandName]
 
-		params := ""
-		for i, v := range c.Parameters {
-			if i == 0 {
-				params += v.Name
-			} else {
-				params += fmt.Sprintf(",%s", v.Name)
-			}
-		}
-
 		command := Action{
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        commandName,
 				Type:        landingzone.CustomCommand,
-				Description: fmt.Sprintf("Perform %s with %s parameters", c.ExecutableName, params),
+				Description: c.Description,
 			},
 		}
 
@@ -121,21 +118,12 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	}
 
 	for groupName, g := range ymlDefinition.Groups {
-		commandList := make([]Command, len(ymlDefinition.Groups[groupName]))
-		for i, commandName := range ymlDefinition.Groups[groupName] {
+		commandList := make([]Command, len(ymlDefinition.Groups[groupName].Commands))
+		for i, commandName := range ymlDefinition.Groups[groupName].Commands {
 			commandList[i] = Command{
 				ExecutableName: "rover",
 				SubCommand:     commandName,
 				SetupEnv:       true,
-			}
-		}
-
-		params := ""
-		for i, v := range g {
-			if i == 0 {
-				params += v
-			} else {
-				params += fmt.Sprintf(",%s", v)
 			}
 		}
 
@@ -144,7 +132,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			ActionBase: landingzone.ActionBase{
 				Name:        groupName,
 				Type:        landingzone.GroupCommand,
-				Description: fmt.Sprintf("Perform %s commands sequentially", params),
+				Description: g.Description,
 			},
 		}
 		err = validateGroups(ymlDefinition.Groups, commands)
@@ -225,18 +213,18 @@ func validateCustomCommands(customCommands map[string]Command) error {
 	return nil
 }
 
-func validateGroups(groups map[string][]string, commands []landingzone.Action) error {
+func validateGroups(groups map[string]Group, commands []landingzone.Action) error {
 	for groupName, group := range groups {
 		exists := contains(actions.ActionMap, groupName)
 		if exists {
 			return fmt.Errorf("invalid group name (%s). (%s) cannot be used as it is a builtin command", groupName, groupName)
 		}
 
-		if len(group) == 0 {
+		if len(group.Commands) == 0 {
 			return fmt.Errorf("invalid group (%s). A group must have at least one command", groupName)
 		}
 
-		for _, commandName := range group {
+		for _, commandName := range group.Commands {
 			existsBuiltIn := contains(actions.ActionMap, commandName)
 			existsCustom := commandsContain(commands, commandName)
 			if !existsBuiltIn && !existsCustom {

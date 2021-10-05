@@ -222,7 +222,7 @@ func Test_Custom_Format_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "format")
-	assert.Equal(t, found.Short, "[Custom command]\tPerform terraform with list,write parameters")
+	assert.Equal(t, found.Short, "[Custom command]\tformats configuration files using terraform")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {
@@ -254,7 +254,7 @@ func Test_Custom_Check_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "check")
-	assert.Equal(t, found.Short, "[Custom command]\tPerform terraform with list,write parameters")
+	assert.Equal(t, found.Short, "[Custom command]\tchecks configuration files using terraform")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {
@@ -286,7 +286,7 @@ func Test_Group_Deploy_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "deploy")
-	assert.Equal(t, found.Short, "[Group command]\tPerform plan,fmt,apply,validate,destroy commands sequentially")
+	assert.Equal(t, found.Short, "[Group command]\tworkflow used for CI/CD")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {

@@ -155,7 +155,7 @@ func Test_Group_Name_Collision_With_Built_In_Command(t *testing.T) {
 	actions, err := LoadCustomCommandsAndGroups()
 
 	//assert
-	assert.EqualError(t, err, "invalid group name (plan). (plan) cannot be used as it is a builtin command")
+	assert.Error(t, err, "invalid group name (plan). (plan) cannot be used as it is a builtin command")
 	assert.Nil(t, actions)
 
 	t.Cleanup(func() {
@@ -175,7 +175,7 @@ func Test_Group_With_Invalid_Command(t *testing.T) {
 	actions, err := LoadCustomCommandsAndGroups()
 
 	//assert
-	assert.EqualError(t, err, "invalid group name (foo). (foo) must be a valid built in command or a custom command")
+	assert.Error(t, err, "invalid group name (foo). (foo) must be a valid built in command or a custom command")
 	assert.Nil(t, actions)
 
 	t.Cleanup(func() {
@@ -252,7 +252,7 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_CustomCommand(t *testing.T)
 	console.DebugEnabled = true
 
 	//act
-	InitializeCustomCommands()
+	InitializeCustomCommandsAndGroups()
 	//assert
 
 	exists := contains(actions.ActionMap, "format")
@@ -272,7 +272,7 @@ func Test_InitilizeCustomCommands_ActionMap_Contains_Group(t *testing.T) {
 	console.DebugEnabled = true
 
 	//act
-	InitializeCustomCommands()
+	InitializeCustomCommandsAndGroups()
 	//assert
 
 	exists := contains(actions.ActionMap, "deploy")
@@ -292,7 +292,7 @@ func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T)
 	console.DebugEnabled = true
 
 	//act
-	InitializeCustomCommands()
+	InitializeCustomCommandsAndGroups()
 	//assert
 
 	deploy := actions.ActionMap["deploy"].(Action)

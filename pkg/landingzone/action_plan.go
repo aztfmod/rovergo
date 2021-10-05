@@ -22,6 +22,7 @@ func NewPlanAction() *PlanAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "plan",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform plan",
 			},
 		},

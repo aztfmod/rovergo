@@ -18,6 +18,7 @@ func NewFormatAction() *FormatAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "fmt",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform format",
 			},
 		},

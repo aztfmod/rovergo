@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/aztfmod/rover/pkg/builtin/actions"
@@ -56,16 +57,16 @@ func init() {
 	}
 
 	// Find and load in custom commands
-	err = custom.InitializeCustomCommands()
+	err = custom.InitializeCustomCommandsAndGroups()
 	if err != nil {
-		console.Warningf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group\n")
+		console.Warningf("No custom command or group found in the current directory or rover home directory\n")
 	}
 
 	// Dynamically build sub-commands from list of actions
-	for name, action := range actions.ActionMap {
+	for key, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
-			Use:   name,
-			Short: action.GetDescription(),
+			Use:   key,
+			Short: fmt.Sprintf("[%s command]\t%s", action.GetType(), action.GetDescription()),
 			PreRun: func(cmd *cobra.Command, args []string) {
 			},
 			Run: func(cmd *cobra.Command, args []string) {

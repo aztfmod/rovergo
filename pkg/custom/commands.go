@@ -44,10 +44,10 @@ type Command struct {
 	} `yaml:"parameters"`
 }
 
-func InitializeCustomCommands() error {
+func InitializeCustomCommandsAndGroups() error {
 	commands, err := LoadCustomCommandsAndGroups()
 	if err != nil {
-		console.Errorf("Loading custom commands failed: %s\n", err)
+		console.Errorf("Loading custom commands and groups failed: %s\n", err)
 		return err
 	}
 	for _, ca := range commands {
@@ -112,6 +112,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        commandName,
+				Type:        landingzone.CustomCommand,
 				Description: fmt.Sprintf("Perform %s with %s parameters", c.ExecutableName, params),
 			},
 		}
@@ -142,6 +143,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        groupName,
+				Type:        landingzone.GroupCommand,
 				Description: fmt.Sprintf("Perform %s commands sequentially", params),
 			},
 		}

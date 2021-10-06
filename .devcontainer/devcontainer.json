@@ -4,7 +4,9 @@
   // Intended for Rover maintainers only
   //
   "name": "Rover v2 Dev",
-  "image": "symphonydev.azurecr.io/rover2-dev:latest",
+  //"image": "symphonydev.azurecr.io/rover2-dev:latest",
+  "build": {
+    "dockerfile": "Dockerfile"},
   "remoteUser": "rover",
   "runArgs": ["--init"],
   // TODO: This needs more work, see https://github.com/microsoft/vscode-dev-containers/tree/main/containers/docker-from-docker#enabling-non-root-access-to-docker-in-the-container
@@ -18,7 +20,7 @@
     },
     "terminal.integrated.defaultProfile.linux": "zsh"
   },
-  "postStartCommand": "go mod tidy && go get -v golang.org/x/tools/gopls",
+  "postStartCommand": "go mod tidy && go get -v golang.org/x/tools/gopls && go install github.com/go-delve/delve/cmd/dlv@master",
   "extensions": [
     "Gruntfuggly.todo-tree",
     "golang.go",

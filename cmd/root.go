@@ -6,8 +6,11 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/command"
@@ -34,6 +37,13 @@ to make sure that all contributors in the GitOps teams are using a consistent se
 	},
 }
 
+var helpCmd = &cobra.Command{
+	Use:         "help",
+	Short:       "Help about any command",
+	Long:        "Help about any command",
+	Annotations: map[string]string{"cmd_group_annotation": landingzone.BuiltinCommand},
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -47,6 +57,8 @@ func GetVersion() string {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
+
+	rootCmd.SetHelpCommand(helpCmd)
 
 	command.ValidateDependencies()
 
@@ -68,8 +80,9 @@ func init() {
 	// Dynamically build sub-commands from list of actions
 	for key, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
-			Use:   key,
-			Short: fmt.Sprintf("[%s command]\t%s", action.GetType(), action.GetDescription()),
+			Use:         key,
+			Short:       action.GetDescription(),
+			Annotations: map[string]string{"cmd_group_annotation": action.GetType()},
 			PreRun: func(cmd *cobra.Command, args []string) {
 			},
 			Run: func(cmd *cobra.Command, args []string) {
@@ -132,4 +145,63 @@ func init() {
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
 	}
+
+	fn := func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Short)
+		fmt.Println(cmd.Long)
+		fmt.Println()
+
+		fmt.Println("Usage:")
+		fmt.Printf("  %s [command]\n\n", cmd.Use)
+
+		fmt.Println("Flags:")
+		fmt.Println(cmd.Flags().FlagUsages())
+
+		usage := helpMessageByGroups(cmd)
+		fmt.Println(usage)
+		fmt.Println()
+
+		fmt.Println("Use \"rover [command] --help\" for more information about a command.")
+		fmt.Println()
+	}
+
+	rootCmd.SetHelpFunc(fn)
+}
+
+func helpMessageByGroups(cmd *cobra.Command) string {
+	groups := map[string][]string{}
+	for _, c := range cmd.Commands() {
+		var groupName string
+		v, ok := c.Annotations["cmd_group_annotation"]
+		if !ok {
+			groupName = "Other Commands:"
+		} else {
+			groupName = fmt.Sprintf("%s Commands:", v)
+		}
+
+		groupCmds := groups[groupName]
+		groupCmds = append(groupCmds, fmt.Sprintf("  %-16s%s", c.Name(), c.Short))
+		sort.Strings(groupCmds)
+
+		groups[groupName] = groupCmds
+	}
+
+	groupNames := []string{}
+	for k := range groups {
+		groupNames = append(groupNames, k)
+	}
+	sort.Strings(groupNames)
+
+	buf := bytes.Buffer{}
+	for _, groupName := range groupNames {
+		commands := groups[groupName]
+
+		buf.WriteString(fmt.Sprintf("%s\n", groupName))
+
+		for _, cmd := range commands {
+			buf.WriteString(fmt.Sprintf("%s\n", cmd))
+		}
+		buf.WriteString("\n")
+	}
+	return strings.TrimSpace(buf.String())
 }

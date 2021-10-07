@@ -129,12 +129,17 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			}
 		}
 
+		groupDescription := fmt.Sprintf("%s\n", g.Description)
+		for _, v := range g.Commands {
+			groupDescription += fmt.Sprintf("%-16s  - %s\n", "", v)
+		}
+
 		group := Action{
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        groupName,
 				Type:        landingzone.GroupCommand,
-				Description: g.Description,
+				Description: groupDescription,
 			},
 		}
 		err = validateGroups(ymlDefinition.Groups, commands)

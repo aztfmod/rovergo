@@ -14,7 +14,6 @@ import (
 	"github.com/aztfmod/rover/pkg/custom"
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
-	"github.com/aztfmod/rover/pkg/symphony"
 	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -79,7 +78,7 @@ func Test_Builtin_Init_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "init")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform init and no other action")
+	assert.Equal(t, found.Short, "Perform a terraform init and no other action")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -102,7 +101,7 @@ func Test_Builtin_Plan_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "plan")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform plan")
+	assert.Equal(t, found.Short, "Perform a terraform plan")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -125,7 +124,7 @@ func Test_Builtin_Apply_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "apply")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform plan & apply")
+	assert.Equal(t, found.Short, "Perform a terraform plan & apply")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -148,7 +147,7 @@ func Test_Builtin_Destroy_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "destroy")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform destroy")
+	assert.Equal(t, found.Short, "Perform a terraform destroy")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -171,7 +170,7 @@ func Test_Builtin_Validate_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "validate")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform validate")
+	assert.Equal(t, found.Short, "Perform a terraform validate")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -194,7 +193,7 @@ func Test_Builtin_Fmt_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "fmt")
-	assert.Equal(t, found.Short, "[Builtin command]\tPerform a terraform format")
+	assert.Equal(t, found.Short, "Perform a terraform format")
 	assert.Equal(t, found.Long, "")
 }
 
@@ -222,7 +221,7 @@ func Test_Custom_Format_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "format")
-	assert.Equal(t, found.Short, "[Custom command]\tformats configuration files using terraform")
+	assert.Equal(t, found.Short, "formats configuration files using terraform")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {
@@ -254,7 +253,7 @@ func Test_Custom_Check_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "check")
-	assert.Equal(t, found.Short, "[Custom command]\tchecks configuration files using terraform")
+	assert.Equal(t, found.Short, "checks configuration files using terraform")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {
@@ -286,7 +285,7 @@ func Test_Group_Deploy_Command(t *testing.T) {
 	}
 
 	assert.Equal(t, found.Use, "deploy")
-	assert.Equal(t, found.Short, "[Group command]\tworkflow used for CI/CD")
+	assert.Equal(t, found.Short, "workflow used for CI/CD\n                  - plan\n                  - fmt\n                  - apply\n                  - validate\n                  - destroy\n")
 	assert.Equal(t, found.Long, "")
 
 	t.Cleanup(func() {
@@ -302,73 +301,7 @@ func getActionMap() {
 
 	actions.ActionMap["mock"] = newMockAction()
 
-	// Dynamically build sub-commands from list of actions
-	for key, action := range actions.ActionMap {
-		actionSubCmd := &cobra.Command{
-			Use:   key,
-			Short: fmt.Sprintf("[%s command]\t%s", action.GetType(), action.GetDescription()),
-			PreRun: func(cmd *cobra.Command, args []string) {
-			},
-			Run: func(cmd *cobra.Command, args []string) {
-				// NOTE: We CAN NOT use the action variable from the loop above as it's not bound at runtime
-				// Dynamically building our commands has some limitations, instead we need to use the cmd name & the map
-				action = actions.ActionMap[cmd.Name()]
-
-				configFile, _ := cmd.Flags().GetString("config-file")
-				configPath, _ := cmd.Flags().GetString("config-dir")
-
-				// Handle the user trying to use both configPath and configFile or neither!
-				if configPath == "" && configFile == "" {
-					_ = cmd.Help()
-					os.Exit(0)
-				}
-				if configPath != "" && configFile != "" {
-					cobra.CheckErr("--config-file and --config-dir options must not be combined, specify only one")
-				}
-
-				var optionsList []landingzone.Options
-				// Handle symphony mode where config file and level is passed, this will return optionsList with MANY items
-				if configFile != "" {
-					// Depending on if we're running single or mult-level this will return one or many options
-					optionsList = symphony.BuildOptions(cmd)
-				}
-
-				// Handle CLI or standalone mode, this will return optionsList with a single item
-				if configPath != "" {
-					optionsList = landingzone.BuildOptions(cmd)
-				}
-
-				for _, options := range optionsList {
-					// Now start the action execution...
-					// If an error occurs, depend on downstream code to log messages
-					console.Infof("Executing action %s for %s\n", action.GetName(), options.StateName)
-					err = action.Execute(&options)
-					if err != nil {
-						cobra.CheckErr(err)
-					}
-				}
-
-				console.Success("Rover has finished")
-				os.Exit(0)
-			},
-		}
-
-		actionSubCmd.Flags().StringP("source", "s", "", "Path to source of landingzone")
-		actionSubCmd.Flags().StringP("config-file", "c", "", "Configuration file, you must supply this or config-dir")
-		actionSubCmd.Flags().StringP("config-dir", "v", "", "Configuration directory, you must supply this or config-file")
-		actionSubCmd.Flags().StringP("environment", "e", "", "Name of CAF environment")
-		actionSubCmd.Flags().StringP("workspace", "w", "", "Name of workspace")
-		actionSubCmd.Flags().StringP("statename", "n", "", "Name for state and plan files")
-		actionSubCmd.Flags().String("state-sub", "", "Azure subscription ID where state is held")
-		actionSubCmd.Flags().String("target-sub", "", "Azure subscription ID to operate on")
-		actionSubCmd.Flags().Bool("launchpad", false, "Run in launchpad mode, i.e. level 0")
-		actionSubCmd.Flags().StringP("level", "l", "", "CAF landingzone level name, default is all levels")
-		actionSubCmd.Flags().BoolP("dry-run", "d", false, "Execute a dry run where no actions will be executed")
-		actionSubCmd.Flags().SortFlags = true
-
-		// Stuff it under the parent root command
-		rootCmd.AddCommand(actionSubCmd)
-	}
+	BuildSubCommandsFromActionMap()
 }
 
 func newMockAction() *landingzone.MockAction {

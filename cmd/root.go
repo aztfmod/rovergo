@@ -77,6 +77,31 @@ func init() {
 		console.Infof("Custom commands and groups loaded from %s\n", utils.GetCustomCommandsAndGroupsYamlFilePath())
 	}
 
+	BuildSubCommandsFromActionMap()
+
+	fn := func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Short)
+		fmt.Println(cmd.Long)
+		fmt.Println()
+
+		fmt.Println("Usage:")
+		fmt.Printf("  %s [command]\n\n", cmd.Use)
+
+		fmt.Println("Flags:")
+		fmt.Println(cmd.Flags().FlagUsages())
+
+		usage := helpMessageByGroups(cmd)
+		fmt.Println(usage)
+		fmt.Println()
+
+		fmt.Println("Use \"rover [command] --help\" for more information about a command.")
+		fmt.Println()
+	}
+
+	rootCmd.SetHelpFunc(fn)
+}
+
+func BuildSubCommandsFromActionMap() {
 	// Dynamically build sub-commands from list of actions
 	for key, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
@@ -118,7 +143,7 @@ func init() {
 					// Now start the action execution...
 					// If an error occurs, depend on downstream code to log messages
 					console.Infof("Executing action %s for %s\n", action.GetName(), options.StateName)
-					err = action.Execute(&options)
+					err := action.Execute(&options)
 					if err != nil {
 						cobra.CheckErr(err)
 					}
@@ -145,27 +170,6 @@ func init() {
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
 	}
-
-	fn := func(cmd *cobra.Command, args []string) {
-		fmt.Println(cmd.Short)
-		fmt.Println(cmd.Long)
-		fmt.Println()
-
-		fmt.Println("Usage:")
-		fmt.Printf("  %s [command]\n\n", cmd.Use)
-
-		fmt.Println("Flags:")
-		fmt.Println(cmd.Flags().FlagUsages())
-
-		usage := helpMessageByGroups(cmd)
-		fmt.Println(usage)
-		fmt.Println()
-
-		fmt.Println("Use \"rover [command] --help\" for more information about a command.")
-		fmt.Println()
-	}
-
-	rootCmd.SetHelpFunc(fn)
 }
 
 func helpMessageByGroups(cmd *cobra.Command) string {

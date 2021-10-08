@@ -1,5 +1,6 @@
 commands:
   plan: # This is an intentional error, the command name collides with a built in command called plan.
+    description: "command description"
     executableName: "terraform"
     subCommand: "fmt"
     flags: "-no-color -recursive -check -diff"

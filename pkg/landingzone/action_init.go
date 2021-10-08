@@ -10,6 +10,7 @@ func NewInitAction() *InitAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "init",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform init and no other action",
 			},
 		},

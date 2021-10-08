@@ -1,5 +1,6 @@
 commands:
   format:
+    description: "formats configuration files using terraform"
     executableName: "terraform"
     subCommand: "fmt"
     flags: "-no-color -recursive -check -diff"
@@ -15,5 +16,3 @@ commands:
 
 groups:
   deploy:
-
-

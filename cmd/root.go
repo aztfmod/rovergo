@@ -1,13 +1,16 @@
 //
 // Rover - Entry point and root command
 // * Handles global flags, initialization, config files and when user runs rover without sub command
-// * Ben C, May 2021
 //
 
 package cmd
 
 import (
+	"bytes"
+	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/command"
@@ -16,6 +19,7 @@ import (
 	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/symphony"
+	"github.com/aztfmod/rover/pkg/utils"
 	"github.com/aztfmod/rover/pkg/version"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +37,13 @@ to make sure that all contributors in the GitOps teams are using a consistent se
 	},
 }
 
+var helpCmd = &cobra.Command{
+	Use:         "help",
+	Short:       "Help about any command",
+	Long:        "Help about any command",
+	Annotations: map[string]string{"cmd_group_annotation": landingzone.BuiltinCommand},
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -47,6 +58,8 @@ func GetVersion() string {
 func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "log extra debug information, may contain secrets")
 
+	rootCmd.SetHelpCommand(helpCmd)
+
 	command.ValidateDependencies()
 
 	// Ensure rover home exists and create the default contents
@@ -57,16 +70,44 @@ func init() {
 	}
 
 	// Find and load in custom commands
-	err = custom.InitializeCustomCommands()
+	err = custom.InitializeCustomCommandsAndGroups()
 	if err != nil {
-		console.Errorf("No custom command or group found in the current directory or rover home directory, continue with no custom command and group")
+		console.Warningf("No custom command or group found in the current directory or rover home directory\n")
+	} else {
+		console.Infof("Custom commands and groups loaded from %s\n", utils.GetCustomCommandsAndGroupsYamlFilePath())
 	}
 
+	BuildSubCommandsFromActionMap()
+
+	fn := func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Short)
+		fmt.Println(cmd.Long)
+		fmt.Println()
+
+		fmt.Println("Usage:")
+		fmt.Printf("  %s [command]\n\n", cmd.Use)
+
+		fmt.Println("Flags:")
+		fmt.Println(cmd.Flags().FlagUsages())
+
+		usage := helpMessageByGroups(cmd)
+		fmt.Println(usage)
+		fmt.Println()
+
+		fmt.Println("Use \"rover [command] --help\" for more information about a command.")
+		fmt.Println()
+	}
+
+	rootCmd.SetHelpFunc(fn)
+}
+
+func BuildSubCommandsFromActionMap() {
 	// Dynamically build sub-commands from list of actions
-	for name, action := range actions.ActionMap {
+	for key, action := range actions.ActionMap {
 		actionSubCmd := &cobra.Command{
-			Use:   name,
-			Short: action.GetDescription(),
+			Use:         key,
+			Short:       action.GetDescription(),
+			Annotations: map[string]string{"cmd_group_annotation": action.GetType()},
 			PreRun: func(cmd *cobra.Command, args []string) {
 			},
 			Run: func(cmd *cobra.Command, args []string) {
@@ -102,7 +143,7 @@ func init() {
 					// Now start the action execution...
 					// If an error occurs, depend on downstream code to log messages
 					console.Infof("Executing action %s for %s\n", action.GetName(), options.StateName)
-					err = action.Execute(&options)
+					err := action.Execute(&options)
 					if err != nil {
 						cobra.CheckErr(err)
 					}
@@ -129,4 +170,42 @@ func init() {
 		// Stuff it under the parent root command
 		rootCmd.AddCommand(actionSubCmd)
 	}
+}
+
+func helpMessageByGroups(cmd *cobra.Command) string {
+	groups := map[string][]string{}
+	for _, c := range cmd.Commands() {
+		var groupName string
+		v, ok := c.Annotations["cmd_group_annotation"]
+		if !ok {
+			groupName = "Other Commands:"
+		} else {
+			groupName = fmt.Sprintf("%s Commands:", v)
+		}
+
+		groupCmds := groups[groupName]
+		groupCmds = append(groupCmds, fmt.Sprintf("  %-16s%s", c.Name(), c.Short))
+		sort.Strings(groupCmds)
+
+		groups[groupName] = groupCmds
+	}
+
+	groupNames := []string{}
+	for k := range groups {
+		groupNames = append(groupNames, k)
+	}
+	sort.Strings(groupNames)
+
+	buf := bytes.Buffer{}
+	for _, groupName := range groupNames {
+		commands := groups[groupName]
+
+		buf.WriteString(fmt.Sprintf("%s\n", groupName))
+
+		for _, cmd := range commands {
+			buf.WriteString(fmt.Sprintf("%s\n", cmd))
+		}
+		buf.WriteString("\n")
+	}
+	return strings.TrimSpace(buf.String())
 }

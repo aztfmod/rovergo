@@ -26,11 +26,17 @@ type Action struct {
 }
 
 type yamlDefinition struct {
-	Commands map[string]Command  `yaml:"commands"`
-	Groups   map[string][]string `yaml:"groups"`
+	Commands map[string]Command `yaml:"commands"`
+	Groups   map[string]Group   `yaml:"groups"`
+}
+
+type Group struct {
+	Description string
+	Commands    []string
 }
 
 type Command struct {
+	Description    string `yaml:"description"`
 	ExecutableName string `yaml:"executableName"`
 	SubCommand     string `yaml:"subCommand"`
 	Flags          string `yaml:"flags"`
@@ -44,10 +50,9 @@ type Command struct {
 	} `yaml:"parameters"`
 }
 
-func InitializeCustomCommands() error {
+func InitializeCustomCommandsAndGroups() error {
 	commands, err := LoadCustomCommandsAndGroups()
 	if err != nil {
-		console.Errorf("Loading custom commands failed: %s\n", err)
 		return err
 	}
 	for _, ca := range commands {
@@ -65,7 +70,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 	}
 	commandsFilePath := filepath.Join(currentWorkingDirectory, commandsFileName)
 
-	commandsFileContent, err := utils.ReadYamlFile(commandsFilePath)
+	commandsFileContent, fileName, err := utils.ReadYamlFile(commandsFilePath)
 	if err != nil {
 		roverHomeDir, err := rover.HomeDirectory()
 		if err != nil {
@@ -73,11 +78,13 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		}
 		commandsFilePath = filepath.Join(roverHomeDir, commandsFileName)
 
-		commandsFileContent, err = utils.ReadYamlFile(commandsFilePath)
+		commandsFileContent, fileName, err = utils.ReadYamlFile(commandsFilePath)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	utils.CurrentCustomCommandsAndGroupsYamlFilePath = fileName
 
 	if len(commandsFileContent) == 0 {
 		return nil, fmt.Errorf("no commands found in current folder or in rover home directory")
@@ -95,7 +102,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 		return nil, err
 	}
 
-	for commandName := range ymlDefinition.Commands {
+	for commandName, c := range ymlDefinition.Commands {
 		commandList := make([]Command, 1)
 		commandList[0] = ymlDefinition.Commands[commandName]
 
@@ -103,16 +110,17 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        commandName,
-				Description: fmt.Sprintf("Custom command: %s", commandName),
+				Type:        landingzone.CustomCommand,
+				Description: c.Description,
 			},
 		}
 
 		commands = append(commands, command)
 	}
 
-	for groupName := range ymlDefinition.Groups {
-		commandList := make([]Command, len(ymlDefinition.Groups[groupName]))
-		for i, commandName := range ymlDefinition.Groups[groupName] {
+	for groupName, g := range ymlDefinition.Groups {
+		commandList := make([]Command, len(ymlDefinition.Groups[groupName].Commands))
+		for i, commandName := range ymlDefinition.Groups[groupName].Commands {
 			commandList[i] = Command{
 				ExecutableName: "rover",
 				SubCommand:     commandName,
@@ -120,11 +128,17 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			}
 		}
 
+		groupDescription := fmt.Sprintf("%s\n", g.Description)
+		for _, v := range g.Commands {
+			groupDescription += fmt.Sprintf("%-16s  - %s\n", "", v)
+		}
+
 		group := Action{
 			Commands: commandList,
 			ActionBase: landingzone.ActionBase{
 				Name:        groupName,
-				Description: fmt.Sprintf("Custom group: %s", groupName),
+				Type:        landingzone.GroupCommand,
+				Description: groupDescription,
 			},
 		}
 		err = validateGroups(ymlDefinition.Groups, commands)
@@ -205,18 +219,18 @@ func validateCustomCommands(customCommands map[string]Command) error {
 	return nil
 }
 
-func validateGroups(groups map[string][]string, commands []landingzone.Action) error {
+func validateGroups(groups map[string]Group, commands []landingzone.Action) error {
 	for groupName, group := range groups {
 		exists := contains(actions.ActionMap, groupName)
 		if exists {
 			return fmt.Errorf("invalid group name (%s). (%s) cannot be used as it is a builtin command", groupName, groupName)
 		}
 
-		if len(group) == 0 {
+		if len(group.Commands) == 0 {
 			return fmt.Errorf("invalid group (%s). A group must have at least one command", groupName)
 		}
 
-		for _, commandName := range group {
+		for _, commandName := range group.Commands {
 			existsBuiltIn := contains(actions.ActionMap, commandName)
 			existsCustom := commandsContain(commands, commandName)
 			if !existsBuiltIn && !existsCustom {

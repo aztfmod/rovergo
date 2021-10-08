@@ -21,6 +21,7 @@ func NewApplyAction() *ApplyAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "apply",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform plan & apply",
 			},
 		},

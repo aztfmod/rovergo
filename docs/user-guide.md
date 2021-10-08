@@ -10,17 +10,20 @@ If you are not familiar with CAF landing zones, please [refer to the concepts se
 Usage:
   rover [command]
 
-Available Commands:
-  apply       Perform a terraform plan & apply
-  destroy     Perform a terraform destroy
-  finder      List all terraform (example custom action)
-  fmt         Perform a terraform format
-  help        Help about any command
-  init        Perform a terraform init and no other action
-  landingzone Manage and deploy landing zones
-  linter      A linter for terraform
-  plan        Perform a terraform plan
-  validate    Perform a terraform validate
+Flags:
+      --debug     log extra debug information, may contain secrets
+  -h, --help      help for rover
+  -v, --version   version for rover
+
+Builtin Commands:
+  apply           Perform a terraform plan & apply
+  destroy         Perform a terraform destroy
+  fmt             Perform a terraform format
+  help            Help about any command
+  init            Perform a terraform init and no other action
+  landingzone     Manage and deploy landing zones
+  plan            Perform a terraform plan
+  validate        Perform a terraform validate
 ```
 
 The Rover v2 CLI maps actions (see below) to top level sub commands, with the addition of a special landingzone command
@@ -190,6 +193,7 @@ Each top level key in the file is used as the name of a new custom command. In t
 ```yaml
 # This is provided as an example
 finder:
+  description: "find custom command short description"
   executableName: "find"
   subCommand: "fmt"
   flags: "-no-color -recursive -check -diff"
@@ -206,6 +210,7 @@ finder:
 
 Each custom command definition supports the following options:
 
+- `description` - short description of the custom command
 - `executableName` - The name of executable or command to run, must be on the system path or fully qualified
 - `subCommand` - The sub command to run, e.g. `apply`, `test` or `plan`
 - `flags` - The flags to pass to the executable, e.g. `-no-color -recursive -check -diff`
@@ -237,6 +242,8 @@ For example, RoverGo supports plan and apply commands. You create a custom comma
 
 ```yaml
 deploy:
+  description: "short description"
+  commands:
   - plan
   - apply
 ```
@@ -247,6 +254,8 @@ If we wanted to add more commands as part of the deploy group command we can add
 
 ```yaml
 deploy:
+  description: "short description"
+  commands:
   - plan
   - build
   - lint

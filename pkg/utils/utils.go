@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,36 +59,48 @@ func GenerateRandomGUID() string {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
+func fileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	return !os.IsNotExist(err)
+}
+
 // ReadYamlFile finds extension of the given fileName
 // Calculates fileName without extension
 // Adds yaml and yml extensions to the fileName
 // Gets the content of fileName.yaml or fileName.yml
 // Returns the content of the file
-func ReadYamlFile(filePath string) ([]byte, error) {
+func ReadYamlFile(filePath string) ([]byte, string, error) {
 	extension := filepath.Ext(filePath)
 
+	fileName := filepath.Base(filePath)
+
 	if extension != "" && extension != ".yaml" && extension != ".yml" {
-		return nil, fmt.Errorf("file extension must be .yaml or .yml")
+		return nil, fileName, fmt.Errorf("file extension must be .yaml or .yml")
 	}
 
-	filePathWithoutExtension := strings.Replace(filePath, extension, "", -1)
+	filePathWithoutExtension := strings.TrimSuffix(filePath, extension)
 
 	var err error
 	var fileContent []byte
 
-	fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yaml")
-	if err != nil {
-		fileContent, err = ioutil.ReadFile(filePathWithoutExtension + ".yml")
-		if err != nil {
-			return nil, fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
-		}
+	if fileExists(filePathWithoutExtension + ".yaml") {
+		fileName = filePathWithoutExtension + ".yaml"
+	} else if fileExists(filePathWithoutExtension + ".yml") {
+		fileName = filePathWithoutExtension + ".yml"
+	} else {
+		return nil, "", fmt.Errorf("could not find file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
 	}
 
-	return fileContent, nil
+	fileContent, err = os.ReadFile(fileName)
+	if err != nil {
+		return nil, "", fmt.Errorf("error reading file %s.", fileName)
+	}
+	return fileContent, fileName, nil
+
 }
 
-func GetProjectRootDir(currentWorkingDirectory string) string {
-	pgk := filepath.Dir(currentWorkingDirectory)
-	root := filepath.Dir(pgk)
-	return root
+var CurrentCustomCommandsAndGroupsYamlFilePath = ""
+
+func GetCustomCommandsAndGroupsYamlFilePath() string {
+	return CurrentCustomCommandsAndGroupsYamlFilePath
 }

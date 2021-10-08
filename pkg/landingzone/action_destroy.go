@@ -21,6 +21,7 @@ func NewDestroyAction() *DestroyAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "destroy",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform destroy",
 			},
 		},

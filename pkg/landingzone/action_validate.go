@@ -17,6 +17,7 @@ func NewValidateAction() *ValidateAction {
 			launchPadStorageID: "",
 			ActionBase: ActionBase{
 				Name:        "validate",
+				Type:        BuiltinCommand,
 				Description: "Perform a terraform validate",
 			},
 		},

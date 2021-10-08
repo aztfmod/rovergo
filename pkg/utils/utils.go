@@ -93,7 +93,7 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 
 	fileContent, err = os.ReadFile(fileName)
 	if err != nil {
-		return nil, "", fmt.Errorf("Error reading file %s.", fileName)
+		return nil, "", fmt.Errorf("error reading file %s.", fileName)
 	}
 	return fileContent, fileName, nil
 

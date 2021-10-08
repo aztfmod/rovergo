@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,6 +59,11 @@ func GenerateRandomGUID() string {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
+func fileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	return !os.IsNotExist(err)
+}
+
 // ReadYamlFile finds extension of the given fileName
 // Calculates fileName without extension
 // Adds yaml and yml extensions to the fileName
@@ -68,7 +72,7 @@ func GenerateRandomGUID() string {
 func ReadYamlFile(filePath string) ([]byte, string, error) {
 	extension := filepath.Ext(filePath)
 
-	fileName := ""
+	fileName := filepath.Base(filePath)
 
 	if extension != "" && extension != ".yaml" && extension != ".yml" {
 		return nil, fileName, fmt.Errorf("file extension must be .yaml or .yml")
@@ -79,19 +83,20 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 	var err error
 	var fileContent []byte
 
-	fileName = filePathWithoutExtension + ".yaml"
-
-	fileContent, err = ioutil.ReadFile(fileName)
-	if err != nil {
+	if fileExists(filePathWithoutExtension + ".yaml") {
+		fileName = filePathWithoutExtension + ".yaml"
+	} else if fileExists(filePathWithoutExtension + ".yml") {
 		fileName = filePathWithoutExtension + ".yml"
-
-		fileContent, err = ioutil.ReadFile(fileName)
-		if err != nil {
-			return nil, "", fmt.Errorf("could not read file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
-		}
+	} else {
+		return nil, "", fmt.Errorf("could not find file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
 	}
 
+	fileContent, err = os.ReadFile(fileName)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error reading file %s.", fileName)
+	}
 	return fileContent, fileName, nil
+
 }
 
 var CurrentCustomCommandsAndGroupsYamlFilePath = ""

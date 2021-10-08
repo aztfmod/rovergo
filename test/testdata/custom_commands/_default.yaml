@@ -1,0 +1,44 @@
+commands:
+  format:
+    description: "formats configuration files using terraform"
+    executableName: "terraform"
+    subCommand: "fmt"
+    flags: "-no-color -recursive -check -diff"
+    debug: false
+    requiresInit: false
+    parameters:
+      - name: list
+        value: true
+        prefix: "-"
+      - name: write
+        value: false
+        prefix: "-"
+  check:
+    description: "checks configuration files using terraform"
+    executableName: "terraform"
+    subCommand: "fmt"
+    flags: "-no-color -recursive -check -diff"
+    debug: false
+    requiresInit: false
+    parameters:
+      - name: list
+        value: true
+        prefix: "-"
+      - name: write
+        value: false
+        prefix: "-"
+
+groups:
+  deploy:
+    description: "workflow used for CI/CD"
+    commands:
+    - plan
+    - fmt
+    - apply
+    - validate
+    - destroy
+  validater:
+    description: "lints, validates and formats"
+    commands:
+    - plan
+    - apply

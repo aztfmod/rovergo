@@ -53,7 +53,6 @@ type Command struct {
 func InitializeCustomCommandsAndGroups() error {
 	commands, err := LoadCustomCommandsAndGroups()
 	if err != nil {
-		console.Errorf("Loading custom commands and groups failed: %s\n", err)
 		return err
 	}
 	for _, ca := range commands {

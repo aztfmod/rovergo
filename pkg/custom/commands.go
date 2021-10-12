@@ -163,10 +163,6 @@ func (a Action) Execute(o *landingzone.Options) error {
 		//if command.RequiresInit {
 		//}
 
-		if command.Debug {
-			args = append(args, "--debug")
-		}
-
 		if command.SubCommand != "" {
 			args = append(args, command.SubCommand)
 		}

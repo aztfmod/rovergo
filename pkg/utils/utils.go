@@ -101,6 +101,8 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 
 var CurrentCustomCommandsAndGroupsYamlFilePath = ""
 
+var SymphonyYamlFilePath = os.Getenv("HOME") + "/.rover/symphony.yaml"
+
 func GetCustomCommandsAndGroupsYamlFilePath() string {
 	return CurrentCustomCommandsAndGroupsYamlFilePath
 }

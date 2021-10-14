@@ -35,19 +35,21 @@ type Group struct {
 	Commands    []string
 }
 
+type CommandParameter struct {
+	Name   string `yaml:"name"`
+	Value  string `yaml:"value"`
+	Prefix string `yaml:"prefix"`
+}
+
 type Command struct {
-	Description    string `yaml:"description"`
-	ExecutableName string `yaml:"executableName"`
-	SubCommand     string `yaml:"subCommand"`
-	Flags          string `yaml:"flags"`
-	Debug          bool   `yaml:"debug"`
-	RequiresInit   bool   `yaml:"requiresInit"`
-	SetupEnv       bool   `yaml:"setupEnv"`
-	Parameters     []struct {
-		Name   string `yaml:"name"`
-		Value  string `yaml:"value"`
-		Prefix string `yaml:"prefix"`
-	} `yaml:"parameters"`
+	Description    string             `yaml:"description"`
+	ExecutableName string             `yaml:"executableName"`
+	SubCommand     string             `yaml:"subCommand"`
+	Flags          string             `yaml:"flags"`
+	Debug          bool               `yaml:"debug"`
+	RequiresInit   bool               `yaml:"requiresInit"`
+	SetupEnv       bool               `yaml:"setupEnv"`
+	Parameters     []CommandParameter `yaml:"parameters"`
 }
 
 func InitializeCustomCommandsAndGroups() error {

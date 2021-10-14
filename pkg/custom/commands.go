@@ -126,7 +126,6 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			commandList[i] = Command{
 				ExecutableName: "rover",
 				SubCommand:     commandName,
-				SetupEnv:       true,
 			}
 		}
 

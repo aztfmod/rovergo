@@ -83,9 +83,9 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 	var err error
 	var fileContent []byte
 
-	if fileExists(filePathWithoutExtension + ".yaml") {
+	if FileExists(filePathWithoutExtension + ".yaml") {
 		fileName = filePathWithoutExtension + ".yaml"
-	} else if fileExists(filePathWithoutExtension + ".yml") {
+	} else if FileExists(filePathWithoutExtension + ".yml") {
 		fileName = filePathWithoutExtension + ".yml"
 	} else {
 		return nil, "", fmt.Errorf("could not find file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)

@@ -2,6 +2,7 @@ package custom
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -156,9 +157,17 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 // Execute runs this custom command by running the external executable
 func (a Action) Execute(o *landingzone.Options) error {
 	console.Successf("Running custom command: %s %s\n", a.GetName(), o.SourcePath)
-	args := []string{}
+
+	if a.Type == "Group" {
+		err := validateExecution(a.Commands)
+
+		if err != nil {
+			return err
+		}
+	}
 
 	for _, command := range a.Commands {
+		args := []string{}
 
 		// TODO : check if the init command has been run
 		//if command.RequiresInit {
@@ -170,6 +179,11 @@ func (a Action) Execute(o *landingzone.Options) error {
 
 		if command.Flags != "" {
 			args = append(args, command.Flags)
+		}
+
+		if a.Type == "Group" && isBuiltinCommand(command.SubCommand) {
+			args = append(args, "--config-file")
+			args = append(args, utils.SymphonyYamlFilePath)
 		}
 
 		for _, parameter := range command.Parameters {

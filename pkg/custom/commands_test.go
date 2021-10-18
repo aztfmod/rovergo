@@ -303,6 +303,82 @@ func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T)
 	})
 }
 
+func Test_IsBuiltinCommand_Apply(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+	console.DebugEnabled = true
+
+	//act
+	InitializeCustomCommandsAndGroups()
+
+	//assert
+	assert.Equal(t, true, isBuiltinCommand("apply"))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_IsBuiltinCommand_Format(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+	console.DebugEnabled = true
+
+	//act
+	InitializeCustomCommandsAndGroups()
+
+	//assert
+	assert.Equal(t, false, isBuiltinCommand("format"))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_IsBuiltinCommand_Deploy(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+	console.DebugEnabled = true
+
+	//act
+	InitializeCustomCommandsAndGroups()
+
+	//assert
+	assert.Equal(t, false, isBuiltinCommand("deploy"))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_IsBuiltinCommand_Cloud(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+	console.DebugEnabled = true
+
+	//act
+	InitializeCustomCommandsAndGroups()
+
+	//assert
+	assert.Equal(t, false, isBuiltinCommand("cloud"))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
 func getTestHarnessPath(rootPath string) string {
 	testPath := filepath.Join(rootPath, "test")
 	testDataPath := filepath.Join(testPath, "testdata")

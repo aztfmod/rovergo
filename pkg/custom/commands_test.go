@@ -11,8 +11,10 @@ import (
 
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -373,6 +375,35 @@ func Test_IsBuiltinCommand_Cloud(t *testing.T) {
 
 	//assert
 	assert.Equal(t, false, isBuiltinCommand("cloud"))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_Execute_Validate(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+	console.DebugEnabled = true
+	testDataPath := "../../test/testdata"
+	fmt.Println(testDataPath)
+
+	validateOptions := &cobra.Command{}
+	validateOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
+	validateOptions.Flags().String("source", testDataPath+"/caf-terraform-landingzones", "")
+	validateOptions.Flags().String("level", "level0", "")
+	validateOptions.Flags().Bool("launchpad", true, "")
+	optionsList := landingzone.BuildOptions(validateOptions)
+
+	//act
+	InitializeCustomCommandsAndGroups()
+	validateAction := actions.ActionMap["validate"]
+
+	//assert
+	assert.Equal(t, nil, validateAction.Execute(&optionsList[0]))
 
 	t.Cleanup(func() {
 		removeCommandYamlFromHomeDir(roverHome)

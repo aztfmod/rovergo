@@ -410,6 +410,64 @@ func Test_Execute_Validate(t *testing.T) {
 	})
 }
 
+func Test_Execute_CustomCommand(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "only_hello_custom_command.yml", "commands.yml")
+	console.DebugEnabled = true
+	testDataPath := "../../test/testdata"
+	fmt.Println(testDataPath)
+
+	validateOptions := &cobra.Command{}
+	validateOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
+	validateOptions.Flags().String("source", testDataPath+"/caf-terraform-landingzones", "")
+	validateOptions.Flags().String("level", "level0", "")
+	validateOptions.Flags().Bool("launchpad", true, "")
+	optionsList := landingzone.BuildOptions(validateOptions)
+
+	//act
+	InitializeCustomCommandsAndGroups()
+	validateAction := actions.ActionMap["hello"]
+
+	//assert
+	assert.Equal(t, nil, validateAction.Execute(&optionsList[0]))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_Execute_GroupAllCustom(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "group_all_custom.yml", "commands.yml")
+	console.DebugEnabled = true
+	testDataPath := "../../test/testdata"
+	fmt.Println(testDataPath)
+
+	validateOptions := &cobra.Command{}
+	validateOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
+	validateOptions.Flags().String("source", testDataPath+"/caf-terraform-landingzones", "")
+	validateOptions.Flags().String("level", "level0", "")
+	validateOptions.Flags().Bool("launchpad", true, "")
+	optionsList := landingzone.BuildOptions(validateOptions)
+
+	//act
+	InitializeCustomCommandsAndGroups()
+	validateAction := actions.ActionMap["deploy"]
+
+	//assert
+	assert.Equal(t, nil, validateAction.Execute(&optionsList[0]))
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
 func getTestHarnessPath(rootPath string) string {
 	testPath := filepath.Join(rootPath, "test")
 	testDataPath := filepath.Join(testPath, "testdata")

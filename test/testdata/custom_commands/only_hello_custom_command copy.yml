@@ -1,0 +1,8 @@
+commands:
+  hello:
+    description: "display hello"
+    executableName: "echo"
+    subCommand: ""
+    flags: "'hello'"
+    debug: false
+    requiresInit: false

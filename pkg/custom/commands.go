@@ -158,7 +158,7 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 func (a Action) Execute(o *landingzone.Options) error {
 	console.Successf("Running custom command: %s %s\n", a.GetName(), o.SourcePath)
 
-	if a.Type == "Group" {
+	if a.Type == landingzone.GroupCommand {
 		err := validateExecution(a.Commands)
 
 		if err != nil {
@@ -167,6 +167,16 @@ func (a Action) Execute(o *landingzone.Options) error {
 	}
 
 	for _, command := range a.Commands {
+		if a.Type == landingzone.GroupCommand {
+			err := actions.ActionMap[command.SubCommand].Execute(o)
+
+			// NOTE: When running across multiple levels/stacks
+			// We will exit early when we hit first error, this could be improved
+			cobra.CheckErr(err)
+
+			continue
+		}
+
 		args := []string{}
 
 		// TODO : check if the init command has been run
@@ -179,11 +189,6 @@ func (a Action) Execute(o *landingzone.Options) error {
 
 		if command.Flags != "" {
 			args = append(args, command.Flags)
-		}
-
-		if a.Type == "Group" && isBuiltinCommand(command.SubCommand) {
-			args = append(args, "--config-file")
-			args = append(args, utils.SymphonyYamlFilePath)
 		}
 
 		for _, parameter := range command.Parameters {

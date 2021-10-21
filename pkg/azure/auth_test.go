@@ -1,3 +1,5 @@
+//go:build integration && !unit
+
 package azure
 
 import (

@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         # Removed until we can set up azure cli and login etc in pipeline
         run: echo "Tests disabled in CI at the present time :("
-        #run: make test
+        run: make test
 
       - name: Run build
         run: make build

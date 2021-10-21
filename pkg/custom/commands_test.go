@@ -410,8 +410,19 @@ func Test_Execute_CustomCommand(t *testing.T) {
 	})
 }
 
+func resetActionMap() {
+	actions.ActionMap = map[string]landingzone.Action{
+		"init":     landingzone.NewInitAction(),
+		"plan":     landingzone.NewPlanAction(),
+		"apply":    landingzone.NewApplyAction(),
+		"destroy":  landingzone.NewDestroyAction(),
+		"validate": landingzone.NewValidateAction(),
+		"fmt":      landingzone.NewFormatAction(),
+	}
+}
 func Test_Execute_GroupAllCustom(t *testing.T) {
 	//arrange
+	resetActionMap()
 	roverHome := "/tmp"
 	removeCommandYamlFromCWD()
 	rover.SetHomeDirectory(roverHome)
@@ -432,7 +443,8 @@ func Test_Execute_GroupAllCustom(t *testing.T) {
 	validateAction := actions.ActionMap["deploy"]
 
 	//assert
-	assert.Equal(t, nil, validateAction.Execute(&optionsList[0]))
+	err := validateAction.Execute(&optionsList[0])
+	assert.Equal(t, nil, err)
 
 	t.Cleanup(func() {
 		removeCommandYamlFromHomeDir(roverHome)

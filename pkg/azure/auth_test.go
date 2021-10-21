@@ -1,4 +1,5 @@
-//go:build integration && !unit
+//go:build integration || ignore || !unit
+// +build integration ignore !unit
 
 package azure
 

@@ -162,7 +162,7 @@ func (a Action) Execute(o *landingzone.Options) error {
 		err := validateExecution(a.Commands)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("%s group command validation failed: %s", a.Name, err.Error())
 		}
 	}
 
@@ -173,6 +173,10 @@ func (a Action) Execute(o *landingzone.Options) error {
 			// NOTE: When running across multiple levels/stacks
 			// We will exit early when we hit first error, this could be improved
 			cobra.CheckErr(err)
+
+			if err != nil {
+				return fmt.Errorf("%s-%s command failed: %s", a.Name, command.SubCommand, err.Error())
+			}
 
 			continue
 		}

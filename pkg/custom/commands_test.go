@@ -420,6 +420,7 @@ func resetActionMap() {
 		"fmt":      landingzone.NewFormatAction(),
 	}
 }
+
 func Test_Execute_GroupAllCustom(t *testing.T) {
 	//arrange
 	resetActionMap()
@@ -445,6 +446,30 @@ func Test_Execute_GroupAllCustom(t *testing.T) {
 	//assert
 	err := validateAction.Execute(&optionsList[0])
 	assert.Equal(t, nil, err)
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_Execute_GroupCommand_SubCommand_Order(t *testing.T) {
+	//arrange
+	resetActionMap()
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	copyCommandYamlToRoverHome(roverHome, "group_all_custom.yml", "commands.yml")
+	console.DebugEnabled = true
+	testDataPath := "../../test/testdata"
+	fmt.Println(testDataPath)
+
+	//act
+	InitializeCustomCommandsAndGroups()
+	validateAction := actions.ActionMap["deploy"].(Action)
+
+	//assert
+	assert.Equal(t, "hello", validateAction.Commands[0].SubCommand)
+	assert.Equal(t, "bye", validateAction.Commands[1].SubCommand)
 
 	t.Cleanup(func() {
 		removeCommandYamlFromHomeDir(roverHome)

@@ -1,0 +1,25 @@
+commands:
+  hello:
+    description: "display hello"
+    executableName: "echo"
+    subCommand: ""
+    flags: "'hello'"
+    debug: false
+    requiresInit: false
+  bye:
+    description: "display hello"
+    executableName: "echo"
+    subCommand: ""
+    flags: "'good bye'"
+    debug: false
+    requiresInit: false
+
+
+
+groups:
+  deploy:
+    description: "workflow used for CI/CD"
+    commands:
+    - hello
+    - bye
+  

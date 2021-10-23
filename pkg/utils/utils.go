@@ -59,7 +59,7 @@ func GenerateRandomGUID() string {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
-func fileExists(filePath string) bool {
+func FileExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return !os.IsNotExist(err)
 }
@@ -83,9 +83,9 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 	var err error
 	var fileContent []byte
 
-	if fileExists(filePathWithoutExtension + ".yaml") {
+	if FileExists(filePathWithoutExtension + ".yaml") {
 		fileName = filePathWithoutExtension + ".yaml"
-	} else if fileExists(filePathWithoutExtension + ".yml") {
+	} else if FileExists(filePathWithoutExtension + ".yml") {
 		fileName = filePathWithoutExtension + ".yml"
 	} else {
 		return nil, "", fmt.Errorf("could not find file '%s.yaml' or '%s.yml'", filePathWithoutExtension, filePathWithoutExtension)
@@ -100,6 +100,8 @@ func ReadYamlFile(filePath string) ([]byte, string, error) {
 }
 
 var CurrentCustomCommandsAndGroupsYamlFilePath = ""
+
+var SymphonyYamlFilePath = os.Getenv("HOME") + "/.rover/symphony.yaml"
 
 func GetCustomCommandsAndGroupsYamlFilePath() string {
 	return CurrentCustomCommandsAndGroupsYamlFilePath

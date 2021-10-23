@@ -2,6 +2,7 @@ package custom
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -35,19 +36,21 @@ type Group struct {
 	Commands    []string
 }
 
+type CommandParameter struct {
+	Name   string `yaml:"name"`
+	Value  string `yaml:"value"`
+	Prefix string `yaml:"prefix"`
+}
+
 type Command struct {
-	Description    string `yaml:"description"`
-	ExecutableName string `yaml:"executableName"`
-	SubCommand     string `yaml:"subCommand"`
-	Flags          string `yaml:"flags"`
-	Debug          bool   `yaml:"debug"`
-	RequiresInit   bool   `yaml:"requiresInit"`
-	SetupEnv       bool   `yaml:"setupEnv"`
-	Parameters     []struct {
-		Name   string `yaml:"name"`
-		Value  string `yaml:"value"`
-		Prefix string `yaml:"prefix"`
-	} `yaml:"parameters"`
+	Description    string             `yaml:"description"`
+	ExecutableName string             `yaml:"executableName"`
+	SubCommand     string             `yaml:"subCommand"`
+	Flags          string             `yaml:"flags"`
+	Debug          bool               `yaml:"debug"`
+	RequiresInit   bool               `yaml:"requiresInit"`
+	SetupEnv       bool               `yaml:"setupEnv"`
+	Parameters     []CommandParameter `yaml:"parameters"`
 }
 
 func InitializeCustomCommandsAndGroups() error {
@@ -124,7 +127,6 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 			commandList[i] = Command{
 				ExecutableName: "rover",
 				SubCommand:     commandName,
-				SetupEnv:       true,
 			}
 		}
 
@@ -155,17 +157,35 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 // Execute runs this custom command by running the external executable
 func (a Action) Execute(o *landingzone.Options) error {
 	console.Successf("Running custom command: %s %s\n", a.GetName(), o.SourcePath)
-	args := []string{}
+
+	if a.Type == landingzone.GroupCommand {
+		err := validateExecution(a.Commands)
+
+		if err != nil {
+			return fmt.Errorf("%s group command validation failed: %s", a.Name, err.Error())
+		}
+	}
 
 	for _, command := range a.Commands {
+		if a.Type == landingzone.GroupCommand {
+			err := actions.ActionMap[command.SubCommand].Execute(o)
+
+			// NOTE: When running across multiple levels/stacks
+			// We will exit early when we hit first error, this could be improved
+			cobra.CheckErr(err)
+
+			if err != nil {
+				return fmt.Errorf("%s-%s command failed: %s", a.Name, command.SubCommand, err.Error())
+			}
+
+			continue
+		}
+
+		args := []string{}
 
 		// TODO : check if the init command has been run
 		//if command.RequiresInit {
 		//}
-
-		if command.Debug {
-			args = append(args, "--debug")
-		}
 
 		if command.SubCommand != "" {
 			args = append(args, command.SubCommand)
@@ -205,6 +225,35 @@ func (a Action) Execute(o *landingzone.Options) error {
 	}
 
 	return nil
+}
+
+func validateExecution(commands []Command) error {
+	hasBuiltinCommand := false
+
+	for _, command := range commands {
+		if isBuiltinCommand(command.SubCommand) {
+			hasBuiltinCommand = true
+			break
+		}
+	}
+
+	if hasBuiltinCommand {
+		if !utils.FileExists(utils.SymphonyYamlFilePath) {
+			return errors.New("symphony.yaml file not found. Please run `rover init` to create a symphony.yaml file")
+		}
+	}
+
+	return nil
+}
+
+func isBuiltinCommand(command string) bool {
+	for _, actionCommand := range actions.ActionMap {
+		if command == actionCommand.GetName() && actionCommand.GetType() == landingzone.BuiltinCommand {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validateCustomCommands(customCommands map[string]Command) error {

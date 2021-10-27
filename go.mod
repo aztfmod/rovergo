@@ -17,6 +17,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/terraform-exec v0.13.3
 	github.com/joho/godotenv v1.3.0
+	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/text v0.3.7 // indirect

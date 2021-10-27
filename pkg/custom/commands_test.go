@@ -9,10 +9,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
+	"github.com/aztfmod/rover/pkg/landingzone"
 	"github.com/aztfmod/rover/pkg/rover"
 	"github.com/aztfmod/rover/pkg/utils"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -297,6 +300,38 @@ func Test_InitilizeCustomCommands_Group_Contains_Expected_Commands(t *testing.T)
 
 	deploy := actions.ActionMap["deploy"].(Action)
 	assert.Equal(t, 3, len(deploy.Commands)) // 3 commands are in the test harness file valid_groups.yml
+
+	t.Cleanup(func() {
+		removeCommandYamlFromHomeDir(roverHome)
+	})
+}
+
+func Test_Execute_Test(t *testing.T) {
+	//arrange
+	roverHome := "/tmp"
+	removeCommandYamlFromCWD()
+	rover.SetHomeDirectory(roverHome)
+	console.DebugEnabled = true
+	testDataPath := "../../test/testdata"
+	fmt.Println(testDataPath)
+
+	testOptions := &cobra.Command{}
+	testOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
+	testOptions.Flags().String("test-source", "/tmp/symphony/tests", "")
+	testOptions.Flags().String("level", "level0", "")
+	testOptions.Flags().Bool("launchpad", true, "")
+	sub, _ := azure.GetSubscription()
+	testOptions.Flags().String("state-sub", sub.ID, "")
+	testOptions.Flags().String("statename", "caf_launchpad", "")
+
+	optionsList := landingzone.BuildOptions(testOptions)
+
+	//act
+	InitializeCustomCommandsAndGroups()
+	testAction := actions.ActionMap["test"]
+
+	//assert
+	assert.Equal(t, nil, testAction.Execute(&optionsList[0]))
 
 	t.Cleanup(func() {
 		removeCommandYamlFromHomeDir(roverHome)

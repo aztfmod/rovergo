@@ -40,7 +40,7 @@ func (ta *TestAction) Execute(o *Options) error {
 		sub, err := azure.GetSubscription()
 
 		if err != nil {
-			return errors.New("can't locate state sub.")
+			return errors.New("can't locate state sub")
 		}
 		o.StateSubscription = sub.ID
 	}
@@ -50,9 +50,9 @@ func (ta *TestAction) Execute(o *Options) error {
 
 		console.Errorf("No state storage account found for environment '%s' and level %s", o.CafEnvironment, o.Level)
 		return errors.New("can't test a landing zone without a state file storage account")
-	} else {
-		console.Infof("Located state storage account %s\n", storageID)
 	}
+
+	console.Infof("Located state storage account %s\n", storageID)
 
 	// download tfstate file
 	stateFilePath := path.Join(o.DataDir, "terraform.tfstate")
@@ -69,8 +69,7 @@ func (ta *TestAction) Execute(o *Options) error {
 	// create junit test report.
 	if err == nil {
 		console.Infof("Test execution compeleted!")
-		CreateJunitReport(testRes, "testReport.xml")
-
+		_ = CreateJunitReport(testRes, "testReport.xml")
 	} else {
 		console.Errorf("Test execution errored! %s\n", err)
 	}
@@ -95,12 +94,15 @@ func RunGoTests(testFilePath string, o *Options) (cmdRes string, err error) {
 	if o.Stack != "" {
 		args = append(args, "--tags", fmt.Sprintf("%s,%s", o.Level, o.Stack))
 	} else {
-		args = append(args, "--tags", fmt.Sprintf("%s", o.Level))
+		args = append(args, "--tags", o.Level)
 	}
 
 	// Set the path to the test path, this is where the tests are
-	currDir, err := os.Getwd()
-	os.Chdir(testFilePath)
+	currDir, _ := os.Getwd()
+	err = os.Chdir(testFilePath)
+	if err != nil {
+		console.Errorf("Error switching to test directory %s %s\n", testFilePath, err)
+	}
 	cmd := command.NewCommand("go", args)
 	cmd.Silent = false
 
@@ -112,17 +114,19 @@ func RunGoTests(testFilePath string, o *Options) (cmdRes string, err error) {
 	}
 
 	console.Infof("Executed tests output logs %s\n", cmd.StdOut)
-	os.Chdir(currDir)
-
+	err = os.Chdir(currDir)
+	if err != nil {
+		console.Errorf("Error switching to back to working directory %s %s\n", currDir, err)
+	}
 	return cmd.StdOut, nil
 }
 
 func CreateJunitReport(testlog string, reportName string) error {
 	// Read input
-	report, err := parser.Parse(strings.NewReader(testlog), "")
+	report, _ := parser.Parse(strings.NewReader(testlog), "")
 
 	// Write xml
-	currDir, err := os.Getwd()
+	currDir, _ := os.Getwd()
 
 	outfile, err := os.Create(reportName)
 	if err != nil {

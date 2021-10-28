@@ -1,4 +1,5 @@
-// +build level0
+//go:build level0 && !unit
+// +build level0,!unit
 
 package caf_tests
 

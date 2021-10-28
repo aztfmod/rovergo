@@ -130,7 +130,8 @@ func BuildSubCommandsFromActionMap() {
 				var optionsList []landingzone.Options
 				// Handle symphony mode where config file and level is passed, this will return optionsList with MANY items
 				if configFile != "" {
-					// Depending on if we're running single or mult-level this will return one or many options
+					// Depending on if we're running single or multi-level this will return one or many options
+					utils.SymphonyYamlFilePath = configFile
 					optionsList = symphony.BuildOptions(cmd)
 				}
 

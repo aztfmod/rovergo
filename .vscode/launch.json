@@ -40,7 +40,7 @@
         "-l",
         "level0",
         "-s",
-        "/home/greg/git/caf-terraform-landingzones",
+        "~/.rover/caf-terraform-landingzones",
         "-n",
         "launchpad",
         "--debug",
@@ -60,7 +60,7 @@
         "-l",
         "level0",
         "-s",
-        "/home/greg/git/caf-terraform-landingzones",
+        "~/.rover/caf-terraform-landingzones",
         "--debug",
       ]
     },

@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/landingzone"
@@ -408,39 +407,6 @@ func Test_Execute_CustomCommand(t *testing.T) {
 	t.Cleanup(func() {
 		removeCommandYamlFromHomeDir(roverHome)
 	})
-}
-
-func Test_Execute_Test(t *testing.T) {
-	//arrange
-	roverHome := "/tmp"
-	removeCommandYamlFromCWD()
-	rover.SetHomeDirectory(roverHome)
-
-	console.DebugEnabled = true
-	testDataPath := "../../test/testdata"
-	exampleTestPath := "../../examples/tests"
-	testOptions := &cobra.Command{}
-	testOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
-	testOptions.Flags().String("test-source", exampleTestPath, "")
-	testOptions.Flags().String("level", "level0", "")
-	testOptions.Flags().String("environment", "test", "")
-	testOptions.Flags().Bool("launchpad", true, "")
-	sub, _ := azure.GetSubscription()
-	testOptions.Flags().String("state-sub", sub.ID, "")
-	testOptions.Flags().String("statename", "caf_launchpad", "")
-
-	optionsList := landingzone.BuildOptions(testOptions)
-
-	//act
-	InitializeCustomCommandsAndGroups()
-	testAction := actions.ActionMap["test"]
-
-	//assert
-	assert.Equal(t, nil, testAction.Execute(&optionsList[0]))
-
-	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
-	console.DebugEnabled = true
-
 }
 
 func resetActionMap() {

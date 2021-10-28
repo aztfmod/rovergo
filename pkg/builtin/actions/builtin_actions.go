@@ -10,4 +10,5 @@ var ActionMap = map[string]landingzone.Action{
 	"destroy":  landingzone.NewDestroyAction(),
 	"validate": landingzone.NewValidateAction(),
 	"fmt":      landingzone.NewFormatAction(),
+	"test":     landingzone.NewTestAction(),
 }

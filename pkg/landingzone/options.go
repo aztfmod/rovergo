@@ -26,7 +26,9 @@ type Options struct {
 	LaunchPadMode      bool
 	ConfigPath         string
 	SourcePath         string
+	TestPath           string
 	Level              string
+	Stack              string
 	CafEnvironment     string
 	StateName          string
 	Workspace          string
@@ -88,6 +90,18 @@ func (o *Options) SetConfigPath(configPath string) {
 	if err != nil {
 		console.Errorf("Unable to open config directory: %s\n", o.ConfigPath)
 		cobra.CheckErr("Config directory must exist for rover to run")
+	}
+}
+
+func (o *Options) SetTestPath(testPath string) {
+	testPath, err := filepath.Abs(testPath)
+	cobra.CheckErr(err)
+	o.TestPath = testPath
+
+	_, err = os.Stat(o.TestPath)
+	if err != nil {
+		console.Errorf("Unable to open Test directory: %s\n", o.TestPath)
+		cobra.CheckErr("Test directory must exist for rover test to run")
 	}
 }
 

@@ -310,10 +310,9 @@ func Test_IsBuiltinCommand_Apply(t *testing.T) {
 	roverHome := "/tmp"
 	removeCommandYamlFromCWD()
 	rover.SetHomeDirectory(roverHome)
-	copyCommandYamlToRoverHome(roverHome, "valid_group.yml", "commands.yml")
+
 	console.DebugEnabled = true
 
-	//act
 	InitializeCustomCommandsAndGroups()
 
 	//assert
@@ -475,40 +474,6 @@ func Test_Execute_GroupCommand_SubCommand_Order(t *testing.T) {
 		removeCommandYamlFromHomeDir(roverHome)
 	})
 }
-
-//TODO: Story to debug and ensure deployment of minimal app will handle this test and ensure it passes. 
-// func Test_Execute_Group_Deploy_Command(t *testing.T) {
-// 	//arrange
-// 	resetActionMap()
-// 	roverHome := "/tmp"
-// 	removeCommandYamlFromCWD()
-// 	rover.SetHomeDirectory(roverHome)
-// 	copyCommandYamlToRoverHome(roverHome, "group_no_commands.yml", "commands.yml")
-// 	console.DebugEnabled = true
-// 	testDataPath := "../../test/testdata"
-// 	fmt.Println(testDataPath)
-
-// 	//act
-// 	InitializeCustomCommandsAndGroups()
-// 	deployAction := actions.ActionMap["deploy"].(Action)
-
-// 	deployOptions := &cobra.Command{}
-// 	deployOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
-// 	deployOptions.Flags().String("source", testDataPath+"/caf-terraform-landingzones", "")
-// 	deployOptions.Flags().String("level", "level0", "")
-// 	deployOptions.Flags().String("environment", "test", "")
-// 	deployOptions.Flags().Bool("launchpad", true, "")
-// 	optionsList := landingzone.BuildOptions(deployOptions)
-
-// 	err := deployAction.Execute(&optionsList[0])
-
-// 	//assert
-// 	assert.Equal(t, nil, err)
-
-// 	t.Cleanup(func() {
-// 		removeCommandYamlFromHomeDir(roverHome)
-// 	})
-// }
 
 func getTestHarnessPath(rootPath string) string {
 	testPath := filepath.Join(rootPath, "test")

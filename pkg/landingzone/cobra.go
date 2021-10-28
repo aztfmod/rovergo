@@ -22,18 +22,20 @@ func BuildOptions(cmd *cobra.Command) []Options {
 	configPath, _ := cmd.Flags().GetString("config-dir")
 	sourcePath, _ := cmd.Flags().GetString("source")
 	level, _ := cmd.Flags().GetString("level")
+	stack, _ := cmd.Flags().GetString("stack")
 	env, _ := cmd.Flags().GetString("environment")
 	stateName, _ := cmd.Flags().GetString("statename")
 	ws, _ := cmd.Flags().GetString("workspace")
 	stateSub, _ := cmd.Flags().GetString("state-sub")
 	targetSub, _ := cmd.Flags().GetString("target-sub")
+	testpath, _ := cmd.Flags().GetString("test-source")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
 	// Normally cobra would provide automatic defaults but we are using it in a weird way
 	if level == "" {
 		cobra.CheckErr("--level must be supplied when not using a config file")
 	}
-	if sourcePath == "" {
+	if sourcePath == "" && testpath == "" {
 		cobra.CheckErr("--source option must be supplied when not using a config file")
 	}
 	if ws == "" {
@@ -46,26 +48,35 @@ func BuildOptions(cmd *cobra.Command) []Options {
 	opt := Options{
 		LaunchPadMode:      launchPadMode,
 		Level:              level,
+		Stack:              stack,
 		CafEnvironment:     env,
 		StateName:          stateName,
 		Workspace:          ws,
 		TargetSubscription: targetSub,
 		StateSubscription:  stateSub,
+		TestPath:           testpath,
 		DryRun:             dryRun,
 	}
 
 	// Safely set the paths up
-	opt.SetSourcePath(sourcePath)
+
 	opt.SetConfigPath(configPath)
 
-	// Default state & plan name is taken from the base name of the landingzone source dir
-	if stateName == "" {
-		stateName = filepath.Base(opt.SourcePath)
-		if stateName == "/" || stateName == "." {
-			cobra.CheckErr("Error --source should be a directory path")
+	if testpath != "" {
+		opt.SetTestPath(testpath)
+	}
+
+	if testpath == "" {
+		opt.SetSourcePath(sourcePath)
+		// Default state & plan name is taken from the base name of the landingzone source dir
+		if stateName == "" {
+			stateName = filepath.Base(opt.SourcePath)
+			if stateName == "/" || stateName == "." {
+				cobra.CheckErr("Error --source should be a directory path")
+			}
+			// Update the StateName, we have to do this after SetSourcePath is called
+			opt.StateName = stateName
 		}
-		// Update the StateName, we have to do this after SetSourcePath is called
-		opt.StateName = stateName
 	}
 
 	err := opt.SetDataDir()

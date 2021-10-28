@@ -166,6 +166,8 @@ func BuildSubCommandsFromActionMap() {
 		actionSubCmd.Flags().Bool("launchpad", false, "Run in launchpad mode, i.e. level 0")
 		actionSubCmd.Flags().StringP("level", "l", "", "CAF landingzone level name, default is all levels")
 		actionSubCmd.Flags().BoolP("dry-run", "d", false, "Execute a dry run where no actions will be executed")
+		actionSubCmd.Flags().StringP("stack", "t", "", "CAF landingzone level stack name")
+		actionSubCmd.Flags().StringP("test-source", "", "", "Path to source of tests")
 		actionSubCmd.Flags().SortFlags = true
 
 		// Stuff it under the parent root command

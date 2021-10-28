@@ -79,6 +79,7 @@ Rover v2 actions take two forms:
   - destroy
   - fmt
   - validate
+  - test (integration tests in terratest)
 
 - **Custom actions**, these extend the Rover v2 command set, and allow you to run an external command against the given CAF config, level, source etc. [See below](#custom-actions)
 
@@ -299,3 +300,27 @@ When deploying a landing zone you don't write any Terraform directly, but instea
 
 - **Source Terraform**
 The source terraform for the CAF landingzones, in many cases this can be cloned directly from the [https://github.com/Azure/caf-terraform-landingzones](https://github.com/Azure/caf-terraform-landingzones) repo and used unmodified. Rover needs to access this as it contains the Terraform HCL required to deploy a landingzone.
+
+## Integration Tests
+
+Rover has the ability to run integration tests written in Go, using [Terratest.](https://github.com/gruntwork-io/terratest)
+
+When running `rover test` instead of passing a source-dir parameter, a test-source parameter must be passed in. This the path to the tests you would like to execute.
+
+Before running tests, it's expected that resources are deployed using Rover. The pattern for testing is to validate configuration on deployed infrastructure, but the tests themselves do not deploy the infrastructure.
+
+```bash
+rover test \
+        --config-dir test/testdata/configs/level0/launchpad/ \
+        --test-source examples/tests/ \
+        --level level0 \
+        --environment test \
+        --launchpad \
+        --statename caf_launchpad
+```
+
+Note: --launchpad is only required when testing the level0 launchpad. It is not needed for other landingzones. This is similar behavior to other Rover commands.
+
+The test action also expects a statename parameter. This is the landing zone key the specific landing zone configuration under test. [An example can be found here.](../examples/minimal/configs/level0/launchpad/configuration.tfvars)
+
+Sample tests can be found in the [examples folder of this repo.](../examples/tests)

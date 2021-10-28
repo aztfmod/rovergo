@@ -319,6 +319,8 @@ rover test \
         --statename caf_launchpad
 ```
 
+Note: --launchpad is only required when testing the level0 launchpad. It is not needed for other landingzones. This is similar behavior to other Rover commands.
+
 The test action also expects a statename parameter. This is the landing zone key the specific landing zone configuration under test. [An example can be found here.](../examples/minimal/configs/level0/launchpad/configuration.tfvars)
 
 Sample tests can be found in the [examples folder of this repo.](../examples/tests)

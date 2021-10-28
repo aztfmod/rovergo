@@ -313,12 +313,14 @@ func Test_Execute_Test(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	console.DebugEnabled = true
 	testDataPath := "../../test/testdata"
+	exampleTestPath := "../../examples/tests"
 	fmt.Println(testDataPath)
 
 	testOptions := &cobra.Command{}
 	testOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
-	testOptions.Flags().String("test-source", "/tmp/symphony/tests", "")
+	testOptions.Flags().String("test-source", exampleTestPath, "")
 	testOptions.Flags().String("level", "level0", "")
+	testOptions.Flags().String("environment", "test", "")
 	testOptions.Flags().Bool("launchpad", true, "")
 	sub, _ := azure.GetSubscription()
 	testOptions.Flags().String("state-sub", sub.ID, "")

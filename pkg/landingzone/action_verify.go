@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/aztfmod/rover/pkg/azure"
@@ -54,7 +55,8 @@ func (ta *TestAction) Execute(o *Options) error {
 	}
 
 	// download tfstate file
-	err = azure.DownloadFileFromBlob(storageID, o.Workspace, o.StateName+".tfstate", o.DataDir+"/terraform.tfstate")
+	stateFilePath := path.Join(o.DataDir, "terraform.tfstate")
+	err = azure.DownloadFileFromBlob(storageID, o.Workspace, o.StateName+".tfstate", stateFilePath)
 	cobra.CheckErr(err)
 
 	// Execute go test
@@ -76,7 +78,7 @@ func (ta *TestAction) Execute(o *Options) error {
 	// delete the downloaded statefile
 	// Remove files
 	o.cleanUp()
-	_ = os.RemoveAll(o.DataDir)
+	_ = os.Remove(stateFilePath)
 
 	return nil
 }

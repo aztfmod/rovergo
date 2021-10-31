@@ -39,3 +39,19 @@ jobs:
 
       - name: Run build
         run: make build
+
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        if: ${{ !env.ACT }}
+        with:
+          go-version: 1.16
+
+      - name: Run integration tests in integration folder
+        run: go test -timeout 600s -tags unit github.com/aztfmod/rover/test/integration

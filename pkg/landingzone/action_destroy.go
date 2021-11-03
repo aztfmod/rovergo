@@ -2,7 +2,9 @@ package landingzone
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"path"
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
@@ -38,7 +40,7 @@ func (a *DestroyAction) Execute(o *Options) error {
 		return nil
 	}
 
-	stateFileName := o.DataDir + "/" + o.StateName + ".tfstate"
+	stateFileName := path.Join(o.DataDir, fmt.Sprintf("%s.tfstate", o.StateName))
 
 	// Build apply options, with plan file and state out
 	destroyOptions := []tfexec.DestroyOption{

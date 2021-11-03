@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -137,8 +138,8 @@ func (o *Options) SetupEnvironment() error {
 	os.Setenv("ARM_SUBSCRIPTION_ID", o.TargetSubscription)
 	os.Setenv("ARM_TENANT_ID", o.Subscription.TenantID)
 	os.Setenv("TF_VAR_tfstate_subscription_id", o.StateSubscription)
-	os.Setenv("TF_VAR_tf_name", fmt.Sprintf("%s.tfstate", o.StateName))
-	os.Setenv("TF_VAR_tf_plan", fmt.Sprintf("%s.tfplan", o.StateName))
+	os.Setenv("TF_VAR_tf_name", path.Join(o.StateName, ".tfstate"))
+	os.Setenv("TF_VAR_tf_plan", path.Join(o.StateName, ".tfplan"))
 	os.Setenv("TF_VAR_workspace", o.Workspace)
 	os.Setenv("TF_VAR_level", o.Level)
 	os.Setenv("TF_VAR_environment", o.CafEnvironment)

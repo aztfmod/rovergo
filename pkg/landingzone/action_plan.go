@@ -3,6 +3,7 @@ package landingzone
 import (
 	"context"
 	"fmt"
+	"path"
 
 	"github.com/aztfmod/rover/pkg/console"
 	"github.com/aztfmod/rover/pkg/terraform"
@@ -46,7 +47,7 @@ func (a *PlanAction) Execute(o *Options) error {
 	}
 
 	// Build plan options starting with tfplan output
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
+	planFile := path.Join(o.DataDir, fmt.Sprintf("%s.tfplan", o.StateName))
 	planOptions := []tfexec.PlanOption{
 		tfexec.Out(planFile),
 		tfexec.Refresh(true),

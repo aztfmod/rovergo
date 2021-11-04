@@ -9,6 +9,7 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"strconv"
 	"strings"
 
@@ -58,7 +59,7 @@ func runFetch(repo string, branch string, strip int, dest string, subFolder stri
 	console.Infof("Running fetch operation. Will download %s branch of %s and place into %s\n", branch, repo, dest)
 
 	cloneURL := fmt.Sprintf("%s/%s/tar.gz/%s", gitBase, repo, branch)
-	tarFile := fmt.Sprintf("%s/%s", tempDir, tempFileName)
+	tarFile := path.Join(tempDir, tempFileName)
 
 	projParts := strings.Split(repo, "/")
 	if len(projParts) < 2 {

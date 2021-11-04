@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/aztfmod/rover/pkg/azure"
 	"github.com/aztfmod/rover/pkg/console"
@@ -34,8 +35,8 @@ func (a *ApplyAction) Execute(o *Options) error {
 		return err
 	}
 
-	planFile := fmt.Sprintf("%s/%s.tfplan", o.DataDir, o.StateName)
-	stateFile := fmt.Sprintf("%s/%s.tfstate", o.DataDir, o.StateName)
+	planFile := path.Join(o.DataDir, fmt.Sprintf("%s.tfplan", o.StateName))
+	stateFile := path.Join(o.DataDir, fmt.Sprintf("%s.tfstate", o.StateName))
 	console.Infof("Apply will use plan file %s\n", planFile)
 
 	// Build apply options, with plan file and state out

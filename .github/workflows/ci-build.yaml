@@ -53,5 +53,8 @@ jobs:
         with:
           go-version: 1.16
 
+      - name: Checkout CAF Landing Zones
+        run: git clone https:github.com/azure/caf-terraform-landingzones.git ~/.rover/caf-terraform-landingzones
+
       - name: Run integration tests in integration folder
-        run: go test -timeout 600s -tags unit github.com/aztfmod/rover/test/integration
+        run: go test -timeout 600s -tags integration github.com/aztfmod/rover/test/integration

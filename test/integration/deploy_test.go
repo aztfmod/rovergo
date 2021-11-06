@@ -1,3 +1,6 @@
+//go:build integration && !unit
+// +build integration,!unit
+
 package test
 
 import (
@@ -27,7 +30,11 @@ func Test_Execute_Group_Deploy_Command(t *testing.T) {
 	fmt.Println(testDataPath)
 
 	//act
-	custom.InitializeCustomCommandsAndGroups()
+	err := custom.InitializeCustomCommandsAndGroups()
+	if err != nil {
+		t.Errorf("Error initializing custom commands and groups - %s", err)
+	}
+
 	deployAction := actions.ActionMap["deploy"]
 
 	deployOptions := &cobra.Command{}
@@ -38,7 +45,7 @@ func Test_Execute_Group_Deploy_Command(t *testing.T) {
 	deployOptions.Flags().Bool("launchpad", true, "")
 	optionsList := landingzone.BuildOptions(deployOptions)
 
-	err := deployAction.Execute(&optionsList[0])
+	err = deployAction.Execute(&optionsList[0])
 
 	//assert
 	assert.Equal(t, nil, err)
@@ -66,7 +73,10 @@ func copyCommandYamlToRoverHome(roverHome, fileName string, target string) {
 	testHarnessPath := getTestHarnessPath(rootPath)
 	sourcePath := filepath.Join(testHarnessPath, fileName)
 	destinationPath := filepath.Join(roverHome, target)
-	utils.CopyFile(sourcePath, destinationPath)
+	err := utils.CopyFile(sourcePath, destinationPath)
+	if err != nil {
+		_ = fmt.Errorf("Error copying test harness %s - %s", fileName, err)
+	}
 }
 
 func removeCommandYamlFromCWD() {

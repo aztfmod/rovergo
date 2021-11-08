@@ -1,6 +1,6 @@
-// // +build integration,!unit
+// +build integration,!unit
 
-// package test
+package test
 
 // import (
 // 	"encoding/json"

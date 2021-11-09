@@ -158,14 +158,6 @@ func LoadCustomCommandsAndGroups() (commands []landingzone.Action, err error) {
 func (a Action) Execute(o *landingzone.Options) error {
 	console.Successf("Running custom command: %s %s\n", a.GetName(), o.SourcePath)
 
-	if a.Type == landingzone.GroupCommand {
-		err := validateExecution(a.Commands)
-
-		if err != nil {
-			return fmt.Errorf("%s group command validation failed: %s", a.Name, err.Error())
-		}
-	}
-
 	for _, command := range a.Commands {
 		if a.Type == landingzone.GroupCommand {
 			err := actions.ActionMap[command.SubCommand].Execute(o)

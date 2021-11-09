@@ -218,16 +218,6 @@ func (a Action) Execute(o *landingzone.Options) error {
 	return nil
 }
 
-func isBuiltinCommand(command string) bool {
-	for _, actionCommand := range actions.ActionMap {
-		if command == actionCommand.GetName() && actionCommand.GetType() == landingzone.BuiltinCommand {
-			return true
-		}
-	}
-
-	return false
-}
-
 func validateCustomCommands(customCommands map[string]Command) error {
 	for commandName := range customCommands {
 		exists := contains(actions.ActionMap, commandName)

@@ -2,7 +2,6 @@ package custom
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -217,35 +216,6 @@ func (a Action) Execute(o *landingzone.Options) error {
 	}
 
 	return nil
-}
-
-func validateExecution(commands []Command) error {
-	hasBuiltinCommand := false
-
-	for _, command := range commands {
-		if isBuiltinCommand(command.SubCommand) {
-			hasBuiltinCommand = true
-			break
-		}
-	}
-
-	if hasBuiltinCommand {
-		if !utils.FileExists(utils.SymphonyYamlFilePath) {
-			return errors.New("symphony.yaml file not found. Please run `rover init` to create a symphony.yaml file")
-		}
-	}
-
-	return nil
-}
-
-func isBuiltinCommand(command string) bool {
-	for _, actionCommand := range actions.ActionMap {
-		if command == actionCommand.GetName() && actionCommand.GetType() == landingzone.BuiltinCommand {
-			return true
-		}
-	}
-
-	return false
 }
 
 func validateCustomCommands(customCommands map[string]Command) error {

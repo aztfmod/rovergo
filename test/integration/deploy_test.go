@@ -5,9 +5,11 @@ package test
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/aztfmod/rover/pkg/builtin/actions"
 	"github.com/aztfmod/rover/pkg/console"
@@ -26,6 +28,10 @@ func Test_Execute_Group_Deploy_Command(t *testing.T) {
 	rover.SetHomeDirectory(roverHome)
 	copyCommandYamlToRoverHome(roverHome, "group_no_commands.yml", "commands.yml")
 	console.DebugEnabled = true
+
+	rand.Seed(time.Now().UnixNano())
+	environmentName := fmt.Sprintf("ci_%d", rand.Intn(100))
+
 	testDataPath := "../../test/testdata"
 	fmt.Println(testDataPath)
 
@@ -41,7 +47,7 @@ func Test_Execute_Group_Deploy_Command(t *testing.T) {
 	deployOptions.Flags().String("config-dir", testDataPath+"/configs/level0/launchpad", "")
 	deployOptions.Flags().String("source", os.Getenv("HOME")+"/.rover/caf-terraform-landingzones", "")
 	deployOptions.Flags().String("level", "level0", "")
-	deployOptions.Flags().String("environment", "test", "")
+	deployOptions.Flags().String("environment", environmentName, "")
 	deployOptions.Flags().Bool("launchpad", true, "")
 	optionsList := landingzone.BuildOptions(deployOptions)
 
@@ -51,6 +57,8 @@ func Test_Execute_Group_Deploy_Command(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	t.Cleanup(func() {
+		actions.ActionMap["destroy"].Execute(&optionsList[0])
+
 		removeCommandYamlFromHomeDir(roverHome)
 	})
 }

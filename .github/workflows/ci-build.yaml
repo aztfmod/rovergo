@@ -47,6 +47,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setup Azure Credentials
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Set up Go
         uses: actions/setup-go@v2
         if: ${{ !env.ACT }}

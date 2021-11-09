@@ -63,3 +63,5 @@ jobs:
 
       - name: Run integration tests in integration folder
         run: go test -timeout 600s -tags integration github.com/aztfmod/rover/test/integration
+        env:
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

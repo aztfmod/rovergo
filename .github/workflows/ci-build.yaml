@@ -64,6 +64,6 @@ jobs:
         run: git clone https://github.com/azure/caf-terraform-landingzones.git ~/.rover/caf-terraform-landingzones
 
       - name: Run integration tests in integration folder
-        run: go test -timeout 600s -tags integration github.com/aztfmod/rover/test/integration
+        run:  go test ./...  -tags unit -tags integration
         env:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

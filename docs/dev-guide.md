@@ -179,3 +179,58 @@ To run or test a local snapshot build, run goreleaser, the results will be place
 ```bash
 goreleaser --snapshot --rm-dist
 ```
+
+## Running Deployment Integration Tests
+
+It's possible to follow the below guideline to run the deploy integration tests on a fork of `aztfmod/rovergo` repo.
+
+### Running locally
+
+- Clone the `aztfmod/rovergo` repo
+
+```bash
+git clone https://github.com/aztfmod/rovergo.git
+```
+
+- Clone the Landingzone repo to _rover home directory_
+
+```bash
+git clone https://github.com/azure/caf-terraform-landingzones.git ~/.rover/caf-terraform-landingzones
+```
+
+- Login to Azure CLI
+
+```bash
+az login
+```
+
+- Remove the following first 2 lines from the [depoly_test.go](../test/integration/deploy_test.go) file
+
+```go
+//go:build integration && !unit
+// +build integration,!unit
+```
+
+- Run the test
+
+```bash
+go test -timeout 30s -tags unit -run ^Test_Execute_Group_Deploy_Command$ ./test/integration
+```
+
+### Running GitHub Actions
+
+- Fork the `aztfmod/rovergo` repo.
+
+- Create an _Azure Service Principal_ to give permissions to the `aztfmod/rovergo` repo Actions to access the _Azure Subscription_.
+
+```bash
+az ad sp create-for-rbac --name "rovergo" --role contributor --sdk-auth
+```
+
+> Official documentation can be found at [Create a Service Principal](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
+
+- Create a secret in the repo, name it as `AZURE_CREDENTIALS` with the output of _Service Principal_ object from previous step.
+
+- Make a change in the source code, commit and push the changes.
+
+- _CI Builds_ action will kick in automatically, linter, ci builder and integration tester jobs will run sequentially.

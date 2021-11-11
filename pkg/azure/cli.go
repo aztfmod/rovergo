@@ -8,6 +8,8 @@ package azure
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/aztfmod/rover/pkg/command"
 	"github.com/aztfmod/rover/pkg/console"
@@ -30,7 +32,7 @@ type Subscription struct {
 	User            AccountUser
 }
 
-// Identity holds an Azure AD identity; user, SP or MSI
+// Identity holds an Azure AD identity; user
 type signedInUserIdentity struct {
 	UserPrincipalName string
 	ObjectType        string
@@ -38,6 +40,13 @@ type signedInUserIdentity struct {
 	Mail              string
 	MailNickname      string
 	DisplayName       string
+}
+
+type signedInServicePrincipalIdentity struct {
+	DisplayName string `json:"displayName"`
+	ObjectID    string `json:"objectId"`
+	ObjectType  string `json:"objectType"`
+	ClientID    string `json:"appId"`
 }
 
 // VMIdentity is the output of 'az vm identity show'
@@ -48,7 +57,6 @@ type VMIdentity struct {
 	UserAssignedIdentities map[string]json.RawMessage `json:"userAssignedIdentities,omitempty"`
 }
 
-// Identity - can be either User or ServicePrincipal
 type Identity struct {
 	DisplayName string
 	ObjectID    string
@@ -110,8 +118,35 @@ func GetSignedInIdentity() (*Identity, error) {
 // GetSignedInIdentity gets the current logged in service principal from the Azure CLI
 // note az ad signed-in-user show does not work for sp's. see https://github.com/Azure/azure-cli/issues/10439
 func GetSignedInIdentityServicePrincipal() (*Identity, error) {
-	//TODO: az account show
-	//TODO: az sp show --id <id from az account show user>
-	//TODO: return Identity struct with DisplayName, ClientId and ObjectId of SP.
-	return nil, nil
+	account, err := GetSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.EqualFold(account.User.Usertype, "servicePrincipal") {
+		return nil, fmt.Errorf("Currently signed in user is not a Service Principal")
+	}
+
+	// When signed in as an SP, the client id of the Service Principal is populated into the user.name property
+	clientId := account.User.Name
+
+	cmdRes, err := command.QuickRun("az", "ad", "sp", "show", fmt.Sprintf("--id=%s", clientId))
+	if err != nil {
+		return nil, err
+	}
+
+	ident := &signedInServicePrincipalIdentity{}
+	err = json.Unmarshal([]byte(cmdRes), ident)
+	if err != nil {
+		return nil, err
+	}
+
+	basicIdent := &Identity{
+		DisplayName: ident.DisplayName,
+		ObjectID:    ident.ObjectID,
+		ObjectType:  ident.ObjectType,
+		ClientID:    ident.ClientID,
+	}
+
+	return basicIdent, nil
 }

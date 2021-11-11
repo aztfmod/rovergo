@@ -180,9 +180,9 @@ To run or test a local snapshot build, run goreleaser, the results will be place
 goreleaser --snapshot --rm-dist
 ```
 
-## Running Deployment Integration Tests
+## Running Integration Tests
 
-It's possible to follow the below guideline to run the deploy integration tests on a fork of `aztfmod/rovergo` repo.
+Rovergo has integration tests that you can run locally or via a Github Actions workflow.
 
 ### Running integration tests locally
 

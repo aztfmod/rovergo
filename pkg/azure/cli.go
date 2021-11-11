@@ -81,6 +81,7 @@ func GetSubscription() (*Subscription, error) {
 
 // GetSignedInIdentity gets the current logged in user from the Azure CLI
 // Will fail and exit if they aren't found
+// Will Fail if az is authenticated with a service principal. Use the GetSignedInIdentityServicePrincipal function instead
 func GetSignedInIdentity() (*Identity, error) {
 	err := command.CheckCommand("az")
 	if err != nil {
@@ -104,4 +105,13 @@ func GetSignedInIdentity() (*Identity, error) {
 		ObjectType:  ident.ObjectType,
 	}
 	return basicIdent, nil
+}
+
+// GetSignedInIdentity gets the current logged in service principal from the Azure CLI
+// note az ad signed-in-user show does not work for sp's. see https://github.com/Azure/azure-cli/issues/10439
+func GetSignedInIdentityServicePrincipal() (*Identity, error) {
+	//TODO: az account show
+	//TODO: az sp show --id <id from az account show user>
+	//TODO: return Identity struct with DisplayName, ClientId and ObjectId of SP.
+	return nil, nil
 }

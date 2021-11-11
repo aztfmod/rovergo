@@ -7,5 +7,5 @@
     "TODO",
     "IMPORTANT"
   ],
-  "go.testTags": "unit"
+  "go.testTags": "integration"
 }

@@ -128,9 +128,9 @@ func GetSignedInIdentityServicePrincipal() (*Identity, error) {
 	}
 
 	// When signed in as an SP, the client id of the Service Principal is populated into the user.name property
-	clientId := account.User.Name
+	clientID := account.User.Name
 
-	cmdRes, err := command.QuickRun("az", "ad", "sp", "show", fmt.Sprintf("--id=%s", clientId))
+	cmdRes, err := command.QuickRun("az", "ad", "sp", "show", fmt.Sprintf("--id=%s", clientID))
 	if err != nil {
 		return nil, err
 	}

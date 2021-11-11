@@ -420,6 +420,16 @@ func resetActionMap() {
 	}
 }
 
+func isBuiltinCommand(command string) bool {
+	for _, actionCommand := range actions.ActionMap {
+		if command == actionCommand.GetName() && actionCommand.GetType() == landingzone.BuiltinCommand {
+			return true
+		}
+	}
+
+	return false
+}
+
 func Test_Execute_GroupAllCustom(t *testing.T) {
 	//arrange
 	resetActionMap()

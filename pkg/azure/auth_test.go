@@ -15,27 +15,32 @@ import (
 
 func Test_IsOwnerCLI(t *testing.T) {
 	// If you're not an owner on the subscription you are using with the az CLI this test will fail
-	i, err := GetSignedInIdentity()
-	assert.Nil(t, err)
-	s, err := GetSubscription()
+	identity, err := getIdentity()
 	assert.Nil(t, err)
 
-	isOwner, err := CheckIsOwner(i.ObjectID, s.ID)
+	subscription, err := GetSubscription()
+	assert.Nil(t, err)
+
+	isOwner, err := CheckIsOwner(identity.ObjectID, subscription.ID)
 	assert.Nil(t, err)
 	assert.True(t, isOwner)
+
 }
 
 func Test_IsNotOwnerSub(t *testing.T) {
-	i, err := GetSignedInIdentity()
+	// arrange
+	identity, err := getIdentity()
 	assert.Nil(t, err)
 
-	// Random GUID for subscription
-	isOwner, err := CheckIsOwner(i.ObjectID, utils.GenerateRandomGUID())
-	// This will error with 404
+	// act
+	isOwner, err := CheckIsOwner(identity.ObjectID, utils.GenerateRandomGUID())
+
+	// assert
 	assert.NotNil(t, err)
 	detailedErr := err.(autorest.DetailedError)
 	assert.Equal(t, int(404), detailedErr.StatusCode)
 	assert.False(t, isOwner)
+
 }
 
 func Test_IsNotOwnerOID(t *testing.T) {
@@ -46,4 +51,19 @@ func Test_IsNotOwnerOID(t *testing.T) {
 	isOwner, err := CheckIsOwner(utils.GenerateRandomGUID(), s.ID)
 	assert.Nil(t, err)
 	assert.False(t, isOwner)
+}
+
+func getIdentity() (*Identity, error) {
+	acct, err := GetSubscription()
+	if err != nil {
+		return nil, err
+	}
+	switch userType := acct.User.Usertype; userType {
+	case "user":
+		return GetSignedInIdentity()
+	case "servicePrincipal":
+		return GetSignedInIdentityServicePrincipal()
+	default:
+		return nil, nil
+	}
 }

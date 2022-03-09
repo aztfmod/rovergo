@@ -41,7 +41,7 @@ Git is not required`,
 func init() {
 	landingzoneCmd.AddCommand(lzFetchCmd)
 	lzFetchCmd.Flags().StringP("repo", "r", "azure/caf-terraform-landingzones", "Which repo on GitHub to fetch")
-	lzFetchCmd.Flags().StringP("branch", "b", "master", "Which branch to fetch")
+	lzFetchCmd.Flags().StringP("branch", "b", "main", "Which branch to fetch")
 	lzFetchCmd.Flags().IntP("strip", "s", 1, "Levels to strip from repo hierarchy, best left as 1")
 	lzFetchCmd.Flags().StringP("dest", "d", "./landingzones", "Where to place output")
 	lzFetchCmd.Flags().StringP("folder", "f", "", "Extract a sub-folder from the repo")

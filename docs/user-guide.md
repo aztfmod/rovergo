@@ -283,7 +283,7 @@ Within this directory you would expect to see the Terraform modules and provider
 
 ## CAF Concepts
 
-This is not intended to be a complete guide to CAF Landing Zones, which is a complex & nuanced topic, [some of the complete CAF docs can be found here](https://github.com/Azure/caf-terraform-landingzones/tree/master/documentation). However there are a few concepts and terms you will need to understand when running Rover v2
+This is not intended to be a complete guide to CAF Landing Zones, which is a complex & nuanced topic, [some of the complete CAF docs can be found here](https://github.com/Azure/caf-terraform-landingzones/tree/main/documentation). However there are a few concepts and terms you will need to understand when running Rover v2
 
 - **Landing zone**
 Landing zones (or *CAF Landing Zones*) are simply sets of Azure resources deployed via CAF Terraform modules, they are highly opinionated, governed and designed to support one or more application workloads.

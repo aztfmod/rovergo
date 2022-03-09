@@ -342,7 +342,7 @@ End of functions from https://github.com/client9/shlib
 EOF
 
 PROJECT_NAME="rovergo"
-OWNER=aztfmod
+OWNER=martyni
 REPO="rovergo"
 BINARY=rover
 FORMAT=tar.gz
